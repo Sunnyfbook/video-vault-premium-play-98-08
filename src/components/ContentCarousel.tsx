@@ -122,7 +122,7 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
                 }`}
               >
                 <Card className="rounded-xl overflow-hidden shadow-lg border-0">
-                  <div className="aspect-[9/16] bg-black overflow-hidden">
+                  <div className="aspect-[9/16] bg-black overflow-hidden max-w-[280px] mx-auto">
                     {renderContent(item, index)}
                   </div>
                 </Card>
