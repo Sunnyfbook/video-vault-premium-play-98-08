@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Video } from '@/models/Video';
-import { Eye, CalendarDays, Copy, Share2 } from 'lucide-react'; // Added Eye, CalendarDays, Share2
+import { Eye, CalendarDays, Copy, Share2, CheckCircle } from 'lucide-react'; // Added CheckCircle
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
@@ -19,47 +19,51 @@ const VideoInfo: React.FC<VideoInfoProps> = ({ video }) => {
     toast({
       title: "Link Copied!",
       description: "The video link has been copied to your clipboard.",
-      variant: "default", // Changed from no variant for better visibility
+      variant: "default",
     });
     
-    setTimeout(() => setCopied(false), 3000); // Increased timeout
+    setTimeout(() => setCopied(false), 3000);
   };
 
   return (
-    <div className="mt-6 bg-white dark:bg-slate-800 p-6 rounded-xl shadow-lg">
-      <h1 className="text-3xl font-bold mb-3 text-gray-900 dark:text-white">{video.title}</h1>
-      <div className="flex flex-wrap items-center text-sm text-gray-500 dark:text-gray-400 mb-5 gap-x-4 gap-y-2">
+    <div className="bg-card p-6 md:p-8 rounded-xl shadow-card">
+      <h1 className="text-3xl lg:text-4xl font-extrabold mb-4 text-foreground">{video.title}</h1>
+      <div className="flex flex-wrap items-center text-sm text-muted-foreground mb-6 gap-x-5 gap-y-2">
         <div className="flex items-center">
-          <CalendarDays size={16} className="mr-1.5 text-gray-400 dark:text-gray-500" />
-          <span>{new Date(video.date_added).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+          <CalendarDays size={18} className="mr-2 text-primary" />
+          <span>Published on {new Date(video.date_added).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
         </div>
         <div className="flex items-center">
-          <Eye size={16} className="mr-1.5 text-gray-400 dark:text-gray-500" />
+          <Eye size={18} className="mr-2 text-primary" />
           <span>{video.views.toLocaleString()} views</span>
         </div>
       </div>
       {video.description && (
-        <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6 prose prose-sm dark:prose-invert max-w-full">
-          {video.description}
-        </p>
+        <div className="prose prose-base dark:prose-invert max-w-none text-foreground/90 leading-relaxed mb-8">
+          <p>{video.description}</p>
+        </div>
       )}
       
-      <div className="mt-6 border-t border-gray-200 dark:border-gray-700 pt-6">
+      <div className="mt-6 border-t border-border pt-6 flex flex-col sm:flex-row items-center gap-4">
         <Button 
-          variant="default" // Changed to default for more prominence
-          className="bg-brand hover:bg-brand/90 dark:bg-brand-accent dark:hover:bg-brand-accent/90 text-white flex items-center gap-2 shadow-md hover:shadow-lg transition-shadow" 
+          variant={copied ? "default" : "primary"}
+          size="lg"
+          className={`w-full sm:w-auto shadow-md hover:shadow-lg transition-all duration-300 ease-in-out
+                      ${copied ? 'bg-green-500 hover:bg-green-600 text-white' 
+                               : 'bg-primary hover:bg-primary/90 text-primary-foreground'}`}
           onClick={copyCurrentLink}
         >
           {copied ? (
             <>
-              <Copy size={18} className="mr-1" /> Link Copied!
+              <CheckCircle size={20} className="mr-2" /> Link Copied!
             </>
             ) : (
             <>
-              <Share2 size={18} className="mr-1" /> Share Video
+              <Share2 size={20} className="mr-2" /> Share Video
             </>
           )}
         </Button>
+        {/* Placeholder for other actions if needed */}
       </div>
     </div>
   );

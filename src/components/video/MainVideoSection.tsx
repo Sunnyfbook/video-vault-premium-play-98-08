@@ -18,17 +18,17 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
   bottomAds 
 }) => {
   return (
-    <div className="w-full lg:w-8/12 flex-shrink-0"> {/* Added flex-shrink-0 */}
+    <div className="w-full lg:w-8/12 flex-shrink-0 space-y-6 md:space-y-8">
       {/* In-video ads above player */}
       {inVideoAds.length > 0 && (
-        <div className="bg-white dark:bg-slate-800 p-3 rounded-xl shadow-lg mb-4">
-           <h3 className="text-xs font-semibold text-gray-400 dark:text-gray-500 mb-2 uppercase tracking-wider text-center">Advertisement</h3>
-          <AdsSection ads={inVideoAds} />
+        <div className="bg-card p-4 rounded-xl shadow-card">
+           <h3 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider text-center">Advertisement</h3>
+          <AdsSection ads={inVideoAds} className="grid grid-cols-1 gap-3" />
         </div>
       )}
       
       {/* Video player */}
-      <div className="bg-black rounded-xl shadow-2xl overflow-hidden border-4 border-gray-900 dark:border-black sticky top-4"> {/* Enhanced styling */}
+      <div className="bg-video-background rounded-xl shadow-2xl overflow-hidden border-2 border-gray-800 dark:border-black sticky top-4 aspect-video"> {/* Ensured aspect ratio for player container */}
         <VideoPlayer src={video.url} title={video.title} />
       </div>
       
@@ -37,8 +37,8 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
       
       {/* Bottom ads */}
       {bottomAds.length > 0 && (
-         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-lg mt-8">
-          <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wider text-center">Advertisement</h3>
+         <div className="bg-card p-4 rounded-xl shadow-card mt-8">
+          <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider text-center">Advertisement</h3>
           <AdsSection ads={bottomAds} className="grid grid-cols-1 sm:grid-cols-2 gap-4" />
         </div>
       )}
