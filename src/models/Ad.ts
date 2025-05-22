@@ -25,6 +25,22 @@ export const ads: Ad[] = [
     code: '<div class="ad-placeholder">Adstera Ad Placeholder</div>',
     position: 'bottom',
     isActive: true
+  },
+  {
+    id: '3',
+    name: 'Sidebar Ad',
+    type: 'monetag',
+    code: '<div class="ad-placeholder">Monetag Sidebar Ad</div>',
+    position: 'sidebar',
+    isActive: true
+  },
+  {
+    id: '4',
+    name: 'In-Video Ad',
+    type: 'adstera',
+    code: '<div class="ad-placeholder">Adstera In-Video Ad</div>',
+    position: 'in-video',
+    isActive: true
   }
 ];
 

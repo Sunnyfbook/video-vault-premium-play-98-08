@@ -1,0 +1,104 @@
+
+/* Video Player Styles */
+.video-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  background-color: #000;
+  overflow: hidden;
+}
+
+.video-container video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.video-controls {
+  z-index: 10;
+  padding: 16px;
+}
+
+.progress-container {
+  height: 4px;
+  cursor: pointer;
+  position: relative;
+  transition: height 0.2s ease;
+}
+
+.progress-container:hover {
+  height: 6px;
+}
+
+.progress-fill {
+  background: linear-gradient(to right, #3b82f6, #2563eb);
+  border-radius: 999px;
+}
+
+/* Ad container styles */
+.ad-container {
+  width: 100%;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  margin-bottom: 1rem;
+  min-height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ad-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 90px;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  color: #64748b;
+  font-weight: 500;
+  padding: 1rem;
+  text-align: center;
+}
+
+.monetag-ad .ad-placeholder {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-left: 4px solid #3b82f6;
+}
+
+.adstera-ad .ad-placeholder {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border-left: 4px solid #22c55e;
+}
+
+/* Custom input range styles */
+input[type="range"] {
+  -webkit-appearance: none;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 5px;
+  background-size: 70% 100%;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 12px;
+  width: 12px;
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+}
+
+/* Fullscreen styles */
+.video-container:fullscreen {
+  width: 100vw;
+  height: 100vh;
+}
+
+.video-container:fullscreen video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}

@@ -10,6 +10,7 @@ import VideoPage from "./pages/VideoPage";
 import Login from "./pages/Login";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
+import './videoPlayer.css';
 
 const queryClient = new QueryClient();
 
