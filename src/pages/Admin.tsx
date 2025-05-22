@@ -18,6 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 import HomepageContentManager from "@/components/admin/HomepageContentManager";
 import { getHomepageConfig, updateHomepageConfig, HomepageConfig, defaultConfig as initialHomepageConfigValues } from '@/models/HomepageConfig';
 import { useHomepageConfig } from '@/hooks/useHomepageConfig';
+import AdminCredentialsManager from '@/components/admin/AdminCredentialsManager';
 
 const Admin: React.FC = () => {
   const { isLoggedIn, logout } = useAuth();
@@ -342,6 +343,7 @@ const Admin: React.FC = () => {
           <TabsTrigger value="seo">SEO Settings</TabsTrigger>
           <TabsTrigger value="homepage">Homepage</TabsTrigger>
           <TabsTrigger value="homepage_settings">Homepage Settings</TabsTrigger>
+          <TabsTrigger value="account">Account</TabsTrigger>
         </TabsList>
         {/* Videos Tab */}
         <TabsContent value="videos">
@@ -912,6 +914,10 @@ const Admin: React.FC = () => {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+        {/* Account Tab - New tab for admin credentials */}
+        <TabsContent value="account">
+          <AdminCredentialsManager />
         </TabsContent>
       </Tabs>
     </div>

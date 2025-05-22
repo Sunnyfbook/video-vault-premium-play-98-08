@@ -1,71 +1,86 @@
 
 import React from 'react';
-import { Video } from '@/models/Video';
-import { Eye, CalendarDays, Copy, Share2, CheckCircle } from 'lucide-react'; // Added CheckCircle
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { Card, CardContent } from '@/components/ui/card';
+import { Share2, ThumbsUp, ChevronDown, ChevronUp, MoreHorizontal } from 'lucide-react';
+import { Video } from '@/models/Video';
 
 interface VideoInfoProps {
   video: Video;
+  isExpanded: boolean;
+  toggleExpanded: () => void;
 }
 
-const VideoInfo: React.FC<VideoInfoProps> = ({ video }) => {
-  const { toast } = useToast();
-  const [copied, setCopied] = React.useState(false);
-
-  const copyCurrentLink = () => {
-    navigator.clipboard.writeText(window.location.href);
-    setCopied(true);
-    toast({
-      title: "Link Copied!",
-      description: "The video link has been copied to your clipboard.",
-      variant: "default",
-    });
-    
-    setTimeout(() => setCopied(false), 3000);
+const VideoInfo: React.FC<VideoInfoProps> = ({ video, isExpanded, toggleExpanded }) => {
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    }).format(date);
   };
-
+  
+  // Truncate description if not expanded and longer than 120 characters
+  const shouldTruncate = !isExpanded && video.description && video.description.length > 120;
+  const displayDescription = shouldTruncate
+    ? video.description.slice(0, 120) + '...'
+    : video.description;
+    
   return (
-    <div className="bg-card p-6 md:p-8 rounded-xl shadow-card">
-      <h1 className="text-3xl lg:text-4xl font-extrabold mb-4 text-foreground">{video.title}</h1>
-      <div className="flex flex-wrap items-center text-sm text-muted-foreground mb-6 gap-x-5 gap-y-2">
-        <div className="flex items-center">
-          <CalendarDays size={18} className="mr-2 text-primary" />
-          <span>Published on {new Date(video.date_added).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+    <Card className="shadow-sm bg-card">
+      <CardContent className="p-4 pt-5">
+        <h1 className="text-xl md:text-2xl font-bold mb-2 text-foreground">{video.title}</h1>
+        
+        <div className="flex flex-wrap items-center justify-between gap-y-4 text-sm text-muted-foreground mb-4">
+          <div className="flex items-center gap-2">
+            <span>{video.views} views</span>
+            <span className="w-1 h-1 bg-muted-foreground rounded-full"></span>
+            <span>{formatDate(video.date_added)}</span>
+          </div>
+          
+          <div className="flex gap-2">
+            <Button variant="secondary" size="sm" className="flex items-center gap-1">
+              <ThumbsUp className="h-4 w-4" /> Like
+            </Button>
+            
+            <Button variant="secondary" size="sm" className="flex items-center gap-1">
+              <Share2 className="h-4 w-4" /> Share
+            </Button>
+            
+            <Button variant="outline" size="icon">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center">
-          <Eye size={18} className="mr-2 text-primary" />
-          <span>{video.views.toLocaleString()} views</span>
-        </div>
-      </div>
-      {video.description && (
-        <div className="prose prose-base dark:prose-invert max-w-none text-foreground/90 leading-relaxed mb-8">
-          <p>{video.description}</p>
-        </div>
-      )}
-      
-      <div className="mt-6 border-t border-border pt-6 flex flex-col sm:flex-row items-center gap-4">
-        <Button 
-          variant={copied ? "default" : "primary"}
-          size="lg"
-          className={`w-full sm:w-auto shadow-md hover:shadow-lg transition-all duration-300 ease-in-out
-                      ${copied ? 'bg-green-500 hover:bg-green-600 text-white' 
-                               : 'bg-primary hover:bg-primary/90 text-primary-foreground'}`}
-          onClick={copyCurrentLink}
-        >
-          {copied ? (
-            <>
-              <CheckCircle size={20} className="mr-2" /> Link Copied!
-            </>
-            ) : (
-            <>
-              <Share2 size={20} className="mr-2" /> Share Video
-            </>
-          )}
-        </Button>
-        {/* Placeholder for other actions if needed */}
-      </div>
-    </div>
+        
+        {/* Video description */}
+        {video.description && (
+          <div className="relative text-sm text-muted-foreground">
+            <p className="whitespace-pre-line">{displayDescription}</p>
+            
+            {video.description.length > 120 && (
+              <Button
+                variant="ghost" 
+                size="sm" 
+                className="mt-1 flex items-center gap-1 font-medium px-2 py-0.5"
+                onClick={toggleExpanded}
+              >
+                {isExpanded ? (
+                  <>
+                    Show less <ChevronUp className="h-4 w-4" />
+                  </>
+                ) : (
+                  <>
+                    Show more <ChevronDown className="h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

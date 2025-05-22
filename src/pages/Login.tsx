@@ -23,15 +23,20 @@ const Login: React.FC = () => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate network delay
-    setTimeout(() => {
-      const success = login(username, password);
-      setIsLoading(false);
-      
+    try {
+      const success = await login(username, password);
       if (success) {
         navigate('/admin');
+      } else {
+        // Show error message
+        alert("Invalid username or password");
       }
-    }, 800);
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("An error occurred during login");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -50,7 +55,7 @@ const Login: React.FC = () => {
               <Input 
                 id="username"
                 type="text"
-                placeholder="admin"
+                placeholder="Username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required 
@@ -66,9 +71,6 @@ const Login: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required 
               />
-              <p className="text-xs text-gray-500">
-                Default credentials: admin / admin123
-              </p>
             </div>
           </CardContent>
           <CardFooter>
