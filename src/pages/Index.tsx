@@ -4,12 +4,13 @@ import { useHomepageContent } from "@/hooks/useHomepageContent";
 import { useHomepageConfig } from "@/hooks/useHomepageConfig";
 import { Card, CardContent } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { Video, Image as ImageIcon, Zap, Play, ArrowRight, Loader2 } from "lucide-react";
+import { Video, Image as ImageIcon, Zap, Play, ArrowRight, Loader2, Instagram } from "lucide-react";
 import { Ad, getActiveAds, getAdsByPosition } from "@/models/Ad";
 import AdsSection from "@/components/video/AdsSection";
+import InstagramEmbed from "@/components/InstagramEmbed";
 
 const Index = () => {
-  const { videos, images, loading: contentLoading } = useHomepageContent();
+  const { videos, images, instagram, loading: contentLoading } = useHomepageContent();
   const { config: homepageConfig, loading: configLoading, error: configError } = useHomepageConfig();
   const [topAds, setTopAds] = useState<Ad[]>([]);
   const [bottomAds, setBottomAds] = useState<Ad[]>([]);
@@ -204,6 +205,62 @@ const Index = () => {
                 </Carousel>
               )}
             </section>
+
+            {/* Instagram Posts Section */}
+            {instagram && instagram.length > 0 && (
+              <section>
+                <div className="flex items-center gap-3 mb-8">
+                  <Instagram size={36} className="text-pink-500" />
+                  <h2 className="section-title !mb-0">Instagram Posts</h2>
+                </div>
+                {contentLoading ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                    {[...Array(3)].map((_, i) => (
+                      <Card key={i} className="rounded-xl shadow-card animate-pulse bg-gray-200 dark:bg-slate-800">
+                        <div className="aspect-square bg-gray-300 dark:bg-gray-700 rounded-t-xl"></div>
+                        <CardContent className="p-5">
+                          <div className="h-6 bg-gray-400 dark:bg-gray-600 rounded w-3/4 mb-3"></div>
+                          <div className="h-4 bg-gray-400 dark:bg-gray-600 rounded w-full"></div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <Carousel 
+                    opts={{ align: "start", loop: instagram.length > 2 }} 
+                    className="w-full group py-10"
+                  >
+                    <CarouselContent className="-ml-4">
+                      {instagram.map((post) => (
+                        <CarouselItem key={post.id} className="pl-4 md:basis-1/2 lg:basis-1/3 group">
+                          <Card className={`rounded-xl shadow-card overflow-hidden bg-card h-full flex flex-col ${cardHoverClass}`}>
+                            <div className="aspect-square overflow-hidden rounded-t-xl relative">
+                              <InstagramEmbed 
+                                url={post.url}
+                                title={post.title}
+                                className="w-full h-full"
+                              />
+                            </div>
+                            <CardContent className="p-5 flex-grow">
+                              <h3 className="font-semibold text-xl mb-2 text-foreground group-hover:text-pink-500 transition-colors">{post.title}</h3>
+                              {post.description && (
+                                <p className="text-sm text-muted-foreground line-clamp-3">{post.description}</p>
+                              )}
+                            </CardContent>
+                          </Card>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    {instagram.length > 1 && (
+                      <>
+                        <CarouselPrevious className="ml-12 bg-background/80 hover:bg-background dark:bg-slate-700/80 dark:hover:bg-slate-700 shadow-md" />
+                        <CarouselNext className="mr-12 bg-background/80 hover:bg-background dark:bg-slate-700/80 dark:hover:bg-slate-700 shadow-md" />
+                      </>
+                    )}
+                  </Carousel>
+                )}
+              </section>
+            )}
 
             {/* Bottom Ads */}
             {bottomAds.length > 0 && (

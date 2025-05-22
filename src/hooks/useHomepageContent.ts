@@ -8,7 +8,7 @@ export type HomepageContent = {
   description?: string | null;
   url: string;
   thumbnail?: string | null;
-  type: "video" | "image";
+  type: "video" | "image" | "instagram";
   display_order?: number;
 };
 
@@ -60,6 +60,7 @@ export function useHomepageContent() {
 
   const videos = content.filter((c) => c.type === "video");
   const images = content.filter((c) => c.type === "image");
+  const instagram = content.filter((c) => c.type === "instagram");
 
-  return { content, videos, images, loading, error, refetch: fetchContent };
+  return { content, videos, images, instagram, loading, error, refetch: fetchContent };
 }
