@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useHomepageContent } from "@/hooks/useHomepageContent";
 import { useHomepageConfig } from "@/hooks/useHomepageConfig";
@@ -123,11 +124,6 @@ const Index = () => {
                   {[...Array(3)].map((_, i) => (
                     <Card key={i} className="rounded-xl shadow-card animate-pulse bg-gray-200 dark:bg-slate-800">
                       <div className="aspect-video bg-gray-300 dark:bg-gray-700 rounded-t-xl"></div>
-                      <CardContent className="p-5">
-                        <div className="h-6 bg-gray-400 dark:bg-gray-600 rounded w-3/4 mb-3"></div>
-                        <div className="h-4 bg-gray-400 dark:bg-gray-600 rounded w-full mb-1"></div>
-                        <div className="h-4 bg-gray-400 dark:bg-gray-600 rounded w-5/6"></div>
-                      </CardContent>
                     </Card>
                   ))}
                 </div>
@@ -143,20 +139,11 @@ const Index = () => {
                 >
                   <CarouselContent className="-ml-4">
                     {videos.map((video) => (
-                      <CarouselItem key={video.id} className="pl-4 md:basis-1/2 lg:basis-1/3 group">
-                        <Card className={`rounded-xl shadow-card overflow-hidden bg-card h-full flex flex-col ${cardHoverClass}`}>
-                          <div className="relative aspect-video bg-black rounded-t-xl group-hover:opacity-90 transition-opacity">
+                      <CarouselItem key={video.id} className="pl-4 md:basis-1/2 lg:basis-1/2 group">
+                        <Card className={`rounded-xl shadow-card overflow-hidden bg-card ${cardHoverClass}`}>
+                          <div className="relative aspect-video lg:aspect-[16/10] xl:aspect-[16/9] bg-black rounded-xl group-hover:opacity-90 transition-opacity">
                             {renderContent(video)}
                           </div>
-                          <CardContent className="p-5 flex-grow flex flex-col">
-                            <h3 className="font-semibold text-xl mb-2 text-foreground group-hover:text-primary transition-colors">{video.title}</h3>
-                            <p className="text-sm text-muted-foreground line-clamp-3 flex-grow">{video.description}</p>
-                            {video.type !== "instagram" && (
-                              <a href={`/video/${video.id}`} className="mt-4 inline-flex items-center text-sm font-medium text-brand-accent hover:underline">
-                                Watch Now <ArrowRight size={16} className="ml-1" />
-                              </a>
-                            )}
-                          </CardContent>
                         </Card>
                       </CarouselItem>
                     ))}
@@ -181,11 +168,7 @@ const Index = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                   {[...Array(3)].map((_, i) => (
                      <Card key={i} className="rounded-xl shadow-card animate-pulse bg-gray-200 dark:bg-slate-800">
-                      <div className="aspect-video bg-gray-300 dark:bg-gray-700 rounded-t-xl"></div>
-                      <CardContent className="p-5">
-                        <div className="h-6 bg-gray-400 dark:bg-gray-600 rounded w-3/4 mb-3"></div>
-                        <div className="h-4 bg-gray-400 dark:bg-gray-600 rounded w-full"></div>
-                      </CardContent>
+                      <div className="aspect-video bg-gray-300 dark:bg-gray-700 rounded-xl"></div>
                     </Card>
                   ))}
                 </div>
@@ -201,15 +184,11 @@ const Index = () => {
                 >
                   <CarouselContent className="-ml-4">
                     {images.map((img) => (
-                      <CarouselItem key={img.id} className="pl-4 md:basis-1/2 lg:basis-1/3 group">
-                        <Card className={`rounded-xl shadow-card overflow-hidden bg-card h-full flex flex-col ${cardHoverClass}`}>
-                          <div className="aspect-square sm:aspect-video overflow-hidden rounded-t-xl relative">
+                      <CarouselItem key={img.id} className="pl-4 md:basis-1/2 lg:basis-1/2 group">
+                        <Card className={`rounded-xl shadow-card overflow-hidden bg-card ${cardHoverClass}`}>
+                          <div className="aspect-square md:aspect-[4/3] lg:aspect-[16/10] xl:aspect-[16/9] overflow-hidden rounded-xl relative">
                             {renderContent(img)}
                           </div>
-                          <CardContent className="p-5 flex-grow">
-                            <h3 className="font-semibold text-xl mb-2 text-foreground group-hover:text-brand-accent transition-colors">{img.title}</h3>
-                            <p className="text-sm text-muted-foreground line-clamp-3">{img.description}</p>
-                          </CardContent>
                         </Card>
                       </CarouselItem>
                     ))}
