@@ -15,21 +15,26 @@ export type HomepageContent = {
 export function useHomepageContent() {
   const [content, setContent] = useState<HomepageContent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchContent = useCallback(async () => {
     setLoading(true);
+    setError(null);
+    
     const { data, error } = await supabase
       .from("homepage_content")
       .select("*")
       .order("display_order", { ascending: true });
+    
     if (error) {
+      console.error("Error fetching homepage content:", error);
+      setError(error.message);
       setContent([]);
       setLoading(false);
       return;
     }
-    setContent(
-      (data || []) as HomepageContent[]
-    );
+    
+    setContent((data || []) as HomepageContent[]);
     setLoading(false);
   }, []);
 
@@ -54,5 +59,5 @@ export function useHomepageContent() {
   const videos = content.filter((c) => c.type === "video");
   const images = content.filter((c) => c.type === "image");
 
-  return { content, videos, images, loading, refetch: fetchContent };
+  return { content, videos, images, loading, error, refetch: fetchContent };
 }

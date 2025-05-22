@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -23,7 +22,7 @@ const defaultFormState = {
 };
 
 const HomepageContentManager: React.FC = () => {
-  const { content, videos, images, loading } = useHomepageContent();
+  const { content, videos, images, loading, error } = useHomepageContent();
   const [form, setForm] = useState({ ...defaultFormState });
   const [tab, setTab] = useState<"video" | "image">("video");
   const { toast } = useToast();
@@ -32,6 +31,7 @@ const HomepageContentManager: React.FC = () => {
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
+    
     if (!form.url.trim() || !form.title.trim()) {
       toast({
         title: "Title and URL are required.",
@@ -40,6 +40,20 @@ const HomepageContentManager: React.FC = () => {
       setSaving(false);
       return;
     }
+
+    // Check if the user is authenticated
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      toast({
+        title: "Authentication required",
+        description: "You must be logged in to add content.",
+        variant: "destructive",
+      });
+      setSaving(false);
+      return;
+    }
+    
     const { error } = await supabase.from("homepage_content").insert([
       {
         title: form.title,
@@ -50,8 +64,11 @@ const HomepageContentManager: React.FC = () => {
         display_order: Number(form.display_order) || 0,
       },
     ]);
+    
     setSaving(false);
+    
     if (error) {
+      console.error("Error adding content:", error);
       toast({
         title: "Error adding content",
         description: error.message,
@@ -59,6 +76,7 @@ const HomepageContentManager: React.FC = () => {
       });
       return;
     }
+    
     setForm({ ...defaultFormState, type: tab });
     toast({
       title: `${form.type === "video" ? "Video" : "Image"} added`,
@@ -67,8 +85,23 @@ const HomepageContentManager: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     if (!window.confirm("Delete this item?")) return;
+    
+    // Check if the user is authenticated
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      toast({
+        title: "Authentication required",
+        description: "You must be logged in to delete content.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     const { error } = await supabase.from("homepage_content").delete().eq("id", id);
+    
     if (error) {
+      console.error("Error deleting item:", error);
       toast({
         title: "Error deleting item",
         description: error.message,
@@ -83,6 +116,23 @@ const HomepageContentManager: React.FC = () => {
     setTab(val as "video" | "image");
     setForm({ ...defaultFormState, type: val as "video" | "image" });
   };
+
+  // Show error if there was an issue fetching content
+  if (error) {
+    return (
+      <Card className="mb-5">
+        <CardHeader>
+          <CardTitle className="text-red-500">Error Loading Content</CardTitle>
+          <CardDescription>
+            There was a problem loading the homepage content: {error}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button onClick={() => window.location.reload()}>Refresh Page</Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div>
