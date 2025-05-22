@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,8 +16,6 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { supabase } from '@/integrations/supabase/client';
-import HomepageContentTab from '@/components/admin/HomepageContentTab';
-import { getHomepageContent, HomepageContent } from '@/models/Homepage';
 
 const Admin: React.FC = () => {
   const { isLoggedIn, logout } = useAuth();
@@ -24,7 +23,6 @@ const Admin: React.FC = () => {
   const [ads, setAds] = useState<AdModel[]>([]);
   const [seoSettings, setSeoSettings] = useState<SEOSetting[]>([]);
   const [selectedSEO, setSelectedSEO] = useState<SEOSetting | null>(null);
-  const [homepageContent, setHomepageContent] = useState<HomepageContent[]>([]);
   const [newVideo, setNewVideo] = useState({
     title: '',
     description: '',
@@ -57,9 +55,6 @@ const Admin: React.FC = () => {
         
         const seoData = await getSEOSettings();
         setSeoSettings(seoData);
-        
-        const homepageData = await getHomepageContent();
-        setHomepageContent(homepageData);
       } catch (error) {
         console.error("Error loading data:", error);
         toast({
@@ -96,21 +91,12 @@ const Admin: React.FC = () => {
         () => { getSEOSettings().then(setSeoSettings); }
       )
       .subscribe();
-      
-    const homepageChannel = supabase
-      .channel('public:homepage_content')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'homepage_content' },
-        () => { getHomepageContent().then(setHomepageContent); }
-      )
-      .subscribe();
     
     // Clean up subscriptions
     return () => {
       supabase.removeChannel(videosChannel);
       supabase.removeChannel(adsChannel);
       supabase.removeChannel(seoChannel);
-      supabase.removeChannel(homepageChannel);
     };
   }, [toast]);
   
@@ -282,20 +268,6 @@ const Admin: React.FC = () => {
     }
   };
   
-  const refreshHomepageContent = async () => {
-    try {
-      const data = await getHomepageContent();
-      setHomepageContent(data);
-    } catch (error) {
-      console.error("Error refreshing homepage content:", error);
-      toast({
-        title: "Error",
-        description: "Failed to refresh homepage content",
-        variant: "destructive"
-      });
-    }
-  };
-  
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
@@ -315,7 +287,6 @@ const Admin: React.FC = () => {
         <TabsList className="mb-6">
           <TabsTrigger value="videos">Videos</TabsTrigger>
           <TabsTrigger value="ads">Ads</TabsTrigger>
-          <TabsTrigger value="homepage">Homepage</TabsTrigger>
           <TabsTrigger value="seo">SEO Settings</TabsTrigger>
         </TabsList>
         
@@ -617,16 +588,7 @@ const Admin: React.FC = () => {
           </div>
         </TabsContent>
         
-        {/* New Homepage Content Tab */}
-        <TabsContent value="homepage">
-          <HomepageContentTab 
-            content={homepageContent}
-            videos={videos}
-            refreshContent={refreshHomepageContent}
-          />
-        </TabsContent>
-        
-        {/* SEO Settings Tab */}
+        {/* New SEO Settings Tab */}
         <TabsContent value="seo">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* SEO Page List */}
