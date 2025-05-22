@@ -12,6 +12,8 @@ import { useToast } from '@/hooks/use-toast';
 const VideoPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [video, setVideo] = useState<Video | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [topAds, setTopAds] = useState<Ad[]>([]);
   const [bottomAds, setBottomAds] = useState<Ad[]>([]);
   const [sidebarAds, setSidebarAds] = useState<Ad[]>([]);
@@ -21,18 +23,35 @@ const VideoPage: React.FC = () => {
 
   useEffect(() => {
     if (id) {
-      const foundVideo = getVideoById(id);
+      // Reset states when ID changes
+      setLoading(true);
+      setError(null);
       
-      if (foundVideo) {
-        setVideo(foundVideo);
-        // Increment view count
-        incrementViews(id);
-      } else {
+      try {
+        const foundVideo = getVideoById(id);
+        
+        if (foundVideo) {
+          setVideo(foundVideo);
+          // Increment view count
+          incrementViews(id);
+        } else {
+          setError(`Video with ID ${id} was not found.`);
+          toast({
+            title: "Video Not Found",
+            description: "The requested video could not be found.",
+            variant: "destructive",
+          });
+        }
+      } catch (e) {
+        console.error("Error loading video:", e);
+        setError("An error occurred while loading the video.");
         toast({
-          title: "Video Not Found",
-          description: "The requested video could not be found.",
+          title: "Error",
+          description: "An error occurred while loading the video.",
           variant: "destructive",
         });
+      } finally {
+        setLoading(false);
       }
 
       // Load ads by position
@@ -54,7 +73,15 @@ const VideoPage: React.FC = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (!video) {
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-16 flex flex-col items-center justify-center">
+        <h1 className="text-2xl font-bold mb-4">Loading video...</h1>
+      </div>
+    );
+  }
+
+  if (error || !video) {
     return (
       <div className="container mx-auto px-4 py-16 flex flex-col items-center justify-center">
         <h1 className="text-2xl font-bold mb-4">Video not found</h1>
@@ -93,11 +120,12 @@ const VideoPage: React.FC = () => {
         </Button>
       </div>
       
+      {/* Main content area */}
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Main content */}
         <div className="w-full lg:w-8/12">
           {/* In-video ads above player */}
-          {inVideoAds.length > 0 && inVideoAds.some(ad => ad.position === 'in-video') && (
+          {inVideoAds.length > 0 && (
             <div className="mb-4">
               {inVideoAds.map(ad => (
                 <AdContainer key={ad.id} adType={ad.type} adCode={ad.code} className="mb-4" />

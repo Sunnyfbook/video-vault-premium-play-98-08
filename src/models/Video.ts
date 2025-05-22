@@ -24,65 +24,96 @@ export const videos: Video[] = [
 
 // Video service functions
 export const getVideos = (): Video[] => {
-  const storedVideos = localStorage.getItem('videos');
-  if (storedVideos) {
-    return JSON.parse(storedVideos);
+  try {
+    const storedVideos = localStorage.getItem('videos');
+    if (storedVideos) {
+      return JSON.parse(storedVideos);
+    }
+    // Initialize with mock data if nothing exists
+    localStorage.setItem('videos', JSON.stringify(videos));
+    return videos;
+  } catch (error) {
+    console.error("Error loading videos from localStorage:", error);
+    return videos; // Return default videos as fallback
   }
-  // Initialize with mock data if nothing exists
-  localStorage.setItem('videos', JSON.stringify(videos));
-  return videos;
 };
 
 export const getVideoById = (id: string): Video | undefined => {
-  const videos = getVideos();
-  return videos.find(video => video.id === id);
+  try {
+    if (!id) return undefined;
+    
+    const videos = getVideos();
+    return videos.find(video => video.id === id);
+  } catch (error) {
+    console.error(`Error finding video with id ${id}:`, error);
+    return undefined;
+  }
 };
 
 export const addVideo = (video: Omit<Video, 'id' | 'dateAdded' | 'views'>): Video => {
-  const videos = getVideos();
-  const newVideo: Video = {
-    ...video,
-    id: Date.now().toString(),
-    dateAdded: new Date().toISOString(),
-    views: 0
-  };
-  
-  videos.push(newVideo);
-  localStorage.setItem('videos', JSON.stringify(videos));
-  return newVideo;
+  try {
+    const videos = getVideos();
+    const newVideo: Video = {
+      ...video,
+      id: Date.now().toString(),
+      dateAdded: new Date().toISOString(),
+      views: 0
+    };
+    
+    videos.push(newVideo);
+    localStorage.setItem('videos', JSON.stringify(videos));
+    return newVideo;
+  } catch (error) {
+    console.error("Error adding video:", error);
+    throw new Error("Failed to add video");
+  }
 };
 
 export const updateVideo = (updatedVideo: Video): Video | undefined => {
-  const videos = getVideos();
-  const index = videos.findIndex(v => v.id === updatedVideo.id);
-  
-  if (index !== -1) {
-    videos[index] = updatedVideo;
-    localStorage.setItem('videos', JSON.stringify(videos));
-    return updatedVideo;
+  try {
+    const videos = getVideos();
+    const index = videos.findIndex(v => v.id === updatedVideo.id);
+    
+    if (index !== -1) {
+      videos[index] = updatedVideo;
+      localStorage.setItem('videos', JSON.stringify(videos));
+      return updatedVideo;
+    }
+    
+    return undefined;
+  } catch (error) {
+    console.error("Error updating video:", error);
+    return undefined;
   }
-  
-  return undefined;
 };
 
 export const deleteVideo = (id: string): boolean => {
-  const videos = getVideos();
-  const filteredVideos = videos.filter(v => v.id !== id);
-  
-  if (filteredVideos.length < videos.length) {
-    localStorage.setItem('videos', JSON.stringify(filteredVideos));
-    return true;
+  try {
+    const videos = getVideos();
+    const filteredVideos = videos.filter(v => v.id !== id);
+    
+    if (filteredVideos.length < videos.length) {
+      localStorage.setItem('videos', JSON.stringify(filteredVideos));
+      return true;
+    }
+    
+    return false;
+  } catch (error) {
+    console.error("Error deleting video:", error);
+    return false;
   }
-  
-  return false;
 };
 
 export const incrementViews = (id: string): void => {
-  const videos = getVideos();
-  const video = videos.find(v => v.id === id);
-  
-  if (video) {
-    video.views += 1;
-    localStorage.setItem('videos', JSON.stringify(videos));
+  try {
+    const videos = getVideos();
+    const video = videos.find(v => v.id === id);
+    
+    if (video) {
+      video.views += 1;
+      localStorage.setItem('videos', JSON.stringify(videos));
+    }
+  } catch (error) {
+    console.error("Error incrementing views:", error);
   }
 };
