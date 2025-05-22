@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useHomepageContent } from "@/hooks/useHomepageContent";
 import { useHomepageConfig } from "@/hooks/useHomepageConfig";
@@ -45,11 +44,13 @@ const Index = () => {
   const renderContent = (item) => {
     if (item.type === "instagram") {
       return (
-        <InstagramEmbed 
-          url={item.url}
-          title={item.title}
-          className="w-full h-full"
-        />
+        <div className="w-full h-full">
+          <InstagramEmbed 
+            url={item.url}
+            title={item.title}
+            className="w-full h-full"
+          />
+        </div>
       );
     } else if (item.type === "video") {
       return (
@@ -145,25 +146,7 @@ const Index = () => {
                       <CarouselItem key={video.id} className="pl-4 md:basis-1/2 lg:basis-1/3 group">
                         <Card className={`rounded-xl shadow-card overflow-hidden bg-card h-full flex flex-col ${cardHoverClass}`}>
                           <div className="relative aspect-video bg-black rounded-t-xl group-hover:opacity-90 transition-opacity">
-                            {video.type === "instagram" ? (
-                              <InstagramEmbed 
-                                url={video.url}
-                                title={video.title}
-                                className="w-full h-full"
-                              />
-                            ) : (
-                              <>
-                                <video
-                                  src={video.url}
-                                  poster={video.thumbnail || undefined}
-                                  className="absolute top-0 left-0 w-full h-full object-cover"
-                                  controls
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                                  <Play size={32} className="text-white opacity-80" />
-                                </div>
-                              </>
-                            )}
+                            {renderContent(video)}
                           </div>
                           <CardContent className="p-5 flex-grow flex flex-col">
                             <h3 className="font-semibold text-xl mb-2 text-foreground group-hover:text-primary transition-colors">{video.title}</h3>
@@ -195,7 +178,7 @@ const Index = () => {
                 <h2 className="section-title !mb-0">Featured Images</h2>
               </div>
               {contentLoading ? (
-                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                   {[...Array(3)].map((_, i) => (
                      <Card key={i} className="rounded-xl shadow-card animate-pulse bg-gray-200 dark:bg-slate-800">
                       <div className="aspect-video bg-gray-300 dark:bg-gray-700 rounded-t-xl"></div>
@@ -221,20 +204,7 @@ const Index = () => {
                       <CarouselItem key={img.id} className="pl-4 md:basis-1/2 lg:basis-1/3 group">
                         <Card className={`rounded-xl shadow-card overflow-hidden bg-card h-full flex flex-col ${cardHoverClass}`}>
                           <div className="aspect-square sm:aspect-video overflow-hidden rounded-t-xl relative">
-                            {img.type === "instagram" ? (
-                              <InstagramEmbed 
-                                url={img.url}
-                                title={img.title}
-                                className="w-full h-full"
-                              />
-                            ) : (
-                              <img
-                                src={img.url}
-                                alt={img.title}
-                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                              />
-                            )}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                            {renderContent(img)}
                           </div>
                           <CardContent className="p-5 flex-grow">
                             <h3 className="font-semibold text-xl mb-2 text-foreground group-hover:text-brand-accent transition-colors">{img.title}</h3>

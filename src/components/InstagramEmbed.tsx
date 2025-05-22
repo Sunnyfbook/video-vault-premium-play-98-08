@@ -1,6 +1,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { extractInstagramPostId, getAppropriateEmbedUrl } from '@/utils/instagramUtils';
+import { Instagram } from 'lucide-react';
 
 interface InstagramEmbedProps {
   url: string;
@@ -50,20 +51,33 @@ const InstagramEmbed: React.FC<InstagramEmbedProps> = ({ url, title, className =
   }, [height]);
   
   if (!postId) {
-    return <div className="p-4 bg-red-100 text-red-600 rounded">Invalid Instagram URL</div>;
+    return (
+      <div className="flex flex-col items-center justify-center h-full bg-gray-100 dark:bg-gray-800 rounded-xl p-4">
+        <Instagram className="w-10 h-10 text-pink-500 mb-2" />
+        <p className="text-sm text-red-500">Invalid Instagram URL</p>
+      </div>
+    );
   }
   
   const embedUrl = getAppropriateEmbedUrl(url);
   
   if (!embedUrl) {
-    return <div className="p-4 bg-red-100 text-red-600 rounded">Unable to process Instagram URL</div>;
+    return (
+      <div className="flex flex-col items-center justify-center h-full bg-gray-100 dark:bg-gray-800 rounded-xl p-4">
+        <Instagram className="w-10 h-10 text-pink-500 mb-2" />
+        <p className="text-sm text-red-500">Unable to process Instagram URL</p>
+      </div>
+    );
   }
   
   return (
     <div className={`instagram-embed-container ${className} overflow-hidden rounded-xl relative`}>
       {loading && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
-          <div className="w-10 h-10 border-4 border-t-brand-accent rounded-full animate-spin"></div>
+          <div className="flex flex-col items-center">
+            <Instagram className="w-10 h-10 text-pink-500 animate-pulse mb-2" />
+            <div className="w-8 h-8 border-4 border-t-brand-accent rounded-full animate-spin"></div>
+          </div>
         </div>
       )}
       
@@ -76,13 +90,17 @@ const InstagramEmbed: React.FC<InstagramEmbedProps> = ({ url, title, className =
         scrolling="no"
         allowTransparency={true}
         frameBorder="0"
+        onLoad={() => setLoading(false)}
       ></iframe>
       
       {error && (
         <div className="absolute inset-0 flex items-center justify-center bg-red-50 dark:bg-red-900 p-4">
-          <p className="text-red-600 dark:text-red-300">
-            Failed to load Instagram content
-          </p>
+          <div className="flex flex-col items-center">
+            <Instagram className="w-10 h-10 text-pink-500 mb-2" />
+            <p className="text-red-600 dark:text-red-300 text-center">
+              Failed to load Instagram content
+            </p>
+          </div>
         </div>
       )}
     </div>

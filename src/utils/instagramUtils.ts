@@ -8,13 +8,15 @@
  */
 export const extractInstagramPostId = (url: string): string | null => {
   try {
+    if (!url) return null;
+    
     // Handle different Instagram URL formats
     // Examples:
     // https://www.instagram.com/p/C1a2b3cDeFg/
     // https://instagram.com/p/C1a2b3cDeFg
     // https://www.instagram.com/reel/C1a2b3cDeFg
     // https://www.instagram.com/reels/C1a2b3cDeFg
-    const regex = /instagram\.com\/(p|reel|reels)\/([^/?]+)/i;
+    const regex = /instagram\.com\/(p|reel|reels)\/([^/?#]+)/i;
     const match = url.match(regex);
     
     if (match && match[2]) {
@@ -68,5 +70,5 @@ export const getAppropriateEmbedUrl = (url: string): string | null => {
   if (url.includes('/reel/') || url.includes('/reels/')) {
     return getInstagramReelEmbedUrl(postId);
   }
-  return getInstagramEmbedUrlNoCaptions(postId);
+  return getInstagramEmbedUrl(postId); // Using captioned version for better display
 };
