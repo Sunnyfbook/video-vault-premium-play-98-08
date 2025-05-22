@@ -1,103 +1,129 @@
 
+import { supabase } from "@/integrations/supabase/client";
+
 export interface Ad {
   id: string;
   name: string;
   type: 'monetag' | 'adstera';
   code: string;
   position: 'top' | 'bottom' | 'sidebar' | 'in-video';
-  isActive: boolean;
+  is_active: boolean;
 }
 
-// Mock data store for ads
-export const ads: Ad[] = [
-  {
-    id: '1',
-    name: 'Top Banner',
-    type: 'monetag',
-    code: '<div class="ad-placeholder">Monetag Ad Placeholder</div>',
-    position: 'top',
-    isActive: true
-  },
-  {
-    id: '2',
-    name: 'Bottom Banner',
-    type: 'adstera',
-    code: '<div class="ad-placeholder">Adstera Ad Placeholder</div>',
-    position: 'bottom',
-    isActive: true
-  },
-  {
-    id: '3',
-    name: 'Sidebar Ad',
-    type: 'monetag',
-    code: '<div class="ad-placeholder">Monetag Sidebar Ad</div>',
-    position: 'sidebar',
-    isActive: true
-  },
-  {
-    id: '4',
-    name: 'In-Video Ad',
-    type: 'adstera',
-    code: '<div class="ad-placeholder">Adstera In-Video Ad</div>',
-    position: 'in-video',
-    isActive: true
-  }
-];
-
 // Ad service functions
-export const getAds = (): Ad[] => {
-  const storedAds = localStorage.getItem('ads');
-  if (storedAds) {
-    return JSON.parse(storedAds);
+export const getAds = async (): Promise<Ad[]> => {
+  try {
+    const { data, error } = await supabase
+      .from("ads")
+      .select("*");
+      
+    if (error) {
+      console.error("Error fetching ads:", error);
+      return [];
+    }
+    
+    return data as Ad[];
+  } catch (error) {
+    console.error("Error fetching ads:", error);
+    return [];
   }
-  // Initialize with mock data if nothing exists
-  localStorage.setItem('ads', JSON.stringify(ads));
-  return ads;
 };
 
-export const getActiveAds = (): Ad[] => {
-  const ads = getAds();
-  return ads.filter(ad => ad.isActive);
-};
-
-export const getAdsByPosition = (position: Ad['position']): Ad[] => {
-  const ads = getAds();
-  return ads.filter(ad => ad.position === position && ad.isActive);
-};
-
-export const addAd = (ad: Omit<Ad, 'id'>): Ad => {
-  const ads = getAds();
-  const newAd: Ad = {
-    ...ad,
-    id: Date.now().toString()
-  };
-  
-  ads.push(newAd);
-  localStorage.setItem('ads', JSON.stringify(ads));
-  return newAd;
-};
-
-export const updateAd = (updatedAd: Ad): Ad | undefined => {
-  const ads = getAds();
-  const index = ads.findIndex(a => a.id === updatedAd.id);
-  
-  if (index !== -1) {
-    ads[index] = updatedAd;
-    localStorage.setItem('ads', JSON.stringify(ads));
-    return updatedAd;
+export const getActiveAds = async (): Promise<Ad[]> => {
+  try {
+    const { data, error } = await supabase
+      .from("ads")
+      .select("*")
+      .eq("is_active", true);
+      
+    if (error) {
+      console.error("Error fetching active ads:", error);
+      return [];
+    }
+    
+    return data as Ad[];
+  } catch (error) {
+    console.error("Error fetching active ads:", error);
+    return [];
   }
-  
-  return undefined;
 };
 
-export const deleteAd = (id: string): boolean => {
-  const ads = getAds();
-  const filteredAds = ads.filter(a => a.id !== id);
-  
-  if (filteredAds.length < ads.length) {
-    localStorage.setItem('ads', JSON.stringify(filteredAds));
+export const getAdsByPosition = async (position: Ad['position']): Promise<Ad[]> => {
+  try {
+    const { data, error } = await supabase
+      .from("ads")
+      .select("*")
+      .eq("position", position)
+      .eq("is_active", true);
+      
+    if (error) {
+      console.error(`Error fetching ads for position ${position}:`, error);
+      return [];
+    }
+    
+    return data as Ad[];
+  } catch (error) {
+    console.error(`Error fetching ads for position ${position}:`, error);
+    return [];
+  }
+};
+
+export const addAd = async (ad: Omit<Ad, "id">): Promise<Ad> => {
+  try {
+    const { data, error } = await supabase
+      .from("ads")
+      .insert(ad)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error("Error adding ad:", error);
+      throw new Error("Failed to add ad");
+    }
+    
+    return data as Ad;
+  } catch (error) {
+    console.error("Error adding ad:", error);
+    throw new Error("Failed to add ad");
+  }
+};
+
+export const updateAd = async (updatedAd: Ad): Promise<Ad | undefined> => {
+  try {
+    const { data, error } = await supabase
+      .from("ads")
+      .update(updatedAd)
+      .eq("id", updatedAd.id)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error("Error updating ad:", error);
+      return undefined;
+    }
+    
+    return data as Ad;
+  } catch (error) {
+    console.error("Error updating ad:", error);
+    return undefined;
+  }
+};
+
+export const deleteAd = async (id: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from("ads")
+      .delete()
+      .eq("id", id);
+    
+    if (error) {
+      console.error("Error deleting ad:", error);
+      return false;
+    }
+    
     return true;
+  } catch (error) {
+    console.error("Error deleting ad:", error);
+    return false;
   }
-  
-  return false;
 };

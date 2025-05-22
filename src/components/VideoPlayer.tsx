@@ -23,6 +23,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title }) => {
   const [isMuted, setIsMuted] = useState(false);
   const [progress, setProgress] = useState(0);
   const [showControls, setShowControls] = useState(true);
+  const [volume, setVolume] = useState(1);
+  const [isFullScreen, setIsFullScreen] = useState(false);
 
   // Initialize and handle events
   useEffect(() => {
@@ -65,6 +67,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title }) => {
     video.addEventListener('pause', onPause);
     video.addEventListener('ended', onEnded);
 
+    // Check fullscreen changes
+    const handleFullscreenChange = () => {
+      setIsFullScreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+
     return () => {
       // Remove event listeners on cleanup
       video.removeEventListener('loadedmetadata', onLoadedMetadata);
@@ -75,6 +84,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title }) => {
       video.removeEventListener('play', onPlay);
       video.removeEventListener('pause', onPause);
       video.removeEventListener('ended', onEnded);
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
     };
   }, []);
 
@@ -123,6 +133,24 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title }) => {
     
     video.muted = !video.muted;
     setIsMuted(!isMuted);
+  };
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const video = videoRef.current;
+    if (!video) return;
+    
+    const newVolume = parseFloat(e.target.value);
+    video.volume = newVolume;
+    setVolume(newVolume);
+    
+    // Update mute state based on volume
+    if (newVolume === 0) {
+      video.muted = true;
+      setIsMuted(true);
+    } else if (video.muted) {
+      video.muted = false;
+      setIsMuted(false);
+    }
   };
 
   const skipForward = () => {
@@ -229,7 +257,22 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title }) => {
             </div>
             
             <div className="flex items-center space-x-4">
-              <button onClick={toggleMute} className="text-white hover:text-primary">
+              <div className="hidden md:flex items-center space-x-2">
+                <button onClick={toggleMute} className="text-white hover:text-primary">
+                  {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                </button>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={isMuted ? 0 : volume}
+                  onChange={handleVolumeChange}
+                  className="w-16 h-1 bg-gray-600 rounded-full"
+                />
+              </div>
+              
+              <button onClick={toggleMute} className="md:hidden text-white hover:text-primary">
                 {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
               </button>
               

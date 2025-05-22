@@ -10,14 +10,19 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Video as VideoModel, getVideos, addVideo, deleteVideo } from '@/models/Video';
 import { Ad as AdModel, getAds, addAd, updateAd, deleteAd } from '@/models/Ad';
+import { SEOSetting, getSEOSettings, updateSEOSetting } from '@/models/SEO';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { supabase } from '@/integrations/supabase/client';
 
 const Admin: React.FC = () => {
   const { isLoggedIn, logout } = useAuth();
   const [videos, setVideos] = useState<VideoModel[]>([]);
   const [ads, setAds] = useState<AdModel[]>([]);
+  const [seoSettings, setSeoSettings] = useState<SEOSetting[]>([]);
+  const [selectedSEO, setSelectedSEO] = useState<SEOSetting | null>(null);
   const [newVideo, setNewVideo] = useState({
     title: '',
     description: '',
@@ -29,7 +34,7 @@ const Admin: React.FC = () => {
     type: 'monetag' as 'monetag' | 'adstera',
     code: '',
     position: 'top' as 'top' | 'bottom' | 'sidebar' | 'in-video',
-    isActive: true
+    is_active: true
   });
   const { toast } = useToast();
   
@@ -39,12 +44,63 @@ const Admin: React.FC = () => {
   }
   
   useEffect(() => {
-    // Load videos and ads
-    setVideos(getVideos());
-    setAds(getAds());
-  }, []);
+    // Load data on component mount
+    const loadData = async () => {
+      try {
+        const videosData = await getVideos();
+        setVideos(videosData);
+        
+        const adsData = await getAds();
+        setAds(adsData);
+        
+        const seoData = await getSEOSettings();
+        setSeoSettings(seoData);
+      } catch (error) {
+        console.error("Error loading data:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load data from the database",
+          variant: "destructive"
+        });
+      }
+    };
+    
+    loadData();
+    
+    // Set up real-time listeners
+    const videosChannel = supabase
+      .channel('public:videos')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'videos' },
+        () => { getVideos().then(setVideos); }
+      )
+      .subscribe();
+      
+    const adsChannel = supabase
+      .channel('public:ads')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'ads' },
+        () => { getAds().then(setAds); }
+      )
+      .subscribe();
+      
+    const seoChannel = supabase
+      .channel('public:seo')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'seo_settings' },
+        () => { getSEOSettings().then(setSeoSettings); }
+      )
+      .subscribe();
+    
+    // Clean up subscriptions
+    return () => {
+      supabase.removeChannel(videosChannel);
+      supabase.removeChannel(adsChannel);
+      supabase.removeChannel(seoChannel);
+    };
+  }, [toast]);
   
-  const handleAddVideo = (e: React.FormEvent) => {
+  const handleAddVideo = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!newVideo.url.trim()) {
@@ -56,35 +112,53 @@ const Admin: React.FC = () => {
       return;
     }
     
-    const addedVideo = addVideo(newVideo);
-    setVideos([...videos, addedVideo]);
-    
-    // Reset form
-    setNewVideo({
-      title: '',
-      description: '',
-      url: '',
-      thumbnail: ''
-    });
-    
-    toast({
-      title: "Video Added",
-      description: "Your video has been added successfully.",
-    });
-  };
-  
-  const handleRemoveVideo = (id: string) => {
-    const success = deleteVideo(id);
-    if (success) {
-      setVideos(videos.filter(video => video.id !== id));
+    try {
+      await addVideo(newVideo);
+      
+      // Reset form
+      setNewVideo({
+        title: '',
+        description: '',
+        url: '',
+        thumbnail: ''
+      });
+      
       toast({
-        title: "Video Removed",
-        description: "The video has been removed.",
+        title: "Video Added",
+        description: "Your video has been added successfully.",
+      });
+    } catch (error) {
+      console.error("Error adding video:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add video. Please try again.",
+        variant: "destructive",
       });
     }
   };
   
-  const handleAddAd = (e: React.FormEvent) => {
+  const handleRemoveVideo = async (id: string) => {
+    try {
+      const success = await deleteVideo(id);
+      if (success) {
+        toast({
+          title: "Video Removed",
+          description: "The video has been removed.",
+        });
+      } else {
+        throw new Error("Failed to delete video");
+      }
+    } catch (error) {
+      console.error("Error removing video:", error);
+      toast({
+        title: "Error",
+        description: "Failed to remove video. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const handleAddAd = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!newAd.code.trim()) {
@@ -96,37 +170,68 @@ const Admin: React.FC = () => {
       return;
     }
     
-    const addedAd = addAd(newAd);
-    setAds([...ads, addedAd]);
-    
-    // Reset form
-    setNewAd({
-      name: '',
-      type: 'monetag',
-      code: '',
-      position: 'top',
-      isActive: true
-    });
-    
-    toast({
-      title: "Ad Added",
-      description: "Your ad has been added successfully.",
-    });
-  };
-  
-  const handleToggleAd = (ad: AdModel) => {
-    const updatedAd = { ...ad, isActive: !ad.isActive };
-    updateAd(updatedAd);
-    setAds(ads.map(a => a.id === ad.id ? updatedAd : a));
-  };
-  
-  const handleRemoveAd = (id: string) => {
-    const success = deleteAd(id);
-    if (success) {
-      setAds(ads.filter(ad => ad.id !== id));
+    try {
+      await addAd(newAd);
+      
+      // Reset form
+      setNewAd({
+        name: '',
+        type: 'monetag',
+        code: '',
+        position: 'top',
+        is_active: true
+      });
+      
       toast({
-        title: "Ad Removed",
-        description: "The ad has been removed.",
+        title: "Ad Added",
+        description: "Your ad has been added successfully.",
+      });
+    } catch (error) {
+      console.error("Error adding ad:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add ad. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const handleToggleAd = async (ad: AdModel) => {
+    try {
+      const updatedAd = { ...ad, is_active: !ad.is_active };
+      await updateAd(updatedAd);
+      
+      toast({
+        title: "Ad Updated",
+        description: `Ad ${ad.is_active ? 'disabled' : 'enabled'} successfully.`,
+      });
+    } catch (error) {
+      console.error("Error toggling ad:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update ad. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const handleRemoveAd = async (id: string) => {
+    try {
+      const success = await deleteAd(id);
+      if (success) {
+        toast({
+          title: "Ad Removed",
+          description: "The ad has been removed.",
+        });
+      } else {
+        throw new Error("Failed to delete ad");
+      }
+    } catch (error) {
+      console.error("Error removing ad:", error);
+      toast({
+        title: "Error",
+        description: "Failed to remove ad. Please try again.",
+        variant: "destructive",
       });
     }
   };
@@ -140,6 +245,27 @@ const Admin: React.FC = () => {
       title: "Link Copied",
       description: "Video link copied to clipboard.",
     });
+  };
+  
+  // Handle updating SEO settings
+  const handleSEOUpdate = async () => {
+    if (!selectedSEO) return;
+    
+    try {
+      await updateSEOSetting(selectedSEO);
+      
+      toast({
+        title: "SEO Settings Updated",
+        description: `SEO settings for ${selectedSEO.page} page updated successfully.`,
+      });
+    } catch (error) {
+      console.error("Error updating SEO settings:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update SEO settings. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
   
   return (
@@ -161,6 +287,7 @@ const Admin: React.FC = () => {
         <TabsList className="mb-6">
           <TabsTrigger value="videos">Videos</TabsTrigger>
           <TabsTrigger value="ads">Ads</TabsTrigger>
+          <TabsTrigger value="seo">SEO Settings</TabsTrigger>
         </TabsList>
         
         {/* Videos Tab */}
@@ -261,7 +388,7 @@ const Admin: React.FC = () => {
                           <p className="text-sm text-gray-500 mb-3 line-clamp-1">{video.description}</p>
                           
                           <div className="text-xs text-gray-500 mb-4">
-                            <span>{new Date(video.dateAdded).toLocaleDateString()}</span>
+                            <span>{new Date(video.date_added).toLocaleDateString()}</span>
                             <span className="mx-2">•</span>
                             <span>{video.views} views</span>
                           </div>
@@ -373,8 +500,8 @@ const Admin: React.FC = () => {
                     <div className="flex items-center space-x-2">
                       <Switch
                         id="adActive"
-                        checked={newAd.isActive}
-                        onCheckedChange={(checked) => setNewAd({ ...newAd, isActive: checked })}
+                        checked={newAd.is_active}
+                        onCheckedChange={(checked) => setNewAd({ ...newAd, is_active: checked })}
                       />
                       <Label htmlFor="adActive">Active</Label>
                     </div>
@@ -416,11 +543,11 @@ const Admin: React.FC = () => {
                                 {ad.position}
                               </span>
                               <span className={`px-2 py-0.5 text-xs rounded-full ${
-                                ad.isActive 
+                                ad.is_active 
                                   ? 'bg-emerald-100 text-emerald-800' 
                                   : 'bg-red-100 text-red-800'
                               }`}>
-                                {ad.isActive ? 'Active' : 'Inactive'}
+                                {ad.is_active ? 'Active' : 'Inactive'}
                               </span>
                             </div>
                           </div>
@@ -429,11 +556,11 @@ const Admin: React.FC = () => {
                             <div className="flex items-center space-x-2">
                               <Switch
                                 id={`ad-toggle-${ad.id}`}
-                                checked={ad.isActive}
+                                checked={ad.is_active}
                                 onCheckedChange={() => handleToggleAd(ad)}
                               />
                               <Label htmlFor={`ad-toggle-${ad.id}`} className="text-sm">
-                                {ad.isActive ? 'Enabled' : 'Disabled'}
+                                {ad.is_active ? 'Enabled' : 'Disabled'}
                               </Label>
                             </div>
                             
@@ -455,6 +582,215 @@ const Admin: React.FC = () => {
                       </CardContent>
                     </Card>
                   ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </TabsContent>
+        
+        {/* New SEO Settings Tab */}
+        <TabsContent value="seo">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* SEO Page List */}
+            <div className="md:col-span-1">
+              <Card>
+                <CardHeader>
+                  <CardTitle>SEO Pages</CardTitle>
+                  <CardDescription>
+                    Select a page to edit SEO settings
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {seoSettings.length === 0 ? (
+                      <p className="text-gray-500 text-center py-4">No SEO settings available</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {seoSettings.map((setting) => (
+                          <Button
+                            key={setting.id}
+                            variant={selectedSEO?.id === setting.id ? "default" : "outline"}
+                            className="w-full justify-start"
+                            onClick={() => setSelectedSEO(setting)}
+                          >
+                            {setting.page.charAt(0).toUpperCase() + setting.page.slice(1)} Page
+                          </Button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            
+            {/* SEO Settings Editor */}
+            <div className="md:col-span-2">
+              {selectedSEO ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Edit SEO Settings: {selectedSEO.page.charAt(0).toUpperCase() + selectedSEO.page.slice(1)} Page</CardTitle>
+                    <CardDescription>
+                      Optimize your page for search engines
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      <div className="space-y-4">
+                        <h3 className="text-sm font-medium">Basic SEO</h3>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="seo-title">Page Title</Label>
+                          <Input
+                            id="seo-title"
+                            value={selectedSEO.title}
+                            onChange={(e) => setSelectedSEO({...selectedSEO, title: e.target.value})}
+                            placeholder="Page title"
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Include keywords and keep it under 60 characters
+                          </p>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="seo-description">Meta Description</Label>
+                          <Textarea
+                            id="seo-description"
+                            value={selectedSEO.description}
+                            onChange={(e) => setSelectedSEO({...selectedSEO, description: e.target.value})}
+                            placeholder="Page description"
+                            rows={3}
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Include keywords and keep it under 160 characters
+                          </p>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="seo-keywords">Meta Keywords</Label>
+                          <Input
+                            id="seo-keywords"
+                            value={selectedSEO.keywords || ''}
+                            onChange={(e) => setSelectedSEO({...selectedSEO, keywords: e.target.value})}
+                            placeholder="Comma-separated keywords"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <h3 className="text-sm font-medium">Open Graph (Social Sharing)</h3>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="og-title">OG Title</Label>
+                          <Input
+                            id="og-title"
+                            value={selectedSEO.og_title || ''}
+                            onChange={(e) => setSelectedSEO({...selectedSEO, og_title: e.target.value})}
+                            placeholder="Social sharing title"
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="og-description">OG Description</Label>
+                          <Textarea
+                            id="og-description"
+                            value={selectedSEO.og_description || ''}
+                            onChange={(e) => setSelectedSEO({...selectedSEO, og_description: e.target.value})}
+                            placeholder="Social sharing description"
+                            rows={2}
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="og-image">OG Image URL</Label>
+                          <Input
+                            id="og-image"
+                            value={selectedSEO.og_image || ''}
+                            onChange={(e) => setSelectedSEO({...selectedSEO, og_image: e.target.value})}
+                            placeholder="https://example.com/image.jpg"
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Recommended size: 1200x630 pixels
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <h3 className="text-sm font-medium">Twitter Card</h3>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="twitter-card">Card Type</Label>
+                          <Select
+                            value={selectedSEO.twitter_card || 'summary_large_image'}
+                            onValueChange={(value) => setSelectedSEO({...selectedSEO, twitter_card: value})}
+                          >
+                            <SelectTrigger id="twitter-card">
+                              <SelectValue placeholder="Select card type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="summary">Summary</SelectItem>
+                              <SelectItem value="summary_large_image">Summary with Large Image</SelectItem>
+                              <SelectItem value="player">Player</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="twitter-title">Twitter Title</Label>
+                          <Input
+                            id="twitter-title"
+                            value={selectedSEO.twitter_title || ''}
+                            onChange={(e) => setSelectedSEO({...selectedSEO, twitter_title: e.target.value})}
+                            placeholder="Twitter title"
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="twitter-description">Twitter Description</Label>
+                          <Textarea
+                            id="twitter-description"
+                            value={selectedSEO.twitter_description || ''}
+                            onChange={(e) => setSelectedSEO({...selectedSEO, twitter_description: e.target.value})}
+                            placeholder="Twitter description"
+                            rows={2}
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="twitter-image">Twitter Image URL</Label>
+                          <Input
+                            id="twitter-image"
+                            value={selectedSEO.twitter_image || ''}
+                            onChange={(e) => setSelectedSEO({...selectedSEO, twitter_image: e.target.value})}
+                            placeholder="https://example.com/image.jpg"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="canonical-url">Canonical URL (Optional)</Label>
+                        <Input
+                          id="canonical-url"
+                          value={selectedSEO.canonical_url || ''}
+                          onChange={(e) => setSelectedSEO({...selectedSEO, canonical_url: e.target.value})}
+                          placeholder="https://yourdomain.com/page"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Use when you have duplicate content across multiple URLs
+                        </p>
+                      </div>
+                      
+                      <Button onClick={handleSEOUpdate} className="w-full">
+                        Save SEO Settings
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="h-full flex items-center justify-center bg-gray-50 border border-gray-200 rounded-lg p-8">
+                  <div className="text-center">
+                    <h3 className="text-lg font-medium text-gray-600 mb-2">Select a Page</h3>
+                    <p className="text-gray-500">Choose a page from the left to edit its SEO settings</p>
+                  </div>
                 </div>
               )}
             </div>

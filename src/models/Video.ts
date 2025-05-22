@@ -1,148 +1,136 @@
+
+import { supabase } from "@/integrations/supabase/client";
+
 export interface Video {
   id: string;
   title: string;
   description: string;
   url: string;
   thumbnail?: string;
-  dateAdded: string;
+  date_added: string;
   views: number;
 }
 
-// Mock data store until we connect to a database
-export const videos: Video[] = [
-  {
-    id: '1',
-    title: 'Sample Video 1',
-    description: 'This is a sample video description.',
-    url: 'https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4',
-    thumbnail: 'https://picsum.photos/seed/video1/640/360',
-    dateAdded: new Date().toISOString(),
-    views: 0
-  },
-  {
-    id: '2',
-    title: 'Sample Video 2',
-    description: 'This is another sample video for testing.',
-    url: 'https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4',
-    thumbnail: 'https://picsum.photos/seed/video2/640/360',
-    dateAdded: new Date().toISOString(),
-    views: 0
-  },
-  {
-    id: '3',
-    title: 'Sample Video 3',
-    description: 'Third sample video with different content.',
-    url: 'https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4',
-    thumbnail: 'https://picsum.photos/seed/video3/640/360',
-    dateAdded: new Date().toISOString(),
-    views: 0
-  }
-];
-
 // Video service functions
-export const getVideos = (): Video[] => {
+export const getVideos = async (): Promise<Video[]> => {
   try {
-    const storedVideos = localStorage.getItem('videos');
-    if (storedVideos) {
-      return JSON.parse(storedVideos);
+    const { data, error } = await supabase.from("videos").select("*");
+    
+    if (error) {
+      console.error("Error loading videos:", error);
+      return [];
     }
-    // Initialize with mock data if nothing exists
-    localStorage.setItem('videos', JSON.stringify(videos));
-    return videos;
+    
+    return data as Video[];
   } catch (error) {
-    console.error("Error loading videos from localStorage:", error);
-    // Return default videos as fallback
-    localStorage.setItem('videos', JSON.stringify(videos));
-    return videos;
+    console.error("Error loading videos:", error);
+    return [];
   }
 };
 
-export const getVideoById = (id: string): Video | undefined => {
+export const getVideoById = async (id: string): Promise<Video | undefined> => {
   try {
     if (!id) return undefined;
     
-    const videos = getVideos();
-    return videos.find(video => video.id === id);
+    const { data, error } = await supabase
+      .from("videos")
+      .select("*")
+      .eq("id", id)
+      .single();
+    
+    if (error) {
+      console.error(`Error finding video with id ${id}:`, error);
+      return undefined;
+    }
+    
+    return data as Video;
   } catch (error) {
     console.error(`Error finding video with id ${id}:`, error);
     return undefined;
   }
 };
 
-export const addVideo = (video: Omit<Video, 'id' | 'dateAdded' | 'views'>): Video => {
+export const addVideo = async (video: Omit<Video, "id" | "date_added" | "views">): Promise<Video> => {
   try {
-    const videos = getVideos();
-    const newVideo: Video = {
+    const newVideo = {
       ...video,
-      id: Date.now().toString(),
-      dateAdded: new Date().toISOString(),
       views: 0
     };
     
-    videos.push(newVideo);
-    localStorage.setItem('videos', JSON.stringify(videos));
-    return newVideo;
+    const { data, error } = await supabase
+      .from("videos")
+      .insert(newVideo)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error("Error adding video:", error);
+      throw new Error("Failed to add video");
+    }
+    
+    return data as Video;
   } catch (error) {
     console.error("Error adding video:", error);
     throw new Error("Failed to add video");
   }
 };
 
-export const updateVideo = (updatedVideo: Video): Video | undefined => {
+export const updateVideo = async (updatedVideo: Video): Promise<Video | undefined> => {
   try {
-    const videos = getVideos();
-    const index = videos.findIndex(v => v.id === updatedVideo.id);
+    const { data, error } = await supabase
+      .from("videos")
+      .update(updatedVideo)
+      .eq("id", updatedVideo.id)
+      .select()
+      .single();
     
-    if (index !== -1) {
-      videos[index] = updatedVideo;
-      localStorage.setItem('videos', JSON.stringify(videos));
-      return updatedVideo;
+    if (error) {
+      console.error("Error updating video:", error);
+      return undefined;
     }
     
-    return undefined;
+    return data as Video;
   } catch (error) {
     console.error("Error updating video:", error);
     return undefined;
   }
 };
 
-export const deleteVideo = (id: string): boolean => {
+export const deleteVideo = async (id: string): Promise<boolean> => {
   try {
-    const videos = getVideos();
-    const filteredVideos = videos.filter(v => v.id !== id);
+    const { error } = await supabase
+      .from("videos")
+      .delete()
+      .eq("id", id);
     
-    if (filteredVideos.length < videos.length) {
-      localStorage.setItem('videos', JSON.stringify(filteredVideos));
-      return true;
+    if (error) {
+      console.error("Error deleting video:", error);
+      return false;
     }
     
-    return false;
+    return true;
   } catch (error) {
     console.error("Error deleting video:", error);
     return false;
   }
 };
 
-export const incrementViews = (id: string): void => {
+export const incrementViews = async (id: string): Promise<void> => {
   try {
-    const videos = getVideos();
-    const video = videos.find(v => v.id === id);
+    const { data: video } = await supabase
+      .from("videos")
+      .select("views")
+      .eq("id", id)
+      .single();
     
     if (video) {
-      video.views += 1;
-      localStorage.setItem('videos', JSON.stringify(videos));
+      const views = video.views + 1;
+      await supabase
+        .from("videos")
+        .update({ views })
+        .eq("id", id);
     }
   } catch (error) {
     console.error("Error incrementing views:", error);
-  }
-};
-
-// Function to reset videos to default mock data (useful for debugging)
-export const resetVideosToDefault = (): void => {
-  try {
-    localStorage.setItem('videos', JSON.stringify(videos));
-    console.log("Videos reset to default mock data");
-  } catch (error) {
-    console.error("Error resetting videos:", error);
   }
 };
