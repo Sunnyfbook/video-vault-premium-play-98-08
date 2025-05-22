@@ -29,7 +29,7 @@ export function useHomepageConfig() {
     fetchConfig(true); // Initial fetch
 
     const channel = supabase
-      .channel("public:homepage_config")
+      .channel("homepage_config_changes")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "homepage_config", filter: `id=eq.${defaultConfig.id}` },

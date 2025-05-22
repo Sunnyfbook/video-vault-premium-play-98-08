@@ -42,6 +42,30 @@ export type Database = {
         }
         Relationships: []
       }
+      homepage_config: {
+        Row: {
+          footer_copyright: string | null
+          id: string
+          site_description: string | null
+          site_title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          footer_copyright?: string | null
+          id: string
+          site_description?: string | null
+          site_title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          footer_copyright?: string | null
+          id?: string
+          site_description?: string | null
+          site_title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       homepage_content: {
         Row: {
           created_at: string

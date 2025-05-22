@@ -16,7 +16,7 @@ export const defaultConfig: HomepageConfig = {
   footer_copyright: `© ${new Date().getFullYear()} Video Player Pro. All rights reserved.`,
 };
 
-// Ensure this function creates the row if it doesn't exist, or fetches it.
+// Get homepage config
 export const getHomepageConfig = async (): Promise<HomepageConfig> => {
   const { data, error } = await supabase
     .from("homepage_config")
@@ -39,6 +39,7 @@ export const getHomepageConfig = async (): Promise<HomepageConfig> => {
   return data as HomepageConfig;
 };
 
+// Update homepage config
 export const updateHomepageConfig = async (
   config: Partial<Omit<HomepageConfig, "id" | "updated_at">>
 ): Promise<HomepageConfig | null> => {
@@ -72,8 +73,7 @@ export const updateHomepageConfig = async (
   return data as HomepageConfig;
 };
 
-// You might want a function to initialize/seed the default config if it doesn't exist.
-// This could be called on app startup or admin page load.
+// Ensure homepage config exists
 export const ensureHomepageConfigExists = async (): Promise<HomepageConfig> => {
   let config = await getHomepageConfig();
   if (config.site_title === defaultConfig.site_title && !config.updated_at) { // A way to check if it's truly default or just uninitialized
@@ -94,4 +94,3 @@ export const ensureHomepageConfigExists = async (): Promise<HomepageConfig> => {
   }
   return config;
 };
-
