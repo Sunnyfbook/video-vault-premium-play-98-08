@@ -3,8 +3,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { HashRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./contexts/AuthContext";
+import { HashRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import Index from "./pages/Index";
 import VideoPage from "./pages/VideoPage";
 import Login from "./pages/Login";
@@ -14,6 +14,37 @@ import './videoPlayer.css';
 
 const queryClient = new QueryClient();
 
+// Protected route component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isLoggedIn } = useAuth();
+  const location = useLocation();
+  
+  if (!isLoggedIn) {
+    // Redirect to login but save the attempted location
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+  
+  return <>{children}</>;
+};
+
+// App Routes with route protection
+const AppRoutes = () => (
+  <Routes>
+    <Route path="/" element={<Index />} />
+    <Route path="/video/:id" element={<VideoPage />} />
+    <Route path="/login" element={<Login />} />
+    <Route 
+      path="/admin" 
+      element={
+        <ProtectedRoute>
+          <Admin />
+        </ProtectedRoute>
+      } 
+    />
+    <Route path="*" element={<NotFound />} />
+  </Routes>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
@@ -21,13 +52,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <HashRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/video/:id" element={<VideoPage />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <AppRoutes />
         </HashRouter>
       </TooltipProvider>
     </AuthProvider>
