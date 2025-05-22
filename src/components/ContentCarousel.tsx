@@ -21,7 +21,8 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
     align: "center",
-    dragFree: true
+    skipSnaps: false, // This ensures each swipe moves exactly to the next slide
+    containScroll: "keepSnaps" // Keeps slides within the viewport
   });
   
   const [activeIndex, setActiveIndex] = useState(0);
@@ -104,7 +105,8 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
         opts={{
           loop: true,
           align: "center",
-          dragFree: true
+          skipSnaps: false,
+          containScroll: "keepSnaps"
         }}
         className="w-full"
       >
@@ -113,14 +115,14 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
             {items.map((item, index) => (
               <CarouselItem 
                 key={item.id} 
-                className={`basis-full md:basis-3/4 lg:basis-2/3 xl:basis-1/2 transition-all duration-300 ${
+                className={`basis-full md:basis-1/2 lg:basis-1/3 xl:basis-1/4 transition-all duration-300 ${
                   activeIndex === index 
                     ? "opacity-100 scale-100" 
                     : "opacity-80 scale-95"
                 }`}
               >
                 <Card className="rounded-xl overflow-hidden shadow-lg border-0">
-                  <div className={`${type === "video" ? "aspect-video" : "aspect-square"} bg-black overflow-hidden`}>
+                  <div className="aspect-[9/16] bg-black overflow-hidden">
                     {renderContent(item, index)}
                   </div>
                 </Card>
