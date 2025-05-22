@@ -1,9 +1,8 @@
-
 import React from "react";
 import { useHomepageContent } from "@/hooks/useHomepageContent";
-import { Card, CardContent } from "@/components/ui/card"; // CardHeader, CardTitle removed as we'll style directly
+import { Card, CardContent } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { Video, Image as ImageIcon, Zap } from "lucide-react"; // Added Zap for a bit of flair
+import { Video, Image as ImageIcon, Zap, Play, ArrowRight } from "lucide-react";
 
 const Index = () => {
   const { videos, images, loading } = useHomepageContent();
@@ -53,11 +52,11 @@ const Index = () => {
             ) : (
               <Carousel 
                 opts={{ align: "start", loop: videos.length > 2 }} 
-                className="w-full group" // Added group for hover effects on children
+                className="w-full group"
               >
                 <CarouselContent className="-ml-4">
                   {videos.map((video) => (
-                    <CarouselItem key={video.id} className="pl-4 md:basis-1/2 lg:basis-1/3 group"> {/* Added group here too */}
+                    <CarouselItem key={video.id} className="pl-4 md:basis-1/2 lg:basis-1/3 group">
                       <Card className={`rounded-xl shadow-card overflow-hidden bg-card h-full flex flex-col ${cardHoverClass}`}>
                         <div className="relative aspect-video bg-black rounded-t-xl group-hover:opacity-90 transition-opacity">
                           <video
@@ -81,7 +80,7 @@ const Index = () => {
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                {videos.length > 1 && ( // Show controls only if more than 1 item
+                {videos.length > 1 && ( 
                   <>
                     <CarouselPrevious className="ml-12 bg-background/80 hover:bg-background dark:bg-slate-700/80 dark:hover:bg-slate-700 shadow-md" />
                     <CarouselNext className="mr-12 bg-background/80 hover:bg-background dark:bg-slate-700/80 dark:hover:bg-slate-700 shadow-md" />
