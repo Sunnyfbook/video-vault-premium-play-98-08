@@ -1,10 +1,9 @@
 
-import React from 'react';
-import VideoPlayer from '@/components/VideoPlayer';
-import VideoInfo from './VideoInfo';
-import AdsSection from './AdsSection';
-import { Video } from '@/models/Video';
-import { Ad } from '@/models/Ad';
+import React, { useState } from "react";
+import { Video } from "@/models/Video";
+import { Ad } from "@/models/Ad";
+import VideoInfo from "./VideoInfo";
+import AdsSection from "./AdsSection";
 
 interface MainVideoSectionProps {
   video: Video;
@@ -12,37 +11,50 @@ interface MainVideoSectionProps {
   bottomAds: Ad[];
 }
 
-const MainVideoSection: React.FC<MainVideoSectionProps> = ({ 
-  video, 
-  inVideoAds, 
-  bottomAds 
+const MainVideoSection: React.FC<MainVideoSectionProps> = ({
+  video,
+  inVideoAds,
+  bottomAds
 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const toggleExpanded = () => {
+    setIsExpanded(!isExpanded);
+  };
+
   return (
-    <div className="w-full lg:w-8/12 flex-shrink-0 space-y-6 md:space-y-8">
-      {/* In-video ads above player */}
-      {inVideoAds.length > 0 && (
-        <div className="bg-card p-4 rounded-xl shadow-card">
-           <h3 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider text-center">Advertisement</h3>
-          <AdsSection ads={inVideoAds} className="grid grid-cols-1 gap-3" />
-        </div>
-      )}
-      
-      {/* Video player */}
-      <div className="bg-video-background rounded-xl shadow-2xl overflow-hidden border-2 border-gray-800 dark:border-black sticky top-4 aspect-video"> {/* Ensured aspect ratio for player container */}
-        <VideoPlayer src={video.url} title={video.title} />
+    <main className="flex-grow space-y-6">
+      {/* Video container */}
+      <div className="relative rounded-xl overflow-hidden shadow-xl bg-black aspect-video">
+        <video
+          src={video.url}
+          poster={video.thumbnail}
+          controls
+          className="w-full h-full object-contain"
+        />
+        
+        {/* In-video ads section (if any) */}
+        {inVideoAds.length > 0 && (
+          <div className="absolute bottom-16 left-0 w-full px-4">
+            <AdsSection ads={inVideoAds} className="max-w-md mx-auto" />
+          </div>
+        )}
       </div>
       
-      {/* Video info */}
-      <VideoInfo video={video} />
+      {/* Video info section */}
+      <VideoInfo 
+        video={video}
+        isExpanded={isExpanded}
+        toggleExpanded={toggleExpanded}
+      />
       
-      {/* Bottom ads */}
+      {/* Bottom ads section (if any) */}
       {bottomAds.length > 0 && (
-         <div className="bg-card p-4 rounded-xl shadow-card mt-8">
-          <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider text-center">Advertisement</h3>
-          <AdsSection ads={bottomAds} className="grid grid-cols-1 sm:grid-cols-2 gap-4" />
+        <div className="mt-8">
+          <AdsSection ads={bottomAds} />
         </div>
       )}
-    </div>
+    </main>
   );
 };
 

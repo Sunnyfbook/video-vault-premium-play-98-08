@@ -2,95 +2,109 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export interface HomepageConfig {
-  id: string; // Should be a fixed value like 'main_config' for the single row
-  site_title?: string | null;
-  site_description?: string | null;
-  footer_copyright?: string | null;
-  updated_at?: string;
+  id: string;
+  site_title: string | null;
+  site_description: string | null;
+  footer_copyright: string | null;
+  updated_at: string | null;
 }
 
 export const defaultConfig: HomepageConfig = {
-  id: "main_config",
-  site_title: "Video Player Pro",
-  site_description: "Immerse yourself in our curated collection of high-definition videos and breathtaking featured images. Experience content like never before.",
-  footer_copyright: `© ${new Date().getFullYear()} Video Player Pro. All rights reserved.`,
+  id: 'main_config',
+  site_title: 'Video Player Pro',
+  site_description: 'Immerse yourself in our curated collection of high-definition videos and breathtaking featured images. Experience content like never before.',
+  footer_copyright: '© 2025 Video Player Pro. All rights reserved.',
+  updated_at: null
 };
 
-// Get homepage config
 export const getHomepageConfig = async (): Promise<HomepageConfig> => {
-  const { data, error } = await supabase
-    .from("homepage_config")
-    .select("*")
-    .eq("id", defaultConfig.id)
-    .maybeSingle(); // Use maybeSingle to handle case where row might not exist yet
+  try {
+    const { data, error } = await supabase
+      .from("homepage_config")
+      .select("*")
+      .eq("id", "main_config")
+      .single();
 
-  if (error) {
-    console.error("Error fetching homepage config:", error);
-    // Return default config or throw error, for now, return default on error
-    return defaultConfig;
-  }
-  if (!data) {
-    // If no data, this is the first time, potentially insert default
-    // For simplicity, we'll just return the default.
-    // A more robust solution would be to insert defaults if not present.
-    console.warn("Homepage config not found, returning default. Consider seeding initial data.");
-    return defaultConfig;
-  }
-  return data as HomepageConfig;
-};
-
-// Update homepage config
-export const updateHomepageConfig = async (
-  config: Partial<Omit<HomepageConfig, "id" | "updated_at">>
-): Promise<HomepageConfig | null> => {
-  const { data, error } = await supabase
-    .from("homepage_config")
-    .update({ ...config, updated_at: new Date().toISOString() })
-    .eq("id", defaultConfig.id)
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Error updating homepage config:", error);
-    // Check if the error is because the row doesn't exist (e.g., PGRST116 for "0 rows")
-    // This can happen with .update().eq().single() if the row isn't there.
-    // A more robust approach is upsert.
-    if (error.code === 'PGRST116' || error.message.includes("0 rows")) { 
-        // Row doesn't exist, so let's insert it
-        const { data: insertData, error: insertError } = await supabase
-            .from("homepage_config")
-            .insert([{ ...defaultConfig, ...config, id: defaultConfig.id, updated_at: new Date().toISOString() }])
-            .select()
-            .single();
-        if (insertError) {
-            console.error("Error inserting homepage config after failed update:", insertError);
-            return null;
-        }
-        return insertData as HomepageConfig;
+    if (error) {
+      console.error("Error fetching homepage config:", error);
+      return defaultConfig;
     }
-    return null;
+
+    return data as HomepageConfig;
+  } catch (error) {
+    console.error("Error fetching homepage config:", error);
+    return defaultConfig;
   }
-  return data as HomepageConfig;
 };
 
-// Ensure homepage config exists
-export const ensureHomepageConfigExists = async (): Promise<HomepageConfig> => {
-  let config = await getHomepageConfig();
-  if (config.site_title === defaultConfig.site_title && !config.updated_at) { // A way to check if it's truly default or just uninitialized
-    // Attempt to insert if it seems uninitialized
-    console.log("Attempting to initialize homepage_config with default values...");
-    const { data: upsertData, error: upsertError } = await supabase
-      .from('homepage_config')
-      .upsert({ ...defaultConfig, id: defaultConfig.id, updated_at: new Date().toISOString() })
+export const updateHomepageConfig = async (updates: Partial<HomepageConfig>): Promise<HomepageConfig | null> => {
+  try {
+    // Don't update the id field
+    const updateData = { ...updates };
+    delete updateData.id;
+    
+    const { data, error } = await supabase
+      .from("homepage_config")
+      .update(updateData)
+      .eq("id", "main_config")
       .select()
       .single();
 
-    if (upsertError) {
-      console.error('Error upserting default homepage config:', upsertError.message);
-      return defaultConfig; // return default if upsert fails
+    if (error) {
+      console.error("Error updating homepage config:", error);
+      throw error;
     }
-    console.log("Homepage config initialized/upserted.");
-    return upsertData as HomepageConfig;
+
+    return data as HomepageConfig;
+  } catch (error) {
+    console.error("Error updating homepage config:", error);
+    throw error;
   }
-  return config;
+};
+
+export const ensureHomepageConfigExists = async (): Promise<void> => {
+  try {
+    // Check if the config exists
+    const { data, error } = await supabase
+      .from("homepage_config")
+      .select("id")
+      .eq("id", "main_config")
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error checking homepage config:", error);
+      return;
+    }
+
+    if (!data) {
+      // If not found, insert the default config
+      const { error: insertError } = await supabase
+        .from("homepage_config")
+        .insert([defaultConfig]);
+
+      if (insertError) {
+        console.error("Error creating default homepage config:", insertError);
+      }
+    }
+  } catch (error) {
+    console.error("Error ensuring homepage config exists:", error);
+  }
+};
+
+// Setup real-time subscription to homepage config changes
+export const setupHomepageConfigSubscription = (onUpdate: () => void) => {
+  const channel = supabase
+    .channel('homepage_config_changes')
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'homepage_config', filter: `id=eq.${defaultConfig.id}` },
+      () => {
+        onUpdate();
+      }
+    )
+    .subscribe();
+    
+  return () => {
+    supabase.removeChannel(channel);
+  };
 };
