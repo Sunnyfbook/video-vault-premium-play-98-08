@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,6 +15,7 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { supabase } from '@/integrations/supabase/client';
+import HomepageContentManager from "@/components/admin/HomepageContentManager";
 
 const Admin: React.FC = () => {
   const { isLoggedIn, logout } = useAuth();
@@ -288,8 +288,8 @@ const Admin: React.FC = () => {
           <TabsTrigger value="videos">Videos</TabsTrigger>
           <TabsTrigger value="ads">Ads</TabsTrigger>
           <TabsTrigger value="seo">SEO Settings</TabsTrigger>
+          <TabsTrigger value="homepage">Homepage</TabsTrigger>
         </TabsList>
-        
         {/* Videos Tab */}
         <TabsContent value="videos">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -423,7 +423,6 @@ const Admin: React.FC = () => {
             </div>
           </div>
         </TabsContent>
-        
         {/* Ads Tab */}
         <TabsContent value="ads">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -587,8 +586,7 @@ const Admin: React.FC = () => {
             </div>
           </div>
         </TabsContent>
-        
-        {/* New SEO Settings Tab */}
+        {/* SEO Tab */}
         <TabsContent value="seo">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* SEO Page List */}
@@ -795,6 +793,10 @@ const Admin: React.FC = () => {
               )}
             </div>
           </div>
+        </TabsContent>
+        {/* Homepage Content Tab */}
+        <TabsContent value="homepage">
+          <HomepageContentManager />
         </TabsContent>
       </Tabs>
     </div>
