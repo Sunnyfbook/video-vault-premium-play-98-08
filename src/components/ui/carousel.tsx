@@ -22,15 +22,13 @@ const Carousel = React.forwardRef<HTMLElement, CarouselProps>(
     React.useEffect(() => {
       if (!emblaApi) return
 
-      // Your carousel logic here
+      // Make CarouselApi available through context
     }, [emblaApi])
 
     return (
       <CarouselContext.Provider value={emblaApi}>
         <div className={cn("relative", className)} {...props}>
-          <div className="overflow-hidden" ref={emblaRef}>
-            <div className="flex -ml-4">{children}</div>
-          </div>
+          {children}
         </div>
       </CarouselContext.Provider>
     )
@@ -42,7 +40,7 @@ const CarouselContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => {
-  return <div className={cn("flex gap-1", className)} {...props} ref={ref} />
+  return <div className={cn("flex", className)} {...props} ref={ref} />
 })
 CarouselContent.displayName = "CarouselContent"
 
@@ -52,7 +50,7 @@ const CarouselItem = React.forwardRef<
 >(({ className, ...props }, ref) => {
   return (
     <div
-      className={cn("basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5", className)}
+      className={cn("min-w-0 shrink-0 grow-0 px-2", className)}
       {...props}
       ref={ref}
     />
@@ -72,14 +70,14 @@ function CarouselPrevious({ className, ...props }: CarouselNavProps) {
       variant="outline"
       size="icon"
       className={cn(
-        "absolute top-1/2 z-10 -translate-y-1/2 left-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity",
+        "absolute top-1/2 z-10 -translate-y-1/2 left-4 h-10 w-10 rounded-full bg-white/80 backdrop-blur-sm dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-700 border-0 shadow-md",
         className
       )}
       onClick={() => embla?.scrollPrev()}
       disabled={!embla}
       {...props}
     >
-      <ChevronLeft className="h-4 w-4" />
+      <ChevronLeft className="h-5 w-5" />
       <span className="sr-only">Previous</span>
     </Button>
   )
@@ -94,14 +92,14 @@ function CarouselNext({ className, ...props }: CarouselNavProps) {
       variant="outline"
       size="icon"
       className={cn(
-        "absolute top-1/2 z-10 -translate-y-1/2 right-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity",
+        "absolute top-1/2 z-10 -translate-y-1/2 right-4 h-10 w-10 rounded-full bg-white/80 backdrop-blur-sm dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-700 border-0 shadow-md",
         className
       )}
       onClick={() => embla?.scrollNext()}
       disabled={!embla}
       {...props}
     >
-      <ChevronRight className="h-4 w-4" />
+      <ChevronRight className="h-5 w-5" />
       <span className="sr-only">Next</span>
     </Button>
   )
