@@ -42,6 +42,39 @@ export type Database = {
         }
         Relationships: []
       }
+      homepage_content: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          thumbnail: string | null
+          title: string
+          type: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          thumbnail?: string | null
+          title: string
+          type: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          thumbnail?: string | null
+          title?: string
+          type?: string
+          url?: string
+        }
+        Relationships: []
+      }
       seo_settings: {
         Row: {
           canonical_url: string | null
