@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import { useHomepageContent } from "@/hooks/useHomepageContent";
 import { useHomepageConfig } from "@/hooks/useHomepageConfig";
 import { Card, CardContent } from "@/components/ui/card";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Video, Image as ImageIcon, Zap, Play, ArrowRight, Instagram } from "lucide-react";
 import { Ad, getActiveAds, getAdsByPosition } from "@/models/Ad";
 import AdsSection from "@/components/video/AdsSection";
@@ -17,7 +16,7 @@ const Index = () => {
   const [sidebarAds, setSidebarAds] = useState<Ad[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  const cardHoverClass = "transition-all duration-300 ease-in-out group-hover:shadow-card-hover group-hover:-translate-y-1";
+  const cardHoverClass = "transition-all duration-300 ease-in-out hover:shadow-lg group-hover:shadow-card-hover group-hover:-translate-y-1";
   
   const overallLoading = contentLoading || configLoading || loading;
 
@@ -48,7 +47,6 @@ const Index = () => {
         <div className="w-full h-full">
           <InstagramEmbed 
             url={item.url}
-            title={item.title}
             className="w-full h-full"
           />
         </div>
@@ -71,7 +69,7 @@ const Index = () => {
       return (
         <img
           src={item.url}
-          alt={item.title}
+          alt={item.title || "Featured image"}
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
       );
@@ -120,7 +118,7 @@ const Index = () => {
                 <h2 className="section-title !mb-0">Featured Videos</h2>
               </div>
               {contentLoading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
                   {[...Array(3)].map((_, i) => (
                     <Card key={i} className="rounded-xl shadow-card animate-pulse bg-gray-200 dark:bg-slate-800">
                       <div className="aspect-video bg-gray-300 dark:bg-gray-700 rounded-t-xl"></div>
@@ -133,28 +131,15 @@ const Index = () => {
                   <p className="text-xl text-muted-foreground">No featured videos available right now. Please check back later!</p>
                 </div>
               ) : (
-                <Carousel 
-                  opts={{ align: "start", loop: videos.length > 2 }} 
-                  className="w-full group py-10"
-                >
-                  <CarouselContent className="-ml-4">
-                    {videos.map((video) => (
-                      <CarouselItem key={video.id} className="pl-4 md:basis-1/2 lg:basis-1/2 group">
-                        <Card className={`rounded-xl shadow-card overflow-hidden bg-card ${cardHoverClass}`}>
-                          <div className="relative aspect-video lg:aspect-[16/10] xl:aspect-[16/9] bg-black rounded-xl group-hover:opacity-90 transition-opacity">
-                            {renderContent(video)}
-                          </div>
-                        </Card>
-                      </CarouselItem>
-                    ))}
-                  </CarouselContent>
-                  {videos.length > 1 && ( 
-                    <>
-                      <CarouselPrevious className="ml-12 bg-background/80 hover:bg-background dark:bg-slate-700/80 dark:hover:bg-slate-700 shadow-md" />
-                      <CarouselNext className="mr-12 bg-background/80 hover:bg-background dark:bg-slate-700/80 dark:hover:bg-slate-700 shadow-md" />
-                    </>
-                  )}
-                </Carousel>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
+                  {videos.map((video) => (
+                    <Card key={video.id} className={`rounded-xl shadow-card overflow-hidden bg-card group ${cardHoverClass}`}>
+                      <div className="relative aspect-video bg-black rounded-xl group-hover:opacity-90 transition-opacity">
+                        {renderContent(video)}
+                      </div>
+                    </Card>
+                  ))}
+                </div>
               )}
             </section>
 
@@ -165,10 +150,10 @@ const Index = () => {
                 <h2 className="section-title !mb-0">Featured Images</h2>
               </div>
               {contentLoading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
                   {[...Array(3)].map((_, i) => (
-                     <Card key={i} className="rounded-xl shadow-card animate-pulse bg-gray-200 dark:bg-slate-800">
-                      <div className="aspect-video bg-gray-300 dark:bg-gray-700 rounded-xl"></div>
+                    <Card key={i} className="rounded-xl shadow-card animate-pulse bg-gray-200 dark:bg-slate-800">
+                      <div className="aspect-square bg-gray-300 dark:bg-gray-700 rounded-xl"></div>
                     </Card>
                   ))}
                 </div>
@@ -178,28 +163,15 @@ const Index = () => {
                   <p className="text-xl text-muted-foreground">No featured images to showcase at the moment.</p>
                 </div>
               ) : (
-                <Carousel 
-                  opts={{ align: "start", loop: images.length > 2 }} 
-                  className="w-full group py-10"
-                >
-                  <CarouselContent className="-ml-4">
-                    {images.map((img) => (
-                      <CarouselItem key={img.id} className="pl-4 md:basis-1/2 lg:basis-1/2 group">
-                        <Card className={`rounded-xl shadow-card overflow-hidden bg-card ${cardHoverClass}`}>
-                          <div className="aspect-square md:aspect-[4/3] lg:aspect-[16/10] xl:aspect-[16/9] overflow-hidden rounded-xl relative">
-                            {renderContent(img)}
-                          </div>
-                        </Card>
-                      </CarouselItem>
-                    ))}
-                  </CarouselContent>
-                   {images.length > 1 && (
-                    <>
-                      <CarouselPrevious className="ml-12 bg-background/80 hover:bg-background dark:bg-slate-700/80 dark:hover:bg-slate-700 shadow-md" />
-                      <CarouselNext className="mr-12 bg-background/80 hover:bg-background dark:bg-slate-700/80 dark:hover:bg-slate-700 shadow-md" />
-                    </>
-                  )}
-                </Carousel>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6 md:gap-8">
+                  {images.map((img) => (
+                    <Card key={img.id} className={`rounded-xl shadow-card overflow-hidden bg-card group ${cardHoverClass}`}>
+                      <div className="aspect-square overflow-hidden rounded-xl relative">
+                        {renderContent(img)}
+                      </div>
+                    </Card>
+                  ))}
+                </div>
               )}
             </section>
 
