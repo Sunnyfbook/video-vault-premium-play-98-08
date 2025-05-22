@@ -79,12 +79,12 @@ const Carousel = React.forwardRef<
     const [canScrollPrev, setCanScrollPrev] = React.useState(false)
     const [canScrollNext, setCanScrollNext] = React.useState(false)
 
-    const onSelect = React.useCallback((api: CarouselApi) => {
-      if (!api) {
+    const onSelect = React.useCallback((currentApi: CarouselApi) => {
+      if (!currentApi) {
         return
       }
-      setCanScrollPrev(api.canScrollPrev())
-      setCanScrollNext(api.canScrollNext())
+      setCanScrollPrev(currentApi.canScrollPrev())
+      setCanScrollNext(currentApi.canScrollNext())
     }, [])
 
     const scrollPrev = React.useCallback(() => {
@@ -134,17 +134,21 @@ const Carousel = React.forwardRef<
           contentNode.style.transformStyle = "preserve-3d";
         }
         
-        (carouselRef.current as HTMLElement)?.style.setProperty('perspective', perspective);
+        const emblaViewportNode = carouselRef.current;
+        if (emblaViewportNode && emblaViewportNode instanceof HTMLElement) {
+            emblaViewportNode.style.setProperty('perspective', perspective);
+        }
 
 
         const updateSlideTransforms = () => {
           if (!api) return;
           const engine = api.internalEngine();
-          const scrollProgress = api.scrollProgress(); // This might need adjustment based on loop behavior
+          // const scrollProgress = api.scrollProgress(); // This might need adjustment based on loop behavior
           
           // More direct access to target location for smoother interpolation during drag
-          const target = engine.location.get();
-          const position = target / engine.scroll συνολικού μήκους (scrollSnaps / total slides length)
+          // const target = engine.location.get();
+          // The problematic line below is removed:
+          // const position = target / engine.scroll συνολικού μήκους (scrollSnaps / total slides length) 
 
           slideNodes.forEach((slideNode, index) => {
             // This is a simplified calculation. For a true wheel, we'd use target location directly.
@@ -153,16 +157,11 @@ const Carousel = React.forwardRef<
             // Let's assume a virtual "wheel" rotation.
             // A more robust way is to use the target position from engine.
             
-            let angleForItem = (index * slideAngle) + initialAngleOffset;
-            // Adjust angle based on scroll. Each full "scroll" of carousel length (e.g. 1 if not looping)
-            // could correspond to rotating through all slides.
-            // This part is tricky and depends on how `scrollProgress` is interpreted with `loop`.
-            // For a simpler start, let's make the wheel rotate based on overall progress.
-            // Total angle of the "wheel" if all slides were laid out: (slideNodes.length -1 ) * slideAngle
-            // Current rotation of the wheel = scrollProgress * total_angle_span_of_all_slides
-
             // A common approach for wheel carousels:
-            const rotationOffset = engine.scrollProgress.get(engine.location.get()) * (slideNodes.length * slideAngle);
+            // Ensure engine.scrollSnaps is not empty to avoid division by zero if it's used in scrollProgress.get
+            // However, scrollProgress.get() with a location argument usually handles this internally.
+            const currentScrollProgress = engine.scrollProgress.get(engine.location.get());
+            const rotationOffset = currentScrollProgress * (slideNodes.length * slideAngle);
             const itemTargetAngle = (index * slideAngle) - rotationOffset + initialAngleOffset;
 
             slideNode.style.transform = `translateZ(${itemRadius}px) rotateY(${itemTargetAngle}deg)`;
@@ -187,7 +186,9 @@ const Carousel = React.forwardRef<
           api.off("resize", updateSlideTransforms);
           api.off("reInit", updateSlideTransforms);
           // Reset styles if needed
-           (carouselRef.current as HTMLElement)?.style.removeProperty('perspective');
+          if (emblaViewportNode && emblaViewportNode instanceof HTMLElement) {
+            emblaViewportNode.style.removeProperty('perspective');
+          }
           if (contentNode) contentNode.style.transformStyle = "";
           slideNodes.forEach(slide => {
             slide.style.transform = "";
