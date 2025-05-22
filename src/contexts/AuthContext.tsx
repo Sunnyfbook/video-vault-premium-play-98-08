@@ -1,74 +1,67 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { isAuthenticated, login, logout, getCurrentUser } from '../models/Auth';
-import { useToast } from '../hooks/use-toast';
+import { login as authLogin, logout as authLogout, isAuthenticated, getCurrentUser } from '@/models/Auth';
 
-interface AuthContextType {
+type AuthContextType = {
   isLoggedIn: boolean;
-  username: string | null;
-  login: (username: string, password: string) => boolean;
+  user: string | null;
+  login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
-}
+};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState<string | null>(null);
-  const { toast } = useToast();
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [user, setUser] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check authentication status on mount
-    const authStatus = isAuthenticated();
-    setIsLoggedIn(authStatus);
+    // Check auth status when the component mounts
+    const checkAuth = () => {
+      const auth = isAuthenticated();
+      setIsLoggedIn(auth);
+      setUser(getCurrentUser());
+    };
+
+    checkAuth();
     
-    if (authStatus) {
-      setUsername(getCurrentUser());
-    }
+    // Listen for storage events (for multi-tab logout)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'isAuthenticated') {
+        checkAuth();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
-  const handleLogin = (username: string, password: string): boolean => {
-    const success = login(username, password);
-    
+  const login = async (username: string, password: string) => {
+    const success = await authLogin(username, password);
     if (success) {
       setIsLoggedIn(true);
-      setUsername(username);
-      toast({
-        title: "Login Successful",
-        description: "Welcome to the admin dashboard!",
-      });
-    } else {
-      toast({
-        title: "Login Failed",
-        description: "Invalid username or password.",
-        variant: "destructive",
-      });
+      setUser(username);
     }
-    
     return success;
   };
 
-  const handleLogout = () => {
-    logout();
+  const logout = () => {
+    authLogout();
     setIsLoggedIn(false);
-    setUsername(null);
-    toast({
-      title: "Logged Out",
-      description: "You have been logged out successfully.",
-    });
+    setUser(null);
   };
 
-  const value = {
-    isLoggedIn,
-    username,
-    login: handleLogin,
-    logout: handleLogout,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ isLoggedIn, user, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
-export const useAuth = (): AuthContextType => {
+export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');

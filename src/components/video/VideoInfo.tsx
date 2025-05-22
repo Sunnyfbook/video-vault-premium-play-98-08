@@ -28,7 +28,7 @@ const VideoInfo: React.FC<VideoInfoProps> = ({ video }) => {
     <div className="mt-6 bg-white p-6 rounded-lg shadow-sm">
       <h1 className="text-2xl font-bold mb-1">{video.title}</h1>
       <div className="flex text-sm text-gray-500 mb-4">
-        <span>{new Date(video.dateAdded).toLocaleDateString()}</span>
+        <span>{new Date(video.date_added).toLocaleDateString()}</span>
         <span className="mx-2">•</span>
         <span>{video.views} views</span>
       </div>
