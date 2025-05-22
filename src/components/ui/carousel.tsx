@@ -1,5 +1,6 @@
+
 import * as React from "react"
-import { ArrowLeftIcon, ArrowRightIcon } from "@radix-ui/react-icons"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 import useEmblaCarousel from "embla-carousel-react"
 import { type EmblaCarouselType as CarouselApi } from "embla-carousel"
 import { type EmblaOptionsType as CarouselOptions } from "embla-carousel"
@@ -59,11 +60,11 @@ const CarouselItem = React.forwardRef<
 })
 CarouselItem.displayName = "CarouselItem"
 
-interface CarouselArrowProps extends React.HTMLAttributes<HTMLButtonElement> {
-  direction: "left" | "right"
+interface CarouselNavProps extends React.HTMLAttributes<HTMLButtonElement> {
+  // We removed the direction requirement since we determine direction by component
 }
 
-function CarouselPrevious({ className, direction, ...props }: CarouselArrowProps) {
+function CarouselPrevious({ className, ...props }: CarouselNavProps) {
   const embla = React.useContext(CarouselContext)
 
   return (
@@ -78,15 +79,14 @@ function CarouselPrevious({ className, direction, ...props }: CarouselArrowProps
       disabled={!embla}
       {...props}
     >
-      <ArrowLeftIcon className="h-4 w-4" />
+      <ChevronLeft className="h-4 w-4" />
       <span className="sr-only">Previous</span>
     </Button>
   )
 }
-
 CarouselPrevious.displayName = "CarouselPrevious"
 
-function CarouselNext({ className, direction, ...props }: CarouselArrowProps) {
+function CarouselNext({ className, ...props }: CarouselNavProps) {
   const embla = React.useContext(CarouselContext)
 
   return (
@@ -101,7 +101,7 @@ function CarouselNext({ className, direction, ...props }: CarouselArrowProps) {
       disabled={!embla}
       {...props}
     >
-      <ArrowRightIcon className="h-4 w-4" />
+      <ChevronRight className="h-4 w-4" />
       <span className="sr-only">Next</span>
     </Button>
   )
