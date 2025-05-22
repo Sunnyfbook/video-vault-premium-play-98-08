@@ -1,34 +1,49 @@
 import React from "react";
 import { useHomepageContent } from "@/hooks/useHomepageContent";
+import { useHomepageConfig } from "@/hooks/useHomepageConfig";
 import { Card, CardContent } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { Video, Image as ImageIcon, Zap, Play, ArrowRight } from "lucide-react";
+import { Video, Image as ImageIcon, Zap, Play, ArrowRight, Loader2 } from "lucide-react";
 
 const Index = () => {
-  const { videos, images, loading } = useHomepageContent();
+  const { videos, images, loading: contentLoading } = useHomepageContent();
+  const { config: homepageConfig, loading: configLoading, error: configError } = useHomepageConfig();
 
   const cardHoverClass = "transition-all duration-300 ease-in-out group-hover:shadow-card-hover group-hover:-translate-y-1";
 
   const wheelOptions = {
     perspective: '1200px',
-    itemRadius: 320, // Adjust for how "deep" the wheel is
-    slideAngle: 30,   // Adjust for angle between slides
-    initialAngleOffset: 0, // Centers the first item if it's a full circle. May need adjustment.
+    itemRadius: 320,
+    slideAngle: 30,
+    initialAngleOffset: 0,
   };
+  
+  const overallLoading = contentLoading || configLoading;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-100 to-slate-200 dark:from-slate-900 dark:via-gray-950 dark:to-slate-800 animate-fade-in overflow-x-hidden">
       <div className="container mx-auto px-4 py-12 sm:py-16 lg:py-20">
         <header className="mb-16 md:mb-20 text-center">
           <Zap size={48} className="mx-auto mb-6 text-brand-accent animate-pulse-soft" />
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold mb-6">
-            <span className="gradient-text">
-              Video Player Pro
-            </span>
-          </h1>
-          <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
-            Immerse yourself in our curated collection of high-definition videos and breathtaking featured images. Experience content like never before.
-          </p>
+          {overallLoading ? (
+            <>
+              <div className="h-16 bg-gray-300 dark:bg-gray-700 rounded w-3/4 mx-auto mb-6 animate-pulse"></div>
+              <div className="h-10 bg-gray-200 dark:bg-gray-600 rounded w-full max-w-3xl mx-auto animate-pulse"></div>
+            </>
+          ) : configError ? (
+            <p className="text-red-500">Error loading homepage configuration: {configError}</p>
+          ) : (
+            <>
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold mb-6">
+                <span className="gradient-text">
+                  {homepageConfig.site_title}
+                </span>
+              </h1>
+              <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
+                {homepageConfig.site_description}
+              </p>
+            </>
+          )}
         </header>
 
         <main className="space-y-16 md:space-y-20">
@@ -38,7 +53,7 @@ const Index = () => {
               <Video size={36} className="text-primary" />
               <h2 className="section-title !mb-0">Featured Videos</h2>
             </div>
-            {loading ? (
+            {contentLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                 {[...Array(3)].map((_, i) => (
                   <Card key={i} className="rounded-xl shadow-card animate-pulse bg-gray-200 dark:bg-slate-800">
@@ -59,8 +74,8 @@ const Index = () => {
             ) : (
               <Carousel 
                 opts={{ align: "start", loop: videos.length > 2 }} 
-                wheelEffectOptions={wheelOptions} // Apply wheel effect
-                className="w-full group py-10" // Added padding for 3D effect visibility
+                wheelEffectOptions={wheelOptions}
+                className="w-full group py-10"
               >
                 <CarouselContent className="-ml-4">
                   {videos.map((video) => (
@@ -104,7 +119,7 @@ const Index = () => {
               <ImageIcon size={36} className="text-brand-accent" />
               <h2 className="section-title !mb-0">Featured Images</h2>
             </div>
-            {loading ? (
+            {contentLoading ? (
                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                 {[...Array(3)].map((_, i) => (
                    <Card key={i} className="rounded-xl shadow-card animate-pulse bg-gray-200 dark:bg-slate-800">
@@ -124,8 +139,8 @@ const Index = () => {
             ) : (
               <Carousel 
                 opts={{ align: "start", loop: images.length > 2 }} 
-                wheelEffectOptions={wheelOptions} // Apply wheel effect
-                className="w-full group py-10" // Added padding for 3D effect visibility
+                wheelEffectOptions={wheelOptions}
+                className="w-full group py-10"
               >
                 <CarouselContent className="-ml-4">
                   {images.map((img) => (
@@ -159,7 +174,11 @@ const Index = () => {
         </main>
 
         <footer className="mt-20 md:mt-24 pt-10 border-t border-border/50 text-center">
-          <p className="text-md text-muted-foreground">&copy; {new Date().getFullYear()} Video Player Pro. All rights reserved.</p>
+          {overallLoading ? (
+             <div className="h-5 bg-gray-300 dark:bg-gray-700 rounded w-1/2 mx-auto animate-pulse"></div>
+          ) : (
+            <p className="text-md text-muted-foreground">{homepageConfig.footer_copyright}</p>
+          )}
           <p className="text-sm text-muted-foreground/80 mt-2">Crafted with passion for seamless media experiences.</p>
         </footer>
       </div>

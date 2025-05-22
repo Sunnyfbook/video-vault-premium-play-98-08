@@ -16,6 +16,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { supabase } from '@/integrations/supabase/client';
 import HomepageContentManager from "@/components/admin/HomepageContentManager";
+import { getHomepageConfig, updateHomepageConfig, HomepageConfig, defaultConfig as initialHomepageConfigValues } from '@/models/HomepageConfig';
+import { useHomepageConfig } from '@/hooks/useHomepageConfig';
 
 const Admin: React.FC = () => {
   const { isLoggedIn, logout } = useAuth();
@@ -37,6 +39,9 @@ const Admin: React.FC = () => {
     is_active: true
   });
   const { toast } = useToast();
+  const { config: currentHomepageConfig, loading: homepageConfigLoading, refetchConfig: refetchHomepageConfig } = useHomepageConfig();
+  const [homepageConfigForm, setHomepageConfigForm] = useState<Partial<HomepageConfig>>(initialHomepageConfigValues);
+  const [savingHomepageConfig, setSavingHomepageConfig] = useState(false);
   
   // Redirect if not logged in
   if (!isLoggedIn) {
@@ -55,6 +60,9 @@ const Admin: React.FC = () => {
         
         const seoData = await getSEOSettings();
         setSeoSettings(seoData);
+        
+        // Fetch initial homepage config for the form
+        // The hook useHomepageConfig already fetches, so we can populate the form from it.
       } catch (error) {
         console.error("Error loading data:", error);
         toast({
@@ -98,7 +106,17 @@ const Admin: React.FC = () => {
       supabase.removeChannel(adsChannel);
       supabase.removeChannel(seoChannel);
     };
-  }, [toast]);
+  }, [toast]); // Add any new dependencies if necessary, refetchHomepageConfig might be one if used directly here
+  
+  useEffect(() => {
+    if (currentHomepageConfig) {
+      setHomepageConfigForm({
+        site_title: currentHomepageConfig.site_title,
+        site_description: currentHomepageConfig.site_description,
+        footer_copyright: currentHomepageConfig.footer_copyright,
+      });
+    }
+  }, [currentHomepageConfig]);
   
   const handleAddVideo = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -268,6 +286,40 @@ const Admin: React.FC = () => {
     }
   };
   
+  const handleHomepageConfigChange = (field: keyof HomepageConfig, value: string) => {
+    setHomepageConfigForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSaveHomepageConfig = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingHomepageConfig(true);
+    try {
+      const result = await updateHomepageConfig({
+        site_title: homepageConfigForm.site_title,
+        site_description: homepageConfigForm.site_description,
+        footer_copyright: homepageConfigForm.footer_copyright,
+      });
+      if (result) {
+        toast({
+          title: "Homepage Settings Updated",
+          description: "Your homepage texts have been updated.",
+        });
+        // Data will refresh via realtime, or call refetchHomepageConfig() if needed
+      } else {
+        throw new Error("Failed to update homepage settings");
+      }
+    } catch (error) {
+      console.error("Error updating homepage settings:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update homepage settings. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingHomepageConfig(false);
+    }
+  };
+  
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
@@ -289,6 +341,7 @@ const Admin: React.FC = () => {
           <TabsTrigger value="ads">Ads</TabsTrigger>
           <TabsTrigger value="seo">SEO Settings</TabsTrigger>
           <TabsTrigger value="homepage">Homepage</TabsTrigger>
+          <TabsTrigger value="homepage_settings">Homepage Settings</TabsTrigger>
         </TabsList>
         {/* Videos Tab */}
         <TabsContent value="videos">
@@ -797,6 +850,68 @@ const Admin: React.FC = () => {
         {/* Homepage Content Tab */}
         <TabsContent value="homepage">
           <HomepageContentManager />
+        </TabsContent>
+        {/* New Tab Content for Homepage Settings */}
+        <TabsContent value="homepage_settings">
+          <Card>
+            <CardHeader>
+              <CardTitle>Homepage Text Settings</CardTitle>
+              <CardDescription>
+                Manage the main title, description, and footer copyright text displayed on your homepage.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {homepageConfigLoading ? (
+                <p>Loading settings...</p>
+              ) : (
+                <form onSubmit={handleSaveHomepageConfig} className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="site_title">Main Site Title</Label>
+                    <Input
+                      id="site_title"
+                      value={homepageConfigForm.site_title || ""}
+                      onChange={(e) => handleHomepageConfigChange('site_title', e.target.value)}
+                      placeholder="Enter main site title"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      This is the main heading on your homepage (e.g., "Video Player Pro").
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="site_description">Site Description</Label>
+                    <Textarea
+                      id="site_description"
+                      value={homepageConfigForm.site_description || ""}
+                      onChange={(e) => handleHomepageConfigChange('site_description', e.target.value)}
+                      placeholder="Enter site description"
+                      rows={4}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      The introductory paragraph below the main title on your homepage.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="footer_copyright">Footer Copyright Text</Label>
+                    <Input
+                      id="footer_copyright"
+                      value={homepageConfigForm.footer_copyright || ""}
+                      onChange={(e) => handleHomepageConfigChange('footer_copyright', e.target.value)}
+                      placeholder="Enter footer copyright text"
+                    />
+                     <p className="text-xs text-muted-foreground">
+                      e.g., "© {new Date().getFullYear()} Your Company. All rights reserved."
+                    </p>
+                  </div>
+                  
+                  <Button type="submit" className="w-full" disabled={savingHomepageConfig}>
+                    {savingHomepageConfig ? "Saving..." : "Save Homepage Settings"}
+                  </Button>
+                </form>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
