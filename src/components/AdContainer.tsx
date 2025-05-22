@@ -16,31 +16,39 @@ const AdContainer: React.FC<AdContainerProps> = ({ adType, adCode, className }) 
     // Clear any existing content
     adContainerRef.current.innerHTML = '';
     
-    // Add the ad code
-    const scriptElement = document.createElement('div');
-    scriptElement.innerHTML = adCode;
-    
-    // Append all child nodes from the created element
-    while (scriptElement.firstChild) {
-      adContainerRef.current.appendChild(scriptElement.firstChild);
-    }
-
-    // Execute any script tags that were in the ad code
-    const scripts = adContainerRef.current.getElementsByTagName('script');
-    for (let i = 0; i < scripts.length; i++) {
-      const script = scripts[i];
-      const scriptClone = document.createElement('script');
+    try {
+      // Create a parser to handle the HTML string
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(adCode, 'text/html');
       
-      // Copy all attributes from the original script
-      Array.from(script.attributes).forEach(attr => {
-        scriptClone.setAttribute(attr.name, attr.value);
+      // Get all elements from the parsed document
+      const elements = Array.from(doc.body.children);
+      
+      // Append each element to our container
+      elements.forEach(element => {
+        adContainerRef.current?.appendChild(document.importNode(element, true));
       });
       
-      // Copy the content
-      scriptClone.text = script.text;
+      // Find and execute scripts separately
+      const scripts = doc.querySelectorAll('script');
+      scripts.forEach(script => {
+        const newScript = document.createElement('script');
+        
+        // Copy script attributes
+        Array.from(script.attributes).forEach(attr => {
+          newScript.setAttribute(attr.name, attr.value);
+        });
+        
+        // Copy script content
+        newScript.textContent = script.textContent;
+        
+        // Append to document body to ensure it runs
+        document.body.appendChild(newScript);
+      });
       
-      // Replace the original with the clone
-      script.parentNode?.replaceChild(scriptClone, script);
+      console.log(`Ad of type ${adType} mounted successfully`);
+    } catch (error) {
+      console.error('Error rendering ad:', error);
     }
     
     return () => {
@@ -48,7 +56,7 @@ const AdContainer: React.FC<AdContainerProps> = ({ adType, adCode, className }) 
         adContainerRef.current.innerHTML = '';
       }
     };
-  }, [adCode]);
+  }, [adCode, adType]);
 
   return (
     <div 
