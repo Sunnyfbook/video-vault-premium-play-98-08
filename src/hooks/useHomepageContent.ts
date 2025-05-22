@@ -58,8 +58,10 @@ export function useHomepageContent() {
     };
   }, [fetchContent]);
 
-  // Treat Instagram content as either images or videos based on URL
-  // Instagram posts are treated as images, Instagram reels are treated as videos
+  // Categorize content:
+  // - Instagram reels are treated as videos
+  // - Instagram posts are treated as images
+  // - Regular videos and images are handled as before
   const videos = content.filter((c) => 
     c.type === "video" || (c.type === "instagram" && c.url.includes("/reel"))
   );

@@ -4,7 +4,7 @@ import { useHomepageContent } from "@/hooks/useHomepageContent";
 import { useHomepageConfig } from "@/hooks/useHomepageConfig";
 import { Card, CardContent } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { Video, Image as ImageIcon, Zap, Play, ArrowRight, Loader2, Instagram } from "lucide-react";
+import { Video, Image as ImageIcon, Zap, Play, ArrowRight, Instagram } from "lucide-react";
 import { Ad, getActiveAds, getAdsByPosition } from "@/models/Ad";
 import AdsSection from "@/components/video/AdsSection";
 import InstagramEmbed from "@/components/InstagramEmbed";
@@ -18,13 +18,6 @@ const Index = () => {
   const [loading, setLoading] = useState<boolean>(true);
 
   const cardHoverClass = "transition-all duration-300 ease-in-out group-hover:shadow-card-hover group-hover:-translate-y-1";
-
-  const wheelOptions = {
-    perspective: '1200px',
-    itemRadius: 320,
-    slideAngle: 30,
-    initialAngleOffset: 0,
-  };
   
   const overallLoading = contentLoading || configLoading || loading;
 

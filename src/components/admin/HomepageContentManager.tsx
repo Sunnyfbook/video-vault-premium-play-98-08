@@ -7,12 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useHomepageContent } from "@/hooks/useHomepageContent";
 import { supabase } from "@/integrations/supabase/client";
-import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectTrigger, SelectItem, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { X, Image, Video, Instagram } from "lucide-react";
-import { isInstagramPostUrl, extractInstagramPostId } from "@/utils/instagramUtils";
+import { isInstagramPostUrl } from "@/utils/instagramUtils";
 
 const defaultFormState = {
   title: "",
@@ -24,7 +22,7 @@ const defaultFormState = {
 };
 
 const HomepageContentManager: React.FC = () => {
-  const { content, videos, images, loading, error } = useHomepageContent();
+  const { content, loading, error } = useHomepageContent();
   const [form, setForm] = useState({ ...defaultFormState });
   const [tab, setTab] = useState<"video" | "image">("video");
   const { toast } = useToast();
