@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getVideoById, incrementViews, Video } from '@/models/Video';
@@ -36,6 +35,7 @@ const VideoPage: React.FC = () => {
         // Reset states when ID changes
         setLoading(true);
         setError(null);
+        setVideo(null); // Explicitly clear previous video
         
         try {
           // Load video data
@@ -43,10 +43,7 @@ const VideoPage: React.FC = () => {
           
           if (foundVideo) {
             setVideo(foundVideo);
-            // Increment view count
             await incrementViews(id);
-            
-            // Load SEO settings for video page
             const seoData = await getSEOSettingByPage('video');
             setSeoSettings(seoData);
           } else {
@@ -91,23 +88,24 @@ const VideoPage: React.FC = () => {
       .channel('public:ads')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'ads' },
-        (payload) => {
+        async (payload) => { // Make async for awaiting ad fetches
+          console.log('Ads changed, refetching:', payload);
           // Reload ads when changes occur
-          const loadAds = async () => {
-            const fetchTopAds = await getAdsByPosition('top');
-            setTopAds(fetchTopAds);
-            
-            const fetchBottomAds = await getAdsByPosition('bottom');
-            setBottomAds(fetchBottomAds);
-            
-            const fetchSidebarAds = await getAdsByPosition('sidebar');
-            setSidebarAds(fetchSidebarAds);
-            
-            const fetchInVideoAds = await getAdsByPosition('in-video');
-            setInVideoAds(fetchInVideoAds);
-          };
-          
-          loadAds();
+          const [
+            refetchedTopAds,
+            refetchedBottomAds,
+            refetchedSidebarAds,
+            refetchedInVideoAds,
+          ] = await Promise.all([
+            getAdsByPosition('top'),
+            getAdsByPosition('bottom'),
+            getAdsByPosition('sidebar'),
+            getAdsByPosition('in-video'),
+          ]);
+          setTopAds(refetchedTopAds);
+          setBottomAds(refetchedBottomAds);
+          setSidebarAds(refetchedSidebarAds);
+          setInVideoAds(refetchedInVideoAds);
         }
       )
       .subscribe();
@@ -122,19 +120,20 @@ const VideoPage: React.FC = () => {
     navigator.clipboard.writeText(window.location.href);
     setCopied(true);
     toast({
-      title: "Link Copied",
+      title: "Link Copied!",
       description: "Video link copied to clipboard!",
+      variant: "default",
     });
     
-    setTimeout(() => setCopied(false), 2000);
+    setTimeout(() => setCopied(false), 3000);
   };
 
   if (loading) {
-    return <LoadingState />;
+    return <div className="min-h-screen bg-gradient-to-br from-slate-100 to-gray-200 dark:from-slate-900 dark:to-gray-800 flex items-center justify-center"><LoadingState /></div>;
   }
 
   if (error || !video) {
-    return <ErrorState errorMessage={error || undefined} />;
+    return <div className="min-h-screen bg-gradient-to-br from-slate-100 to-gray-200 dark:from-slate-900 dark:to-gray-800 flex items-center justify-center"><ErrorState errorMessage={error || undefined} /></div>;
   }
 
   // Generate dynamic SEO metadata
@@ -171,27 +170,25 @@ const VideoPage: React.FC = () => {
         {seoSettings?.canonical_url && <link rel="canonical" href={seoSettings.canonical_url} />}
       </Helmet>
 
-      <div className="container mx-auto px-4 py-4 lg:py-8 bg-gray-50 min-h-screen">
-        {/* Top ads */}
-        <AdsSection ads={topAds} className="mb-6" />
-        
-        {/* Back button */}
-        <VideoHeader onCopyLink={copyCurrentLink} copied={copied} />
-        
-        {/* Main content area */}
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Main content with video player */}
-          <MainVideoSection 
-            video={video} 
-            inVideoAds={inVideoAds} 
-            bottomAds={bottomAds} 
-          />
+      <div className="min-h-screen bg-gradient-to-br from-slate-100 to-gray-200 dark:from-slate-900 dark:to-gray-800">
+        <div className="container mx-auto px-4 py-8 lg:py-12">
+          {/* Top ads */}
+          <AdsSection ads={topAds} className="mb-6" />
           
-          {/* Sidebar */}
-          <VideoSidebar 
-            sidebarAds={sidebarAds} 
-            onCopyLink={copyCurrentLink} 
-          />
+          <VideoHeader onCopyLink={copyCurrentLink} copied={copied} />
+          
+          <div className="flex flex-col lg:flex-row gap-8">
+            <MainVideoSection 
+              video={video} 
+              inVideoAds={inVideoAds} 
+              bottomAds={bottomAds} 
+            />
+            
+            <VideoSidebar 
+              sidebarAds={sidebarAds} 
+              onCopyLink={copyCurrentLink} 
+            />
+          </div>
         </div>
       </div>
     </>
