@@ -11,44 +11,66 @@ const AdContainer: React.FC<AdContainerProps> = ({ adType, adCode, className }) 
   const adContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!adContainerRef.current) return;
+    if (!adContainerRef.current || !adCode) return;
 
     // Clear any existing content
     adContainerRef.current.innerHTML = '';
     
     try {
-      // Create a parser to handle the HTML string
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(adCode, 'text/html');
+      // First, try direct innerHTML insertion (works for many ad networks)
+      const tempContainer = document.createElement('div');
+      tempContainer.innerHTML = adCode;
       
-      // Get all elements from the parsed document
-      const elements = Array.from(doc.body.children);
+      // Extract scripts before appending content
+      const scripts: HTMLScriptElement[] = [];
+      const scriptElements = tempContainer.getElementsByTagName('script');
+      for (let i = 0; i < scriptElements.length; i++) {
+        scripts.push(scriptElements[i]);
+      }
       
-      // Append each element to our container
-      elements.forEach(element => {
-        adContainerRef.current?.appendChild(document.importNode(element, true));
-      });
+      // Remove scripts from the temp container to prevent premature execution
+      for (const script of scripts) {
+        if (script.parentNode) {
+          script.parentNode.removeChild(script);
+        }
+      }
       
-      // Find and execute scripts separately
-      const scripts = doc.querySelectorAll('script');
-      scripts.forEach(script => {
+      // Append all non-script elements
+      while (tempContainer.firstChild) {
+        adContainerRef.current.appendChild(tempContainer.firstChild);
+      }
+      
+      // Now execute scripts separately to ensure they run properly
+      scripts.forEach(originalScript => {
         const newScript = document.createElement('script');
         
-        // Copy script attributes
-        Array.from(script.attributes).forEach(attr => {
+        // Copy all attributes
+        Array.from(originalScript.attributes).forEach(attr => {
           newScript.setAttribute(attr.name, attr.value);
         });
         
-        // Copy script content
-        newScript.textContent = script.textContent;
+        // Copy inline script content if present
+        if (originalScript.innerHTML) {
+          newScript.innerHTML = originalScript.innerHTML;
+        }
         
-        // Append to document body to ensure it runs
+        // For external scripts
+        if (originalScript.src) {
+          newScript.src = originalScript.src;
+        }
+        
+        // Append to document body to ensure proper execution
         document.body.appendChild(newScript);
       });
       
-      console.log(`Ad of type ${adType} mounted successfully`);
+      console.log(`Ad of type ${adType} mounted successfully`, { adCode: adCode.substring(0, 50) + '...' });
     } catch (error) {
       console.error('Error rendering ad:', error);
+      
+      // Fallback: try direct insertion as a last resort
+      if (adContainerRef.current) {
+        adContainerRef.current.innerHTML = adCode;
+      }
     }
     
     return () => {
