@@ -12,11 +12,20 @@ type UseCarouselParameters = Parameters<typeof useEmblaCarousel>
 type CarouselOptions = UseCarouselParameters[0]
 type CarouselPlugin = UseCarouselParameters[1]
 
+// New type for wheel effect options
+type WheelEffectOptions = {
+  perspective: string; // e.g., '1000px'
+  itemRadius: number;   // For translateZ, e.g., 300
+  slideAngle: number;  // Angle in degrees between slides, e.g., 30
+  initialAngleOffset?: number; // Optional offset for the initial rotation of the wheel, e.g. to center first item
+};
+
 type CarouselProps = {
   opts?: CarouselOptions
   plugins?: CarouselPlugin
   orientation?: "horizontal" | "vertical"
   setApi?: (api: CarouselApi) => void
+  wheelEffectOptions?: WheelEffectOptions; // New prop
 }
 
 type CarouselContextProps = {
@@ -26,6 +35,7 @@ type CarouselContextProps = {
   scrollNext: () => void
   canScrollPrev: boolean
   canScrollNext: boolean
+  wheelEffectOptions?: WheelEffectOptions
 } & CarouselProps
 
 const CarouselContext = React.createContext<CarouselContextProps | null>(null)
@@ -52,6 +62,7 @@ const Carousel = React.forwardRef<
       plugins,
       className,
       children,
+      wheelEffectOptions, // Destructure new prop
       ...props
     },
     ref
@@ -60,9 +71,11 @@ const Carousel = React.forwardRef<
       {
         ...opts,
         axis: orientation === "horizontal" ? "x" : "y",
+        skipSnaps: wheelEffectOptions ? true : opts?.skipSnaps, // Wheel effect often works better with free scrolling
+        loop: wheelEffectOptions ? true : opts?.loop, // Loop is good for wheel
       },
       plugins
-    )
+    );
     const [canScrollPrev, setCanScrollPrev] = React.useState(false)
     const [canScrollNext, setCanScrollNext] = React.useState(false)
 
@@ -70,7 +83,6 @@ const Carousel = React.forwardRef<
       if (!api) {
         return
       }
-
       setCanScrollPrev(api.canScrollPrev())
       setCanScrollNext(api.canScrollNext())
     }, [])
@@ -100,7 +112,6 @@ const Carousel = React.forwardRef<
       if (!api || !setApi) {
         return
       }
-
       setApi(api)
     }, [api, setApi])
 
@@ -113,10 +124,84 @@ const Carousel = React.forwardRef<
       api.on("reInit", onSelect)
       api.on("select", onSelect)
 
+      // Wheel effect logic
+      if (wheelEffectOptions && api) {
+        const { perspective, itemRadius, slideAngle, initialAngleOffset = 0 } = wheelEffectOptions;
+        const contentNode = api.containerNode()?.children[0] as HTMLElement | undefined;
+        const slideNodes = api.slideNodes();
+
+        if (contentNode) {
+          contentNode.style.transformStyle = "preserve-3d";
+        }
+        
+        (carouselRef.current as HTMLElement)?.style.setProperty('perspective', perspective);
+
+
+        const updateSlideTransforms = () => {
+          if (!api) return;
+          const engine = api.internalEngine();
+          const scrollProgress = api.scrollProgress(); // This might need adjustment based on loop behavior
+          
+          // More direct access to target location for smoother interpolation during drag
+          const target = engine.location.get();
+          const position = target / engine.scroll συνολικού μήκους (scrollSnaps / total slides length)
+
+          slideNodes.forEach((slideNode, index) => {
+            // This is a simplified calculation. For a true wheel, we'd use target location directly.
+            // scrollProgress gives overall progress, which we map to rotation.
+            // The total rotation depends on the number of slides and angle per slide.
+            // Let's assume a virtual "wheel" rotation.
+            // A more robust way is to use the target position from engine.
+            
+            let angleForItem = (index * slideAngle) + initialAngleOffset;
+            // Adjust angle based on scroll. Each full "scroll" of carousel length (e.g. 1 if not looping)
+            // could correspond to rotating through all slides.
+            // This part is tricky and depends on how `scrollProgress` is interpreted with `loop`.
+            // For a simpler start, let's make the wheel rotate based on overall progress.
+            // Total angle of the "wheel" if all slides were laid out: (slideNodes.length -1 ) * slideAngle
+            // Current rotation of the wheel = scrollProgress * total_angle_span_of_all_slides
+
+            // A common approach for wheel carousels:
+            const rotationOffset = engine.scrollProgress.get(engine.location.get()) * (slideNodes.length * slideAngle);
+            const itemTargetAngle = (index * slideAngle) - rotationOffset + initialAngleOffset;
+
+            slideNode.style.transform = `translateZ(${itemRadius}px) rotateY(${itemTargetAngle}deg)`;
+            
+            // Optional: Add opacity or scale based on how far they are from the "front"
+            const normalizedAngle = Math.abs(itemTargetAngle % 360);
+            if (normalizedAngle > 90 && normalizedAngle < 270) { // Back-facing
+              slideNode.style.opacity = '0.3';
+            } else {
+              slideNode.style.opacity = '1';
+            }
+          });
+        };
+
+        api.on("scroll", updateSlideTransforms);
+        api.on("resize", updateSlideTransforms); // Re-calculate on resize
+        api.on("reInit", updateSlideTransforms);
+        updateSlideTransforms(); // Initial setup
+
+        return () => {
+          api.off("scroll", updateSlideTransforms);
+          api.off("resize", updateSlideTransforms);
+          api.off("reInit", updateSlideTransforms);
+          // Reset styles if needed
+           (carouselRef.current as HTMLElement)?.style.removeProperty('perspective');
+          if (contentNode) contentNode.style.transformStyle = "";
+          slideNodes.forEach(slide => {
+            slide.style.transform = "";
+            slide.style.opacity = "";
+          });
+        };
+      }
+
+
       return () => {
         api?.off("select", onSelect)
+        api?.off("reInit", onSelect) // Ensure reInit listener for onSelect is also cleaned up
       }
-    }, [api, onSelect])
+    }, [api, onSelect, wheelEffectOptions, carouselRef]); // Added carouselRef
 
     return (
       <CarouselContext.Provider
@@ -130,10 +215,11 @@ const Carousel = React.forwardRef<
           scrollNext,
           canScrollPrev,
           canScrollNext,
+          wheelEffectOptions, // Pass down for context if needed, though not used by children currently
         }}
       >
         <div
-          ref={ref}
+          ref={ref} // This ref is for the outermost div, used by forwardRef
           onKeyDownCapture={handleKeyDown}
           className={cn("relative", className)}
           role="region"
@@ -155,11 +241,11 @@ const CarouselContent = React.forwardRef<
   const { carouselRef, orientation } = useCarousel()
 
   return (
-    <div ref={carouselRef} className="overflow-hidden">
+    <div ref={carouselRef} className="overflow-hidden"> {/* This is embla.containerNode() */}
       <div
-        ref={ref}
+        ref={ref} // This ref is for the inner div, typically not needed by user
         className={cn(
-          "flex",
+          "flex", // This is embla.containerNode().children[0]
           orientation === "horizontal" ? "-ml-4" : "-mt-4 flex-col",
           className
         )}
@@ -174,7 +260,7 @@ const CarouselItem = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => {
-  const { orientation } = useCarousel()
+  const { orientation, wheelEffectOptions } = useCarousel();
 
   return (
     <div
@@ -184,6 +270,8 @@ const CarouselItem = React.forwardRef<
       className={cn(
         "min-w-0 shrink-0 grow-0 basis-full",
         orientation === "horizontal" ? "pl-4" : "pt-4",
+        // Add transition for smooth transform changes if wheel effect is active
+        wheelEffectOptions ? "transition-transform duration-500 ease-out" : "",
         className
       )}
       {...props}

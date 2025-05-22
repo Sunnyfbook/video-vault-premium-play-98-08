@@ -9,8 +9,15 @@ const Index = () => {
 
   const cardHoverClass = "transition-all duration-300 ease-in-out group-hover:shadow-card-hover group-hover:-translate-y-1";
 
+  const wheelOptions = {
+    perspective: '1200px',
+    itemRadius: 320, // Adjust for how "deep" the wheel is
+    slideAngle: 30,   // Adjust for angle between slides
+    initialAngleOffset: 0, // Centers the first item if it's a full circle. May need adjustment.
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-100 to-slate-200 dark:from-slate-900 dark:via-gray-950 dark:to-slate-800 animate-fade-in">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-100 to-slate-200 dark:from-slate-900 dark:via-gray-950 dark:to-slate-800 animate-fade-in overflow-x-hidden">
       <div className="container mx-auto px-4 py-12 sm:py-16 lg:py-20">
         <header className="mb-16 md:mb-20 text-center">
           <Zap size={48} className="mx-auto mb-6 text-brand-accent animate-pulse-soft" />
@@ -52,7 +59,8 @@ const Index = () => {
             ) : (
               <Carousel 
                 opts={{ align: "start", loop: videos.length > 2 }} 
-                className="w-full group"
+                wheelEffectOptions={wheelOptions} // Apply wheel effect
+                className="w-full group py-10" // Added padding for 3D effect visibility
               >
                 <CarouselContent className="-ml-4">
                   {videos.map((video) => (
@@ -116,7 +124,8 @@ const Index = () => {
             ) : (
               <Carousel 
                 opts={{ align: "start", loop: images.length > 2 }} 
-                className="w-full group"
+                wheelEffectOptions={wheelOptions} // Apply wheel effect
+                className="w-full group py-10" // Added padding for 3D effect visibility
               >
                 <CarouselContent className="-ml-4">
                   {images.map((img) => (
