@@ -35,7 +35,7 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
         
         {/* In-video ads section (if any) */}
         {inVideoAds.length > 0 && (
-          <div className="absolute bottom-16 left-0 w-full px-4">
+          <div className="absolute bottom-16 left-0 w-full px-4 z-10">
             <AdsSection ads={inVideoAds} className="max-w-md mx-auto" />
           </div>
         )}
