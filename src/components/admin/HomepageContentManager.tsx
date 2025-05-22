@@ -11,6 +11,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectTrigger, SelectItem, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { X, Image, Video } from "lucide-react";
+import { isAuthenticated } from "@/models/Auth";
 
 const defaultFormState = {
   title: "",
@@ -41,10 +42,8 @@ const HomepageContentManager: React.FC = () => {
       return;
     }
 
-    // Check if the user is authenticated
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session) {
+    // Check if the user is authenticated using the custom auth method
+    if (!isAuthenticated()) {
       toast({
         title: "Authentication required",
         description: "You must be logged in to add content.",
@@ -86,10 +85,8 @@ const HomepageContentManager: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (!window.confirm("Delete this item?")) return;
     
-    // Check if the user is authenticated
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session) {
+    // Check if the user is authenticated using the custom auth method
+    if (!isAuthenticated()) {
       toast({
         title: "Authentication required",
         description: "You must be logged in to delete content.",

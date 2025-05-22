@@ -21,6 +21,8 @@ export function useHomepageContent() {
     setLoading(true);
     setError(null);
     
+    // Get content from Supabase
+    // The RLS policies we created will handle the access control
     const { data, error } = await supabase
       .from("homepage_content")
       .select("*")
