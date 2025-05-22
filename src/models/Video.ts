@@ -1,4 +1,3 @@
-
 export interface Video {
   id: string;
   title: string;
@@ -19,6 +18,24 @@ export const videos: Video[] = [
     thumbnail: 'https://picsum.photos/seed/video1/640/360',
     dateAdded: new Date().toISOString(),
     views: 0
+  },
+  {
+    id: '2',
+    title: 'Sample Video 2',
+    description: 'This is another sample video for testing.',
+    url: 'https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4',
+    thumbnail: 'https://picsum.photos/seed/video2/640/360',
+    dateAdded: new Date().toISOString(),
+    views: 0
+  },
+  {
+    id: '3',
+    title: 'Sample Video 3',
+    description: 'Third sample video with different content.',
+    url: 'https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4',
+    thumbnail: 'https://picsum.photos/seed/video3/640/360',
+    dateAdded: new Date().toISOString(),
+    views: 0
   }
 ];
 
@@ -34,7 +51,9 @@ export const getVideos = (): Video[] => {
     return videos;
   } catch (error) {
     console.error("Error loading videos from localStorage:", error);
-    return videos; // Return default videos as fallback
+    // Return default videos as fallback
+    localStorage.setItem('videos', JSON.stringify(videos));
+    return videos;
   }
 };
 
@@ -115,5 +134,15 @@ export const incrementViews = (id: string): void => {
     }
   } catch (error) {
     console.error("Error incrementing views:", error);
+  }
+};
+
+// Function to reset videos to default mock data (useful for debugging)
+export const resetVideosToDefault = (): void => {
+  try {
+    localStorage.setItem('videos', JSON.stringify(videos));
+    console.log("Videos reset to default mock data");
+  } catch (error) {
+    console.error("Error resetting videos:", error);
   }
 };
