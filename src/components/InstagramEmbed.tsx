@@ -1,6 +1,6 @@
 
 import { useEffect, useRef, useState } from 'react';
-import { extractInstagramPostId, getInstagramEmbedUrlNoCaptions } from '@/utils/instagramUtils';
+import { extractInstagramPostId, getAppropriateEmbedUrl } from '@/utils/instagramUtils';
 
 interface InstagramEmbedProps {
   url: string;
@@ -53,7 +53,11 @@ const InstagramEmbed: React.FC<InstagramEmbedProps> = ({ url, title, className =
     return <div className="p-4 bg-red-100 text-red-600 rounded">Invalid Instagram URL</div>;
   }
   
-  const embedUrl = getInstagramEmbedUrlNoCaptions(postId);
+  const embedUrl = getAppropriateEmbedUrl(url);
+  
+  if (!embedUrl) {
+    return <div className="p-4 bg-red-100 text-red-600 rounded">Unable to process Instagram URL</div>;
+  }
   
   return (
     <div className={`instagram-embed-container ${className} overflow-hidden rounded-xl relative`}>
