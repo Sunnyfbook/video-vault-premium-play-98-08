@@ -15,6 +15,7 @@
   display: block;
 }
 
+/* Fullscreen styles */
 .video-container:fullscreen {
   width: 100vw;
   height: 100vh;
@@ -29,31 +30,6 @@
   width: auto;
   height: auto;
   object-fit: contain;
-}
-
-.video-controls {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 10;
-  padding: 16px;
-}
-
-.progress-container {
-  height: 4px;
-  cursor: pointer;
-  position: relative;
-  transition: height 0.2s ease;
-}
-
-.progress-container:hover {
-  height: 6px;
-}
-
-.progress-fill {
-  background: linear-gradient(to right, #3b82f6, #2563eb);
-  border-radius: 999px;
 }
 
 /* Ad container styles */
@@ -94,13 +70,13 @@
   border-left: 4px solid #22c55e;
 }
 
-/* Custom input range styles */
+/* Custom range input styling */
 input[type="range"] {
   -webkit-appearance: none;
   height: 4px;
   background: rgba(255, 255, 255, 0.6);
   border-radius: 5px;
-  background-size: 70% 100%;
+  outline: none;
 }
 
 input[type="range"]::-webkit-slider-thumb {
@@ -110,4 +86,28 @@ input[type="range"]::-webkit-slider-thumb {
   border-radius: 50%;
   background: white;
   cursor: pointer;
+  box-shadow: 0 0 2px rgba(0,0,0,0.4);
+}
+
+input[type="range"]::-moz-range-thumb {
+  height: 12px;
+  width: 12px;
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 2px rgba(0,0,0,0.4);
+}
+
+/* Ensure video overlay components work correctly */
+.loading-overlay, .error-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
