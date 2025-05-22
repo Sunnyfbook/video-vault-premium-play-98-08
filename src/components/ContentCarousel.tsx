@@ -10,7 +10,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { HomepageContent } from "@/hooks/useHomepageContent";
 import InstagramEmbed from "@/components/InstagramEmbed";
-import { useEmblaCarousel } from "embla-carousel-react";
+import useEmblaCarousel from "embla-carousel-react";
 
 interface ContentCarouselProps {
   items: HomepageContent[];

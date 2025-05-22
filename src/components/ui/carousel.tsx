@@ -10,6 +10,15 @@ import { Button } from "@/components/ui/button"
 
 const CarouselContext = React.createContext<CarouselApi | null>(null)
 
+// Add a hook to use the carousel context
+function useCarousel() {
+  const context = React.useContext(CarouselContext)
+  if (!context) {
+    throw new Error("useCarousel must be used within a Carousel provider")
+  }
+  return context
+}
+
 interface CarouselProps extends React.HTMLAttributes<HTMLElement> {
   opts?: CarouselOptions
   children: React.ReactNode
@@ -112,4 +121,5 @@ export {
   CarouselItem,
   CarouselPrevious,
   CarouselNext,
+  useCarousel,
 }
