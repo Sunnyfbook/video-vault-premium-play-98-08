@@ -207,11 +207,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title }) => {
 
   return (
     <div 
-      className="video-container relative overflow-hidden bg-black rounded-lg" 
+      className="video-container relative overflow-hidden bg-black rounded-lg w-full h-full" 
       ref={containerRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={() => playing && setShowControls(false)}
-      onClick={() => playing && togglePlay()}
     >
       {loading && !error && (
         <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
@@ -239,11 +238,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title }) => {
       <video
         ref={videoRef}
         src={src}
-        className="w-full h-full object-contain"
-        onClick={(e) => {
-          e.stopPropagation();
-          togglePlay();
-        }}
+        className="w-full h-full"
+        onClick={togglePlay}
         title={title}
         playsInline
       />
@@ -269,30 +265,21 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title }) => {
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center space-x-3">
             <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                togglePlay();
-              }} 
+              onClick={togglePlay} 
               className="text-white hover:text-primary transition"
             >
               {playing ? <Pause size={24} /> : <Play size={24} />}
             </button>
             
             <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                skipBackward();
-              }} 
+              onClick={skipBackward} 
               className="text-white hover:text-primary transition"
             >
               <SkipBack size={20} />
             </button>
             
             <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                skipForward();
-              }} 
+              onClick={skipForward} 
               className="text-white hover:text-primary transition"
             >
               <SkipForward size={20} />
@@ -306,10 +293,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title }) => {
           <div className="flex items-center space-x-3">
             <div className="flex items-center space-x-2 group relative">
               <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleMute();
-                }} 
+                onClick={toggleMute} 
                 className="text-white hover:text-primary transition"
               >
                 {muted ? <VolumeX size={20} /> : <Volume2 size={20} />}
@@ -329,10 +313,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title }) => {
             
             <button 
               className="text-white hover:text-primary transition"
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleFullscreen();
-              }}
+              onClick={toggleFullscreen}
             >
               <Maximize size={20} />
             </button>
@@ -344,3 +325,4 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title }) => {
 };
 
 export default VideoPlayer;
+
