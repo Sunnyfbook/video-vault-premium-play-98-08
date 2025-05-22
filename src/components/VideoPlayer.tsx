@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Volume2, VolumeX, Settings, SkipBack, SkipForward, Maximize } from 'lucide-react';
 
@@ -207,7 +206,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title }) => {
 
   return (
     <div 
-      className="video-container relative overflow-hidden bg-black rounded-lg w-full h-full" 
+      className="video-container" 
       ref={containerRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={() => playing && setShowControls(false)}
@@ -325,4 +324,3 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title }) => {
 };
 
 export default VideoPlayer;
-
