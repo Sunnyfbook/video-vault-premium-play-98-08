@@ -10,7 +10,7 @@ import AdsSection from "@/components/video/AdsSection";
 import InstagramEmbed from "@/components/InstagramEmbed";
 
 const Index = () => {
-  const { videos, images, instagram, loading: contentLoading } = useHomepageContent();
+  const { videos, images, loading: contentLoading } = useHomepageContent();
   const { config: homepageConfig, loading: configLoading, error: configError } = useHomepageConfig();
   const [topAds, setTopAds] = useState<Ad[]>([]);
   const [bottomAds, setBottomAds] = useState<Ad[]>([]);
@@ -47,6 +47,41 @@ const Index = () => {
 
     fetchAds();
   }, []);
+
+  // Helper function to render appropriate content based on type
+  const renderContent = (item) => {
+    if (item.type === "instagram") {
+      return (
+        <InstagramEmbed 
+          url={item.url}
+          title={item.title}
+          className="w-full h-full"
+        />
+      );
+    } else if (item.type === "video") {
+      return (
+        <>
+          <video
+            src={item.url}
+            poster={item.thumbnail || undefined}
+            className="absolute top-0 left-0 w-full h-full object-cover"
+            controls
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+            <Play size={32} className="text-white opacity-80" />
+          </div>
+        </>
+      );
+    } else {
+      return (
+        <img
+          src={item.url}
+          alt={item.title}
+          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+        />
+      );
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-100 to-slate-200 dark:from-slate-900 dark:via-gray-950 dark:to-slate-800 animate-fade-in overflow-x-hidden">
@@ -117,22 +152,34 @@ const Index = () => {
                       <CarouselItem key={video.id} className="pl-4 md:basis-1/2 lg:basis-1/3 group">
                         <Card className={`rounded-xl shadow-card overflow-hidden bg-card h-full flex flex-col ${cardHoverClass}`}>
                           <div className="relative aspect-video bg-black rounded-t-xl group-hover:opacity-90 transition-opacity">
-                            <video
-                              src={video.url}
-                              poster={video.thumbnail || undefined}
-                              className="absolute top-0 left-0 w-full h-full object-cover"
-                              controls
-                            />
-                             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                              <Play size={32} className="text-white opacity-80" />
-                            </div>
+                            {video.type === "instagram" ? (
+                              <InstagramEmbed 
+                                url={video.url}
+                                title={video.title}
+                                className="w-full h-full"
+                              />
+                            ) : (
+                              <>
+                                <video
+                                  src={video.url}
+                                  poster={video.thumbnail || undefined}
+                                  className="absolute top-0 left-0 w-full h-full object-cover"
+                                  controls
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                                  <Play size={32} className="text-white opacity-80" />
+                                </div>
+                              </>
+                            )}
                           </div>
                           <CardContent className="p-5 flex-grow flex flex-col">
                             <h3 className="font-semibold text-xl mb-2 text-foreground group-hover:text-primary transition-colors">{video.title}</h3>
                             <p className="text-sm text-muted-foreground line-clamp-3 flex-grow">{video.description}</p>
-                             <a href={`/video/${video.id}`} className="mt-4 inline-flex items-center text-sm font-medium text-brand-accent hover:underline">
-                              Watch Now <ArrowRight size={16} className="ml-1" />
-                            </a>
+                            {video.type !== "instagram" && (
+                              <a href={`/video/${video.id}`} className="mt-4 inline-flex items-center text-sm font-medium text-brand-accent hover:underline">
+                                Watch Now <ArrowRight size={16} className="ml-1" />
+                              </a>
+                            )}
                           </CardContent>
                         </Card>
                       </CarouselItem>
@@ -181,12 +228,20 @@ const Index = () => {
                       <CarouselItem key={img.id} className="pl-4 md:basis-1/2 lg:basis-1/3 group">
                         <Card className={`rounded-xl shadow-card overflow-hidden bg-card h-full flex flex-col ${cardHoverClass}`}>
                           <div className="aspect-square sm:aspect-video overflow-hidden rounded-t-xl relative">
-                            <img
-                              src={img.url}
-                              alt={img.title}
-                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                            />
-                             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                            {img.type === "instagram" ? (
+                              <InstagramEmbed 
+                                url={img.url}
+                                title={img.title}
+                                className="w-full h-full"
+                              />
+                            ) : (
+                              <img
+                                src={img.url}
+                                alt={img.title}
+                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                              />
+                            )}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                           </div>
                           <CardContent className="p-5 flex-grow">
                             <h3 className="font-semibold text-xl mb-2 text-foreground group-hover:text-brand-accent transition-colors">{img.title}</h3>
@@ -205,62 +260,6 @@ const Index = () => {
                 </Carousel>
               )}
             </section>
-
-            {/* Instagram Posts Section */}
-            {instagram && instagram.length > 0 && (
-              <section>
-                <div className="flex items-center gap-3 mb-8">
-                  <Instagram size={36} className="text-pink-500" />
-                  <h2 className="section-title !mb-0">Instagram Posts</h2>
-                </div>
-                {contentLoading ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-                    {[...Array(3)].map((_, i) => (
-                      <Card key={i} className="rounded-xl shadow-card animate-pulse bg-gray-200 dark:bg-slate-800">
-                        <div className="aspect-square bg-gray-300 dark:bg-gray-700 rounded-t-xl"></div>
-                        <CardContent className="p-5">
-                          <div className="h-6 bg-gray-400 dark:bg-gray-600 rounded w-3/4 mb-3"></div>
-                          <div className="h-4 bg-gray-400 dark:bg-gray-600 rounded w-full"></div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                ) : (
-                  <Carousel 
-                    opts={{ align: "start", loop: instagram.length > 2 }} 
-                    className="w-full group py-10"
-                  >
-                    <CarouselContent className="-ml-4">
-                      {instagram.map((post) => (
-                        <CarouselItem key={post.id} className="pl-4 md:basis-1/2 lg:basis-1/3 group">
-                          <Card className={`rounded-xl shadow-card overflow-hidden bg-card h-full flex flex-col ${cardHoverClass}`}>
-                            <div className="aspect-square overflow-hidden rounded-t-xl relative">
-                              <InstagramEmbed 
-                                url={post.url}
-                                title={post.title}
-                                className="w-full h-full"
-                              />
-                            </div>
-                            <CardContent className="p-5 flex-grow">
-                              <h3 className="font-semibold text-xl mb-2 text-foreground group-hover:text-pink-500 transition-colors">{post.title}</h3>
-                              {post.description && (
-                                <p className="text-sm text-muted-foreground line-clamp-3">{post.description}</p>
-                              )}
-                            </CardContent>
-                          </Card>
-                        </CarouselItem>
-                      ))}
-                    </CarouselContent>
-                    {instagram.length > 1 && (
-                      <>
-                        <CarouselPrevious className="ml-12 bg-background/80 hover:bg-background dark:bg-slate-700/80 dark:hover:bg-slate-700 shadow-md" />
-                        <CarouselNext className="mr-12 bg-background/80 hover:bg-background dark:bg-slate-700/80 dark:hover:bg-slate-700 shadow-md" />
-                      </>
-                    )}
-                  </Carousel>
-                )}
-              </section>
-            )}
 
             {/* Bottom Ads */}
             {bottomAds.length > 0 && (

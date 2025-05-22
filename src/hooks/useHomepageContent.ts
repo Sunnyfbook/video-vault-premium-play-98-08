@@ -58,9 +58,15 @@ export function useHomepageContent() {
     };
   }, [fetchContent]);
 
-  const videos = content.filter((c) => c.type === "video");
-  const images = content.filter((c) => c.type === "image");
-  const instagram = content.filter((c) => c.type === "instagram");
+  // Treat Instagram content as either images or videos based on URL
+  // Instagram posts are treated as images, Instagram reels are treated as videos
+  const videos = content.filter((c) => 
+    c.type === "video" || (c.type === "instagram" && c.url.includes("/reel"))
+  );
+  
+  const images = content.filter((c) => 
+    c.type === "image" || (c.type === "instagram" && !c.url.includes("/reel"))
+  );
 
-  return { content, videos, images, instagram, loading, error, refetch: fetchContent };
+  return { content, videos, images, loading, error, refetch: fetchContent };
 }

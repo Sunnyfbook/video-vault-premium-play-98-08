@@ -24,9 +24,9 @@ const defaultFormState = {
 };
 
 const HomepageContentManager: React.FC = () => {
-  const { content, videos, images, instagram, loading, error } = useHomepageContent();
+  const { content, videos, images, loading, error } = useHomepageContent();
   const [form, setForm] = useState({ ...defaultFormState });
-  const [tab, setTab] = useState<"video" | "image" | "instagram">("video");
+  const [tab, setTab] = useState<"video" | "image">("video");
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
 
@@ -43,8 +43,12 @@ const HomepageContentManager: React.FC = () => {
       return;
     }
     
-    // Check if Instagram URL is valid when adding Instagram content
-    if (form.type === "instagram" && !isInstagramPostUrl(form.url)) {
+    // Check if it's an Instagram URL
+    const isInstagram = isInstagramPostUrl(form.url);
+    const contentType = isInstagram ? "instagram" : form.type;
+    
+    // If it's an Instagram URL but invalid, show error
+    if (form.url.includes('instagram') && !isInstagram) {
       toast({
         title: "Invalid Instagram URL",
         description: "Please enter a valid Instagram post or reel URL",
@@ -58,7 +62,7 @@ const HomepageContentManager: React.FC = () => {
       {
         title: form.title,
         url: form.url,
-        type: form.type,
+        type: contentType,
         description: form.description,
         thumbnail: form.type === "video" ? form.thumbnail : form.url, // Use url as thumbnail if type is image
         display_order: Number(form.display_order) || 0,
@@ -79,7 +83,9 @@ const HomepageContentManager: React.FC = () => {
     
     setForm({ ...defaultFormState, type: tab });
     toast({
-      title: `${form.type === "video" ? "Video" : form.type === "image" ? "Image" : "Instagram post"} added`,
+      title: isInstagram 
+        ? "Instagram content added"
+        : `${form.type === "video" ? "Video" : "Image"} added`,
     });
   };
 
@@ -101,8 +107,8 @@ const HomepageContentManager: React.FC = () => {
   };
 
   const handleTabChange = (val: string) => {
-    setTab(val as "video" | "image" | "instagram");
-    setForm({ ...defaultFormState, type: val as "video" | "image" | "instagram" });
+    setTab(val as "video" | "image");
+    setForm({ ...defaultFormState, type: val as "video" | "image" });
   };
 
   // Show error if there was an issue fetching content
@@ -122,6 +128,15 @@ const HomepageContentManager: React.FC = () => {
     );
   }
 
+  // Group videos and Instagram reels together, images and Instagram posts together
+  const videoContent = content.filter(item => 
+    item.type === "video" || (item.type === "instagram" && item.url.includes("/reel"))
+  );
+  
+  const imageContent = content.filter(item => 
+    item.type === "image" || (item.type === "instagram" && !item.url.includes("/reel"))
+  );
+
   return (
     <div>
       <Tabs defaultValue="video" value={tab} onValueChange={handleTabChange}>
@@ -132,21 +147,14 @@ const HomepageContentManager: React.FC = () => {
           <TabsTrigger value="image">
             <Image size={16} className="mr-2" /> Images
           </TabsTrigger>
-          <TabsTrigger value="instagram">
-            <Instagram size={16} className="mr-2" /> Instagram
-          </TabsTrigger>
         </TabsList>
         <TabsContent value="video">
           <AddForm form={form} setForm={setForm} onSubmit={handleAdd} saving={saving} type="video" />
-          <ListSection items={videos} type="video" onDelete={handleDelete} loading={loading} />
+          <ListSection items={videoContent} type="video" onDelete={handleDelete} loading={loading} />
         </TabsContent>
         <TabsContent value="image">
           <AddForm form={form} setForm={setForm} onSubmit={handleAdd} saving={saving} type="image" />
-          <ListSection items={images} type="image" onDelete={handleDelete} loading={loading} />
-        </TabsContent>
-        <TabsContent value="instagram">
-          <AddForm form={form} setForm={setForm} onSubmit={handleAdd} saving={saving} type="instagram" />
-          <ListSection items={instagram} type="instagram" onDelete={handleDelete} loading={loading} />
+          <ListSection items={imageContent} type="image" onDelete={handleDelete} loading={loading} />
         </TabsContent>
       </Tabs>
     </div>
@@ -158,42 +166,18 @@ const AddForm: React.FC<{
   setForm: React.Dispatch<React.SetStateAction<typeof defaultFormState>>;
   onSubmit: (e: React.FormEvent) => void;
   saving: boolean;
-  type: "video" | "image" | "instagram";
+  type: "video" | "image";
 }> = ({ form, setForm, onSubmit, saving, type }) => {
-  const getPlaceholder = () => {
-    switch (type) {
-      case "video":
-        return "e.g. https://example.com/video.mp4";
-      case "image":
-        return "e.g. https://example.com/image.jpg";
-      case "instagram":
-        return "e.g. https://www.instagram.com/p/ABCDEF123456/";
-    }
-  };
-
-  const getUrlLabel = () => {
-    switch (type) {
-      case "video":
-        return "Video URL";
-      case "image":
-        return "Image URL";
-      case "instagram":
-        return "Instagram Post URL";
-    }
-  };
-
   return (
     <Card className="mb-5">
       <CardHeader>
         <CardTitle>
-          Add {type === "video" ? "Video" : type === "image" ? "Image" : "Instagram Post"}
+          Add {type === "video" ? "Video" : "Image"}
         </CardTitle>
         <CardDescription>
           {type === "video"
-            ? "Add a video to feature on the homepage."
-            : type === "image"
-            ? "Add an image to feature on the homepage."
-            : "Add an Instagram post or reel to feature on the homepage."}
+            ? "Add a video or Instagram reel to feature on the homepage."
+            : "Add an image or Instagram post to feature on the homepage."}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -207,14 +191,19 @@ const AddForm: React.FC<{
             />
           </div>
           <div>
-            <Label>{getUrlLabel()}</Label>
+            <Label>{type === "video" ? "Video URL" : "Image URL"}</Label>
             <Input
               value={form.url}
               onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))}
               type="url"
               required
-              placeholder={getPlaceholder()}
+              placeholder={type === "video" 
+                ? "e.g. https://example.com/video.mp4 or https://www.instagram.com/reel/abc123/" 
+                : "e.g. https://example.com/image.jpg or https://www.instagram.com/p/abc123/"}
             />
+            <p className="text-xs text-muted-foreground mt-1">
+              Instagram URLs will be automatically recognized and embedded
+            </p>
           </div>
           {type === "video" && (
             <div>
@@ -244,7 +233,7 @@ const AddForm: React.FC<{
             />
           </div>
           <Button type="submit" className="w-full" disabled={saving}>
-            {saving ? "Adding..." : `Add ${type === "video" ? "Video" : type === "image" ? "Image" : "Instagram Post"}`}
+            {saving ? "Adding..." : `Add ${type === "video" ? "Video" : "Image"}`}
           </Button>
         </form>
       </CardContent>
@@ -254,22 +243,21 @@ const AddForm: React.FC<{
 
 const ListSection: React.FC<{
   items: ReturnType<typeof useHomepageContent>["content"];
-  type: "video" | "image" | "instagram";
+  type: "video" | "image";
   onDelete: (id: string) => void;
   loading: boolean;
 }> = ({ items, type, onDelete, loading }) => {
   const getPreviewComponent = (item: ReturnType<typeof useHomepageContent>["content"][0]) => {
-    switch (type) {
-      case "video":
-        return <video src={item.url} poster={item.thumbnail || ""} className="w-24 h-16 rounded object-cover" controls={false} />;
-      case "image":
-        return <img src={item.url} alt={item.title} className="w-24 h-16 rounded object-cover" />;
-      case "instagram":
-        return (
-          <div className="w-24 h-16 rounded bg-gradient-to-tr from-purple-500 via-pink-500 to-yellow-500 flex items-center justify-center">
-            <Instagram size={20} className="text-white" />
-          </div>
-        );
+    if (item.type === "instagram") {
+      return (
+        <div className="w-24 h-16 rounded bg-gradient-to-tr from-purple-500 via-pink-500 to-yellow-500 flex items-center justify-center">
+          <Instagram size={20} className="text-white" />
+        </div>
+      );
+    } else if (type === "video") {
+      return <video src={item.url} poster={item.thumbnail || ""} className="w-24 h-16 rounded object-cover" controls={false} />;
+    } else {
+      return <img src={item.url} alt={item.title} className="w-24 h-16 rounded object-cover" />;
     }
   };
 
@@ -277,14 +265,14 @@ const ListSection: React.FC<{
     <Card>
       <CardHeader>
         <CardTitle>
-          {type === "video" ? "Videos List" : type === "image" ? "Images List" : "Instagram Posts"}
+          {type === "video" ? "Videos List" : "Images List"}
         </CardTitle>
         {!loading && (
           <CardDescription>
             {items.length === 0 ? (
-              <>No {type === "video" ? "videos" : type === "image" ? "images" : "Instagram posts"} on homepage.</>
+              <>No {type === "video" ? "videos" : "images"} on homepage.</>
             ) : (
-              <>Manage {type === "video" ? "videos" : type === "image" ? "images" : "Instagram posts"} currently shown on homepage.</>
+              <>Manage {type === "video" ? "videos" : "images"} currently shown on homepage.</>
             )}
           </CardDescription>
         )}
@@ -301,7 +289,9 @@ const ListSection: React.FC<{
                 {getPreviewComponent(item)}
                 <div className="flex-1">
                   <div className="font-medium">{item.title}</div>
-                  <div className="text-xs text-muted-foreground truncate">{item.description}</div>
+                  <div className="text-xs text-muted-foreground truncate">
+                    {item.type === "instagram" ? "Instagram " + (type === "video" ? "Reel" : "Post") : item.description}
+                  </div>
                 </div>
                 <Button size="icon" variant="destructive" onClick={() => onDelete(item.id)}>
                   <X size={16} />
