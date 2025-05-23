@@ -1,4 +1,3 @@
-
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import useEmblaCarousel from "embla-carousel-react"
@@ -21,29 +20,22 @@ function useCarousel() {
 interface CarouselProps extends React.HTMLAttributes<HTMLElement> {
   opts?: Parameters<typeof useEmblaCarousel>[0]
   children: React.ReactNode
+  onCreated?: (api: CarouselApi) => void
 }
 
-const Carousel = React.forwardRef<HTMLElement, CarouselProps>(
-  ({ className, opts, children, ...props }, ref) => {
+const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
+  ({ className, opts, children, onCreated, ...props }, ref) => {
     const [emblaRef, emblaApi] = useEmblaCarousel(opts)
 
     React.useEffect(() => {
-      if (!emblaApi) return
-
-      // Make CarouselApi available through context
-      // Additionally, we attach the API to the DOM node for direct access
-      if (emblaRef) {
-        const viewport = emblaRef.querySelector('[data-embla="viewport"]')
-        if (viewport) {
-          // @ts-ignore - we're adding a custom property to the DOM node
-          viewport.__emblaApi__ = emblaApi
-        }
+      if (emblaApi && onCreated) {
+        onCreated(emblaApi)
       }
-    }, [emblaApi, emblaRef])
+    }, [emblaApi, onCreated])
 
     return (
       <CarouselContext.Provider value={emblaApi}>
-        <div className={cn("relative", className)} ref={ref} {...props}>
+        <div className={cn("relative", className)} {...props} ref={ref}>
           <div ref={emblaRef} className="overflow-hidden">
             {children}
           </div>

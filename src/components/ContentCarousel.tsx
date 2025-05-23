@@ -5,7 +5,8 @@ import {
   CarouselContent,
   CarouselItem,
   CarouselPrevious,
-  CarouselNext
+  CarouselNext,
+  useCarousel
 } from "@/components/ui/carousel";
 import { Card } from "@/components/ui/card";
 import { HomepageContent } from "@/hooks/useHomepageContent";
@@ -18,10 +19,11 @@ interface ContentCarouselProps {
 }
 
 const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const carouselRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const videoRefs = useRef<HTMLVideoElement[]>([]);
   const { config } = useHomepageConfig();
+  const [embla, setEmbla] = useState<any>(null);
   
   // Default size values, with fallbacks if config values are missing
   const containerMaxWidth = config?.container_max_width || '280px';
@@ -32,17 +34,9 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
     videoRefs.current = videoRefs.current.slice(0, items.length);
   }, [items]);
 
-  // Handle carousel slide change
-  useEffect(() => {
-    if (!containerRef.current) return;
-    
-    // Get the embla API from the carousel viewport
-    const viewport = containerRef.current.querySelector('[data-embla="viewport"]');
-    if (!viewport) return;
-    
-    // @ts-ignore - accessing the custom property we added
-    const emblaApi = viewport.__emblaApi__;
-    if (!emblaApi) return;
+  // Handle carousel initialization and slide change
+  const handleCarouselCreated = (emblaApi) => {
+    setEmbla(emblaApi);
     
     const onSelect = () => {
       const currentIndex = emblaApi.selectedScrollSnap();
@@ -69,7 +63,14 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
     return () => {
       emblaApi.off('select', onSelect);
     };
-  }, [containerRef.current, items]);
+  };
+
+  useEffect(() => {
+    if (!embla) return;
+    
+    const cleanup = handleCarouselCreated(embla);
+    return cleanup;
+  }, [embla, items]);
 
   const renderContent = (item: HomepageContent, index: number) => {
     if (item.type === "instagram") {
@@ -113,8 +114,12 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
     width: '100%' // Make sure it takes full available width up to max width
   };
 
+  const onCarouselCreated = React.useCallback((api) => {
+    setEmbla(api);
+  }, []);
+
   return (
-    <div className="relative group" ref={containerRef}>
+    <div className="relative group" ref={carouselRef}>
       <Carousel
         opts={{
           loop: true,
@@ -123,6 +128,7 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
           containScroll: "keepSnaps"
         }}
         className="w-full"
+        onCreated={onCarouselCreated}
       >
         <CarouselContent>
           {items.map((item, index) => (
