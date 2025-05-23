@@ -19,13 +19,13 @@ export const getReactionsByVideoId = async (videoId: string): Promise<Reaction[]
     
     if (error) {
       console.error("Error loading reactions:", error);
-      return [];
+      throw error;
     }
     
     return data as Reaction[];
   } catch (error) {
     console.error("Error loading reactions:", error);
-    return [];
+    throw error;
   }
 };
 
@@ -50,7 +50,7 @@ export const addReaction = async (videoId: string, type: ReactionType): Promise<
       
       if (error) {
         console.error("Error updating reaction:", error);
-        return undefined;
+        throw error;
       }
       
       return data as Reaction;
@@ -68,13 +68,13 @@ export const addReaction = async (videoId: string, type: ReactionType): Promise<
       
       if (error) {
         console.error("Error adding reaction:", error);
-        return undefined;
+        throw error;
       }
       
       return data as Reaction;
     }
   } catch (error) {
     console.error("Error processing reaction:", error);
-    return undefined;
+    throw error;
   }
 };

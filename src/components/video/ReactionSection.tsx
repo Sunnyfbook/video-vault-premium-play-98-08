@@ -19,18 +19,27 @@ const ReactionSection: React.FC<ReactionSectionProps> = ({ videoId }) => {
   useEffect(() => {
     loadReactions();
     
-    // Set up realtime subscription with the proper channel format
+    // Configure proper real-time subscription using the proper channel name
     const channel = supabase
-      .channel('reactions-channel')
+      .channel(`reactions-${videoId}`) // Use unique channel name per video
       .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'reactions', filter: `video_id=eq.${videoId}` },
-        () => {
-          loadReactions();
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'reactions', 
+          filter: `video_id=eq.${videoId}` 
+        },
+        (payload) => {
+          console.log('Reaction update detected:', payload);
+          loadReactions(); // Reload reactions when changes occur
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log(`Reaction subscription status: ${status}`);
+      });
     
     return () => {
+      console.log('Unsubscribing from reactions channel');
       supabase.removeChannel(channel);
     };
   }, [videoId]);
@@ -38,7 +47,9 @@ const ReactionSection: React.FC<ReactionSectionProps> = ({ videoId }) => {
   const loadReactions = async () => {
     setLoading(true);
     try {
+      console.log(`Loading reactions for video ${videoId}`);
       const fetchedReactions = await getReactionsByVideoId(videoId);
+      console.log('Fetched reactions:', fetchedReactions);
       setReactions(fetchedReactions);
     } catch (error) {
       console.error("Error loading reactions:", error);
@@ -56,15 +67,16 @@ const ReactionSection: React.FC<ReactionSectionProps> = ({ videoId }) => {
     if (processing) return;
     
     setProcessing(true);
+    console.log(`Adding ${type} reaction to video ${videoId}`);
+    
     try {
-      await addReaction(videoId, type);
+      const updatedReaction = await addReaction(videoId, type);
+      console.log('Reaction added/updated:', updatedReaction);
+      
       toast({
         title: "Thanks for your reaction!",
         variant: "default"
       });
-      
-      // Force a fresh load of reactions to ensure we have the latest counts
-      await loadReactions();
     } catch (error) {
       console.error("Error adding reaction:", error);
       toast({

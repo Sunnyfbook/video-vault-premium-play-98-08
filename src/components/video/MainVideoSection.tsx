@@ -18,6 +18,7 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
   bottomAds 
 }) => {
   const [showInVideoAd, setShowInVideoAd] = useState(false);
+  const [adDisplayTimeoutId, setAdDisplayTimeoutId] = useState<NodeJS.Timeout | null>(null);
   
   useEffect(() => {
     // Show in-video ad after the specified time and repeat every adTimingSeconds
@@ -25,20 +26,35 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
     
     const showAdInterval = setInterval(() => {
       if (inVideoAds.length > 0) {
+        console.log('Displaying in-video ad');
         setShowInVideoAd(true);
         
         // Auto-hide after 15 seconds
-        setTimeout(() => {
+        const timeoutId = setTimeout(() => {
+          console.log('Auto-hiding in-video ad');
           setShowInVideoAd(false);
         }, 15000);
+        
+        setAdDisplayTimeoutId(timeoutId);
       }
     }, adTimingSeconds * 1000);
     
-    return () => clearInterval(showAdInterval);
+    return () => {
+      clearInterval(showAdInterval);
+      if (adDisplayTimeoutId) {
+        clearTimeout(adDisplayTimeoutId);
+      }
+    };
   }, [video.ad_timing_seconds, inVideoAds]);
 
   const handleDismissAd = () => {
+    console.log('Ad manually dismissed');
     setShowInVideoAd(false);
+    
+    // Clear any existing timeout to prevent memory leaks
+    if (adDisplayTimeoutId) {
+      clearTimeout(adDisplayTimeoutId);
+    }
   };
 
   return (
