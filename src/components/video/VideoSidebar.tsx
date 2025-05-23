@@ -34,8 +34,8 @@ const VideoSidebar: React.FC<VideoSidebarProps> = ({ sidebarAds, onCopyLink }) =
           <AdsSection 
             ads={sidebarAds} 
             className="flex flex-col gap-4" 
-            staggerDelay={false}  // Changed to false for immediate loading
-            baseDelaySeconds={0.2}  // Reduced delay to start loading sooner
+            staggerDelay={true}  // Match homepage settings
+            baseDelaySeconds={1}  // Match homepage settings
             positionClass="video-sidebar-ads-section"
           />
         </div>

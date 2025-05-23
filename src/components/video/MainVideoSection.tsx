@@ -87,6 +87,7 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
                 ads={[inVideoAds[currentInVideoAdIndex]]} 
                 className="in-video-ad shadow-xl"
                 staggerDelay={false}
+                baseDelaySeconds={0}
                 positionClass="in-video-ads-section"
               />
             </div>
@@ -101,8 +102,8 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
           <h4 className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider text-center">Advertisement</h4>
           <AdsSection 
             ads={bottomAds} 
-            staggerDelay={false}  // Changed to false for immediate loading 
-            baseDelaySeconds={0.2}  // Reduced delay to load sooner
+            staggerDelay={true}  // Match homepage setting 
+            baseDelaySeconds={1}  // Match homepage setting
             positionClass="video-bottom-ads-section"
           />
         </div>

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getVideoById, getVideoByCustomUrl, incrementViews, Video } from '@/models/Video';
@@ -89,22 +88,23 @@ const VideoPage: React.FC = () => {
         setLoading(false);
       }
 
-      // Load ads by position
-      const [
-        fetchTopAds,
-        fetchBottomAds,
-        fetchSidebarAds,
-        fetchInVideoAds,
-      ] = await Promise.all([
-        getAdsByPosition('top'),
-        getAdsByPosition('bottom'),
-        getAdsByPosition('sidebar'),
-        getAdsByPosition('in-video'),
-      ]);
-      setTopAds(fetchTopAds);
-      setBottomAds(fetchBottomAds);
-      setSidebarAds(fetchSidebarAds);
-      setInVideoAds(fetchInVideoAds);
+      // Load ads by position - do it like the homepage
+      try {
+        console.log("Fetching ads for video page...");
+        const topAdsData = await getAdsByPosition('top');
+        const bottomAdsData = await getAdsByPosition('bottom');
+        const sidebarAdsData = await getAdsByPosition('sidebar');
+        const inVideoAdsData = await getAdsByPosition('in-video');
+        
+        console.log(`Fetched ads: ${topAdsData.length} top, ${bottomAdsData.length} bottom, ${sidebarAdsData.length} sidebar, ${inVideoAdsData.length} in-video`);
+        
+        setTopAds(topAdsData);
+        setBottomAds(bottomAdsData);
+        setSidebarAds(sidebarAdsData);
+        setInVideoAds(inVideoAdsData);
+      } catch (error) {
+        console.error("Error fetching ads:", error);
+      }
     };
 
     loadData();
@@ -116,22 +116,20 @@ const VideoPage: React.FC = () => {
         { event: '*', schema: 'public', table: 'ads' },
         async () => {
           console.log('Ads changed, refetching');
-          // Reload ads when changes occur
-          const [
-            refetchedTopAds,
-            refetchedBottomAds,
-            refetchedSidebarAds,
-            refetchedInVideoAds,
-          ] = await Promise.all([
-            getAdsByPosition('top'),
-            getAdsByPosition('bottom'),
-            getAdsByPosition('sidebar'),
-            getAdsByPosition('in-video'),
-          ]);
-          setTopAds(refetchedTopAds);
-          setBottomAds(refetchedBottomAds);
-          setSidebarAds(refetchedSidebarAds);
-          setInVideoAds(refetchedInVideoAds);
+          // Reload ads when changes occur - exactly like homepage
+          try {
+            const topAdsData = await getAdsByPosition('top');
+            const bottomAdsData = await getAdsByPosition('bottom');
+            const sidebarAdsData = await getAdsByPosition('sidebar');
+            const inVideoAdsData = await getAdsByPosition('in-video');
+            
+            setTopAds(topAdsData);
+            setBottomAds(bottomAdsData);
+            setSidebarAds(sidebarAdsData);
+            setInVideoAds(inVideoAdsData);
+          } catch (error) {
+            console.error("Error refetching ads:", error);
+          }
         }
       )
       .subscribe();
@@ -207,10 +205,16 @@ const VideoPage: React.FC = () => {
 
       <div className="min-h-screen bg-gradient-to-br from-slate-100 via-gray-100 to-slate-200 dark:from-slate-900 dark:via-gray-950 dark:to-slate-800 animate-fade-in">
         <div className="container mx-auto px-4 py-8 lg:py-12">
-          {/* Top ads */}
+          {/* Top ads - match homepage implementation */}
           {topAds.length > 0 && (
-            <div className="mb-6 md:mb-8">
-              <AdsSection ads={topAds} className="grid grid-cols-1 gap-4" />
+            <div className="mb-6 md:mb-8 top-ads-container">
+              <AdsSection 
+                ads={topAds} 
+                className="grid grid-cols-1 gap-4" 
+                staggerDelay={true}
+                baseDelaySeconds={0.5}
+                positionClass="top-ads-section"
+              />
             </div>
           )}
           

@@ -31,13 +31,13 @@ const AdsSection: React.FC<AdsSectionProps> = ({
     <div className={`ads-section ${className} ${positionClass}`}>
       {ads.map((ad, index) => {
         // Calculate delay based on index if staggering is enabled
-        // Use a smaller staggering delay to prevent conflicts
+        // Match exactly what's in the homepage - use the same delay calculation
         const delaySeconds = staggerDelay 
-          ? baseDelaySeconds + (index * 1) // Reduced to 1 second delay between ads for faster loading
+          ? baseDelaySeconds + (index * 0.5) // Reduced delay between ads for faster loading
           : baseDelaySeconds;
         
         // Generate a more reliable unique key using ad ID and position
-        const uniqueKey = `ad-${ad.id}-${ad.position}-${index}-${positionClass}`;
+        const uniqueKey = `ad-${ad.id}-${ad.position}-${index}-${positionClass}-${Math.random().toString(36).substring(2, 5)}`;
         
         console.log(`Rendering ad: ${ad.name} at position ${ad.position} with delay ${delaySeconds}s`);
         
