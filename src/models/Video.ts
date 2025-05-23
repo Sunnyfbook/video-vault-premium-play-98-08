@@ -85,9 +85,9 @@ export const getVideoByCustomUrl = async (customUrl: string): Promise<Video | un
   }
 };
 
-export const addVideo = async (video: Omit<Video, "id" | "date_added" | "views" | "custom_url">): Promise<Video> => {
+export const addVideo = async (video: Omit<Video, "id" | "date_added" | "views">): Promise<Video> => {
   try {
-    // Generate custom URL from title
+    // Generate custom URL from title without any username
     const customUrl = generateSlug(video.title);
     
     const newVideo = {

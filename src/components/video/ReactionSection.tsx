@@ -27,9 +27,9 @@ const ReactionSection: React.FC<ReactionSectionProps> = ({ videoId }) => {
   useEffect(() => {
     loadReactions();
     
-    // Configure proper real-time subscription using the proper channel name
+    // Set up a proper real-time subscription with a clear channel name
     const channel = supabase
-      .channel(`reactions-${videoId}`) // Use unique channel name per video
+      .channel(`reactions-channel-${videoId}`) 
       .on('postgres_changes', 
         { 
           event: '*', 
@@ -38,7 +38,7 @@ const ReactionSection: React.FC<ReactionSectionProps> = ({ videoId }) => {
           filter: `video_id=eq.${videoId}` 
         },
         (payload) => {
-          console.log('Reaction update detected:', payload);
+          console.log('Reaction update received:', payload);
           loadReactions(); // Reload reactions when changes occur
         }
       )
@@ -47,7 +47,7 @@ const ReactionSection: React.FC<ReactionSectionProps> = ({ videoId }) => {
       });
     
     return () => {
-      console.log('Unsubscribing from reactions channel');
+      console.log('Cleaning up reactions subscription');
       supabase.removeChannel(channel);
     };
   }, [videoId]);
@@ -103,8 +103,8 @@ const ReactionSection: React.FC<ReactionSectionProps> = ({ videoId }) => {
       setReactions(updatedReactions);
       
       // Send to server
-      const updatedReaction = await addReaction(videoId, type);
-      console.log('Reaction added/updated:', updatedReaction);
+      await addReaction(videoId, type);
+      console.log('Reaction added/updated successfully');
       
       toast({
         title: "Thanks for your reaction!",
