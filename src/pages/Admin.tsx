@@ -1,417 +1,266 @@
+
 import React, { useState, useEffect } from 'react';
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableRow,
-} from "@/components/ui/table"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
-import { useToast } from "@/hooks/use-toast"
-import { Video, getVideos, addVideo, updateVideo, deleteVideo } from '@/models/Video';
-import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import AnalyticsOverview from '@/components/admin/AnalyticsOverview';
+import HomepageContentManager from '@/components/admin/HomepageContentManager';
+import AdminCredentialsManager from '@/components/admin/AdminCredentialsManager';
+import { Video, addVideo, getVideos, deleteVideo } from '@/models/Video';
 
-const Admin: React.FC = () => {
+const Admin = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [videos, setVideos] = useState<Video[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast()
-
-  // Add video dialog state
-  const [openAddVideoDialog, setOpenAddVideoDialog] = useState(false);
-  const [newVideoTitle, setNewVideoTitle] = useState("");
-  const [newVideoDescription, setNewVideoDescription] = useState("");
-  const [newVideoUrl, setNewVideoUrl] = useState("");
-  const [newVideoThumbnail, setNewVideoThumbnail] = useState("");
-  const [newVideoAdTiming, setNewVideoAdTiming] = useState(10);
-  const [isAddingVideo, setIsAddingVideo] = useState(false);
-
-  // Edit video dialog state
-  const [openEditVideoDialog, setOpenEditVideoDialog] = useState(false);
-  const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
-  const [editVideoTitle, setEditVideoTitle] = useState("");
-  const [editVideoDescription, setEditVideoDescription] = useState("");
-  const [editVideoUrl, setEditVideoUrl] = useState("");
-  const [editVideoThumbnail, setEditVideoThumbnail] = useState("");
-  const [editVideoAdTiming, setEditVideoAdTiming] = useState(10);
-  const [isUpdatingVideo, setIsUpdatingVideo] = useState(false);
-
-  // Delete video state
-  const [isDeletingVideo, setIsDeletingVideo] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    url: '',
+    thumbnail: '',
+    adTimingSeconds: 10
+  });
+  
+  // Define handleAddVideo here, before it's used
+  const handleAddVideo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await addVideo({
+        title: formData.title,
+        description: formData.description,
+        url: formData.url,
+        thumbnail: formData.thumbnail,
+        ad_timing_seconds: formData.adTimingSeconds
+      });
+      
+      toast({
+        title: "Video Added",
+        description: "The video has been successfully added.",
+      });
+      
+      // Reset form
+      setFormData({
+        title: '',
+        description: '',
+        url: '',
+        thumbnail: '',
+        adTimingSeconds: 10
+      });
+      
+      // Refresh videos list
+      loadVideos();
+    } catch (error) {
+      console.error("Error adding video:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add video. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
 
   useEffect(() => {
     loadVideos();
   }, []);
 
   const loadVideos = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const videos = await getVideos();
-      setVideos(videos);
-    } catch (e) {
-      console.error("Error loading videos:", e);
-      setError("Failed to load videos. Please try again.");
-      toast({
-        title: "Error",
-        description: "Failed to load videos. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
-      setLoading(false);
-    }
+    const fetchedVideos = await getVideos();
+    setVideos(fetchedVideos);
   };
 
-  const formatDate = (dateString: string) => {
-    try {
-      return format(new Date(dateString), 'MMM dd, yyyy');
-    } catch (error) {
-      console.error("Error formatting date:", error);
-      return "Invalid Date";
-    }
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // Fix the add video form to align with our updated model
-  const addVideoForm = (
-    <form onSubmit={handleAddVideo} className="space-y-4">
-      <div>
-        <Label htmlFor="title">Title</Label>
-        <Input 
-          id="title" 
-          value={newVideoTitle} 
-          onChange={(e) => setNewVideoTitle(e.target.value)} 
-          required 
-        />
-      </div>
-      <div>
-        <Label htmlFor="description">Description</Label>
-        <Textarea 
-          id="description" 
-          value={newVideoDescription} 
-          onChange={(e) => setNewVideoDescription(e.target.value)} 
-        />
-      </div>
-      <div>
-        <Label htmlFor="url">Video URL</Label>
-        <Input 
-          id="url" 
-          value={newVideoUrl} 
-          onChange={(e) => setNewVideoUrl(e.target.value)} 
-          required 
-        />
-      </div>
-      <div>
-        <Label htmlFor="thumbnail">Thumbnail URL (optional)</Label>
-        <Input 
-          id="thumbnail" 
-          value={newVideoThumbnail} 
-          onChange={(e) => setNewVideoThumbnail(e.target.value)} 
-        />
-      </div>
-      <div>
-        <Label htmlFor="adTimingSeconds">Ad timing (seconds)</Label>
-        <Input 
-          id="adTimingSeconds" 
-          type="number" 
-          min="5"
-          value={String(newVideoAdTiming)} 
-          onChange={(e) => setNewVideoAdTiming(Number(e.target.value))} 
-        />
-      </div>
-      <Button type="submit" disabled={isAddingVideo}>
-        {isAddingVideo ? "Adding..." : "Add Video"}
-      </Button>
-    </form>
-  );
-
-  // Fix the handleAddVideo function to match our updated model
-  const handleAddVideo = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!newVideoTitle || !newVideoUrl) {
-      toast({
-        title: "Error",
-        description: "Title and URL are required.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsAddingVideo(true);
-    
-    try {
-      const newVideo = await addVideo({
-        title: newVideoTitle,
-        description: newVideoDescription,
-        url: newVideoUrl,
-        thumbnail: newVideoThumbnail || undefined,
-        ad_timing_seconds: newVideoAdTiming
-      });
-      
-      toast({
-        title: "Success",
-        description: "Video added successfully!",
-      });
-      
-      // Reset form
-      setNewVideoTitle("");
-      setNewVideoDescription("");
-      setNewVideoUrl("");
-      setNewVideoThumbnail("");
-      setNewVideoAdTiming(10);
-      
-      // Refresh videos
-      loadVideos();
-      
-      // Close dialog
-      setOpenAddVideoDialog(false);
-    } catch (error) {
-      console.error("Error adding video:", error);
-      toast({
-        title: "Error",
-        description: "Failed to add video. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsAddingVideo(false);
-    }
-  };
-
-  const handleOpenEditVideoDialog = (video: Video) => {
-    setSelectedVideo(video);
-    setEditVideoTitle(video.title);
-    setEditVideoDescription(video.description);
-    setEditVideoUrl(video.url);
-    setEditVideoThumbnail(video.thumbnail || "");
-    setEditVideoAdTiming(video.ad_timing_seconds || 10);
-    setOpenEditVideoDialog(true);
-  };
-
-  const handleUpdateVideo = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!selectedVideo) return;
-    
-    setIsUpdatingVideo(true);
-    
-    try {
-      const updatedVideo = {
-        ...selectedVideo,
-        title: editVideoTitle,
-        description: editVideoDescription,
-        url: editVideoUrl,
-        thumbnail: editVideoThumbnail || undefined,
-        ad_timing_seconds: editVideoAdTiming
-      };
-      
-      const result = await updateVideo(updatedVideo);
-      
-      if (result) {
-        toast({
-          title: "Success",
-          description: "Video updated successfully!",
-        });
-        
-        // Refresh videos
-        loadVideos();
-        
-        // Close dialog
-        setOpenEditVideoDialog(false);
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to update video. Please try again.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Error updating video:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update video. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUpdatingVideo(false);
-    }
+  const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: parseInt(value) || 0 }));
   };
 
   const handleDeleteVideo = async (id: string) => {
-    setIsDeletingVideo(true);
-    
-    try {
-      const result = await deleteVideo(id);
-      
-      if (result) {
+    if (confirm("Are you sure you want to delete this video?")) {
+      const success = await deleteVideo(id);
+      if (success) {
         toast({
-          title: "Success",
-          description: "Video deleted successfully!",
+          title: "Video Deleted",
+          description: "The video has been successfully deleted.",
         });
-        
-        // Refresh videos
         loadVideos();
       } else {
         toast({
           title: "Error",
           description: "Failed to delete video. Please try again.",
-          variant: "destructive",
+          variant: "destructive"
         });
       }
-    } catch (error) {
-      console.error("Error deleting video:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete video. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsDeletingVideo(false);
     }
   };
-
+  
   return (
-    <div className="container mx-auto py-10">
-      <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
-
-      <div className="mb-6">
-        <Dialog open={openAddVideoDialog} onOpenChange={setOpenAddVideoDialog}>
-          <DialogTrigger asChild>
-            <Button>Add Video</Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Add Video</DialogTitle>
-              <DialogDescription>
-                Add a new video to the platform.
-              </DialogDescription>
-            </DialogHeader>
-            {addVideoForm}
-            <DialogFooter>
-              <Button type="button" variant="secondary" onClick={() => setOpenAddVideoDialog(false)}>
-                Cancel
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {loading ? (
-        <p>Loading videos...</p>
-      ) : error ? (
-        <p className="text-red-500">{error}</p>
-      ) : (
-        <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
-          <Table>
-            <TableCaption>A list of your videos.</TableCaption>
-            <TableHead>
-              <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Date Added</TableHead>
-                <TableHead>Views</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {videos.map((video) => (
-                <TableRow key={video.id}>
-                  <TableCell className="font-medium">{video.title}</TableCell>
-                  <TableCell>{formatDate(video.date_added)}</TableCell>
-                  <TableCell>{video.views}</TableCell>
-                  <TableCell className="text-right">
-                    <Button 
-                      variant="secondary" 
-                      size="sm"
-                      onClick={() => handleOpenEditVideoDialog(video)}
-                      className="mr-2"
-                    >
-                      Edit
-                    </Button>
-                    <Button 
-                      variant="destructive" 
-                      size="sm"
-                      disabled={isDeletingVideo}
-                      onClick={() => handleDeleteVideo(video.id)}
-                    >
-                      {isDeletingVideo ? "Deleting..." : "Delete"}
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
-
-      {/* Edit Video Dialog */}
-      <Dialog open={openEditVideoDialog} onOpenChange={setOpenEditVideoDialog}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Edit Video</DialogTitle>
-            <DialogDescription>
-              Edit the details of the selected video.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleUpdateVideo} className="space-y-4">
-            <div>
-              <Label htmlFor="editTitle">Title</Label>
-              <Input 
-                id="editTitle" 
-                value={editVideoTitle} 
-                onChange={(e) => setEditVideoTitle(e.target.value)} 
-                required 
-              />
-            </div>
-            <div>
-              <Label htmlFor="editDescription">Description</Label>
-              <Textarea 
-                id="editDescription" 
-                value={editVideoDescription} 
-                onChange={(e) => setEditVideoDescription(e.target.value)} 
-              />
-            </div>
-            <div>
-              <Label htmlFor="editUrl">Video URL</Label>
-              <Input 
-                id="editUrl" 
-                value={editVideoUrl} 
-                onChange={(e) => setEditVideoUrl(e.target.value)} 
-                required 
-              />
-            </div>
-            <div>
-              <Label htmlFor="editThumbnail">Thumbnail URL (optional)</Label>
-              <Input 
-                id="editThumbnail" 
-                value={editVideoThumbnail} 
-                onChange={(e) => setEditVideoThumbnail(e.target.value)} 
-              />
-            </div>
-             <div>
-              <Label htmlFor="editAdTimingSeconds">Ad timing (seconds)</Label>
-              <Input 
-                id="editAdTimingSeconds" 
-                type="number" 
-                min="5"
-                value={String(editVideoAdTiming)} 
-                onChange={(e) => setEditVideoAdTiming(Number(e.target.value))} 
-              />
-            </div>
-            <Button type="submit" disabled={isUpdatingVideo}>
-              {isUpdatingVideo ? "Updating..." : "Update Video"}
-            </Button>
-          </form>
-          <DialogFooter>
-            <Button type="button" variant="secondary" onClick={() => setOpenEditVideoDialog(false)}>
-              Cancel
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+    <div className="container mx-auto py-8">
+      <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
+      
+      <Tabs defaultValue="videos" className="space-y-4">
+        <TabsList className="grid grid-cols-4 w-full max-w-md">
+          <TabsTrigger value="videos">Videos</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="homepage">Homepage</TabsTrigger>
+          <TabsTrigger value="settings">Settings</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="videos" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Add New Video</CardTitle>
+              <CardDescription>Upload a new video to the platform</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleAddVideo} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Title</Label>
+                  <Input 
+                    id="title" 
+                    name="title" 
+                    value={formData.title} 
+                    onChange={handleInputChange} 
+                    required 
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea 
+                    id="description" 
+                    name="description" 
+                    value={formData.description} 
+                    onChange={handleInputChange} 
+                    rows={3} 
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="url">Video URL</Label>
+                  <Input 
+                    id="url" 
+                    name="url" 
+                    value={formData.url} 
+                    onChange={handleInputChange} 
+                    required 
+                    placeholder="https://example.com/video.mp4" 
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="thumbnail">Thumbnail URL (optional)</Label>
+                  <Input 
+                    id="thumbnail" 
+                    name="thumbnail" 
+                    value={formData.thumbnail} 
+                    onChange={handleInputChange} 
+                    placeholder="https://example.com/thumbnail.jpg" 
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="adTimingSeconds">Ad Timing (seconds)</Label>
+                  <Input 
+                    id="adTimingSeconds" 
+                    name="adTimingSeconds" 
+                    type="number" 
+                    value={formData.adTimingSeconds} 
+                    onChange={handleNumberChange} 
+                    min={0} 
+                  />
+                  <p className="text-sm text-gray-500">Set to 0 to disable ads</p>
+                </div>
+                
+                <Button type="submit">Add Video</Button>
+              </form>
+            </CardContent>
+          </Card>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {videos.map((video) => (
+              <Card key={video.id} className="overflow-hidden">
+                <div className="aspect-video bg-black relative">
+                  {video.thumbnail ? (
+                    <img 
+                      src={video.thumbnail} 
+                      alt={video.title} 
+                      className="w-full h-full object-cover" 
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-800">
+                      <span className="text-gray-500">No Thumbnail</span>
+                    </div>
+                  )}
+                </div>
+                <CardHeader>
+                  <CardTitle className="text-lg">{video.title}</CardTitle>
+                  <CardDescription className="line-clamp-2">
+                    {video.description || "No description"}
+                  </CardDescription>
+                </CardHeader>
+                <CardFooter className="flex justify-between">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => navigate(`/watch/${video.id}`)}
+                  >
+                    View
+                  </Button>
+                  <Button 
+                    variant="destructive" 
+                    onClick={() => handleDeleteVideo(video.id)}
+                  >
+                    Delete
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="analytics">
+          <Card>
+            <CardHeader>
+              <CardTitle>Analytics</CardTitle>
+              <CardDescription>View site performance metrics</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AnalyticsOverview />
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="homepage">
+          <Card>
+            <CardHeader>
+              <CardTitle>Homepage Content</CardTitle>
+              <CardDescription>Manage homepage content and layout</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <HomepageContentManager />
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="settings">
+          <Card>
+            <CardHeader>
+              <CardTitle>Admin Settings</CardTitle>
+              <CardDescription>Manage credentials and system settings</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AdminCredentialsManager />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

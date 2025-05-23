@@ -27,7 +27,7 @@ const ReactionSection: React.FC<ReactionSectionProps> = ({ videoId }) => {
   useEffect(() => {
     loadReactions();
     
-    // Set up a proper real-time subscription with a clear channel name
+    // Set up a proper real-time subscription
     const channel = supabase
       .channel(`reactions-channel-${videoId}`) 
       .on('postgres_changes', 
@@ -81,27 +81,6 @@ const ReactionSection: React.FC<ReactionSectionProps> = ({ videoId }) => {
       // Optimistically update the UI immediately
       setActiveReactions(prev => ({ ...prev, [type]: true }));
       
-      const currentReaction = reactions.find(r => r.type === type);
-      const updatedReactions = [...reactions];
-      
-      if (currentReaction) {
-        const index = updatedReactions.findIndex(r => r.type === type);
-        updatedReactions[index] = {
-          ...currentReaction,
-          count: currentReaction.count + 1
-        };
-      } else {
-        updatedReactions.push({
-          id: 'temp-id',
-          video_id: videoId,
-          type: type,
-          count: 1
-        });
-      }
-      
-      // Update local state immediately for responsive UI
-      setReactions(updatedReactions);
-      
       // Send to server
       await addReaction(videoId, type);
       console.log('Reaction added/updated successfully');
@@ -124,8 +103,6 @@ const ReactionSection: React.FC<ReactionSectionProps> = ({ videoId }) => {
       });
       // Reset the active state on error
       setActiveReactions(prev => ({ ...prev, [type]: false }));
-      // Reload correct data
-      loadReactions();
     } finally {
       setProcessing(null);
     }

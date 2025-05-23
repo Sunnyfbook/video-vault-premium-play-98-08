@@ -11,7 +11,6 @@ export interface Reaction {
 }
 
 // Enable realtime for the reactions table by making Supabase track it
-// This is a proper way to enable realtime for a table
 export const configureRealtimeForReactions = async () => {
   try {
     // Enable realtime for the reactions table
