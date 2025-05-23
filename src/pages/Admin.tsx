@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   getVideos,
@@ -9,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from "@/components/ui/textarea"
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from '@/hooks/use-toast';
 import {
   Table,
@@ -19,26 +20,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/table";
 
 const Admin: React.FC = () => {
   const [videos, setVideos] = useState<Video[]>([]);
@@ -84,10 +66,8 @@ const Admin: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // Remove custom_url from the newVideo object since it's now generated automatically
-      const { custom_url, ...videoToAdd } = newVideo;
-      
-      const addedVideo = await addVideo(videoToAdd);
+      // Custom URL is now generated automatically in the model
+      const addedVideo = await addVideo(newVideo);
       toast({
         title: "Video Added",
         description: "Your video has been successfully added.",
@@ -161,6 +141,8 @@ const Admin: React.FC = () => {
   };
 
   const handleDeleteVideo = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this video?")) return;
+    
     setIsSubmitting(true);
     try {
       const success = await deleteVideo(id);
@@ -190,12 +172,12 @@ const Admin: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Admin Dashboard</h1>
+    <div className="container mx-auto p-4 max-w-4xl">
+      <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
 
       {/* Add Video Form */}
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-2">Add New Video</h2>
+      <div className="mb-8 bg-white dark:bg-gray-800 p-6 rounded-md shadow-sm">
+        <h2 className="text-xl font-semibold mb-4">Add New Video</h2>
         <form onSubmit={handleAddVideo} className="space-y-4">
           <div>
             <Label htmlFor="title">Title</Label>
@@ -206,7 +188,7 @@ const Admin: React.FC = () => {
               value={newVideo.title}
               onChange={handleInputChange}
               required
-              className="w-full"
+              className="w-full mt-1"
             />
           </div>
           <div>
@@ -216,7 +198,8 @@ const Admin: React.FC = () => {
               name="description"
               value={newVideo.description}
               onChange={handleInputChange}
-              className="w-full"
+              className="w-full mt-1"
+              rows={3}
             />
           </div>
           <div>
@@ -228,7 +211,8 @@ const Admin: React.FC = () => {
               value={newVideo.url}
               onChange={handleInputChange}
               required
-              className="w-full"
+              className="w-full mt-1"
+              placeholder="https://..."
             />
           </div>
           <div>
@@ -239,7 +223,8 @@ const Admin: React.FC = () => {
               name="thumbnail"
               value={newVideo.thumbnail}
               onChange={handleInputChange}
-              className="w-full"
+              className="w-full mt-1"
+              placeholder="https://..."
             />
           </div>
           <div>
@@ -250,10 +235,15 @@ const Admin: React.FC = () => {
               name="ad_timing_seconds"
               value={newVideo.ad_timing_seconds}
               onChange={handleInputChange}
-              className="w-full"
+              className="w-full mt-1"
+              min={1}
             />
           </div>
-          <Button type="submit" disabled={isSubmitting}>
+          <Button 
+            type="submit" 
+            disabled={isSubmitting} 
+            className="bg-blue-600 hover:bg-blue-700"
+          >
             {isSubmitting ? "Adding..." : "Add Video"}
           </Button>
         </form>
@@ -261,123 +251,132 @@ const Admin: React.FC = () => {
 
       {/* Edit Video Form */}
       {editingVideo && (
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-2">Edit Video</h2>
+        <div className="mb-8 bg-white dark:bg-gray-800 p-6 rounded-md shadow-sm border border-blue-200 dark:border-blue-900">
+          <h2 className="text-xl font-semibold mb-4">Edit Video</h2>
           <form onSubmit={handleUpdateVideo} className="space-y-4">
             <div>
-              <Label htmlFor="title">Title</Label>
+              <Label htmlFor="edit-title">Title</Label>
               <Input
                 type="text"
-                id="title"
+                id="edit-title"
                 name="title"
                 value={editingVideo.title}
                 onChange={handleUpdateInputChange}
                 required
-                className="w-full"
+                className="w-full mt-1"
               />
             </div>
             <div>
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="edit-description">Description</Label>
               <Textarea
-                id="description"
+                id="edit-description"
                 name="description"
                 value={editingVideo.description || ''}
                 onChange={handleUpdateInputChange}
-                className="w-full"
+                className="w-full mt-1"
+                rows={3}
               />
             </div>
             <div>
-              <Label htmlFor="url">Video URL</Label>
+              <Label htmlFor="edit-url">Video URL</Label>
               <Input
                 type="url"
-                id="url"
+                id="edit-url"
                 name="url"
                 value={editingVideo.url}
                 onChange={handleUpdateInputChange}
                 required
-                className="w-full"
+                className="w-full mt-1"
               />
             </div>
             <div>
-              <Label htmlFor="thumbnail">Thumbnail URL</Label>
+              <Label htmlFor="edit-thumbnail">Thumbnail URL</Label>
               <Input
                 type="url"
-                id="thumbnail"
+                id="edit-thumbnail"
                 name="thumbnail"
                 value={editingVideo.thumbnail || ''}
                 onChange={handleUpdateInputChange}
-                className="w-full"
+                className="w-full mt-1"
               />
             </div>
-             <div>
-              <Label htmlFor="ad_timing_seconds">Ad Timing (seconds)</Label>
+            <div>
+              <Label htmlFor="edit-ad_timing_seconds">Ad Timing (seconds)</Label>
               <Input
                 type="number"
-                id="ad_timing_seconds"
+                id="edit-ad_timing_seconds"
                 name="ad_timing_seconds"
                 value={editingVideo.ad_timing_seconds || 10}
                 onChange={handleUpdateInputChange}
-                className="w-full"
+                className="w-full mt-1"
+                min={1}
               />
             </div>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Updating..." : "Update Video"}
-            </Button>
-            <Button type="button" variant="secondary" onClick={() => setEditingVideo(null)}>
-              Cancel
-            </Button>
+            <div className="flex gap-2">
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Updating..." : "Update Video"}
+              </Button>
+              <Button 
+                type="button" 
+                variant="secondary" 
+                onClick={() => setEditingVideo(null)}
+              >
+                Cancel
+              </Button>
+            </div>
           </form>
         </div>
       )}
 
       {/* Video List */}
-      <div>
-        <h2 className="text-xl font-semibold mb-2">Video List</h2>
+      <div className="overflow-x-auto bg-white dark:bg-gray-800 p-4 rounded-md shadow-sm">
+        <h2 className="text-xl font-semibold mb-4">Video List</h2>
         <Table>
           <TableCaption>A list of your videos.</TableCaption>
           <TableHeader>
             <TableRow>
               <TableHead className="w-[200px]">Title</TableHead>
-              <TableHead>URL</TableHead>
+              <TableHead className="hidden md:table-cell">URL</TableHead>
               <TableHead>Views</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {videos.map((video) => (
-              <TableRow key={video.id}>
-                <TableCell className="font-medium">{video.title}</TableCell>
-                <TableCell>{video.url}</TableCell>
-                <TableCell>{video.views}</TableCell>
-                <TableCell className="text-right">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => handleEditClick(video)}
-                    className="mr-2"
-                  >
-                    Edit
-                  </Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="destructive" size="sm">Delete</Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This action cannot be undone. This will permanently delete the video from our servers.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDeleteVideo(video.id)}>Delete</AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </TableCell>
+            {videos.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center">No videos found</TableCell>
               </TableRow>
-            ))}
+            ) : (
+              videos.map((video) => (
+                <TableRow key={video.id}>
+                  <TableCell className="font-medium">{video.title}</TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    <span className="block max-w-[250px] truncate">{video.url}</span>
+                  </TableCell>
+                  <TableCell>{video.views}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => handleEditClick(video)}
+                        className="whitespace-nowrap"
+                      >
+                        Edit
+                      </Button>
+                      <Button 
+                        variant="destructive" 
+                        size="sm"
+                        onClick={() => handleDeleteVideo(video.id)}
+                        className="whitespace-nowrap"
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
