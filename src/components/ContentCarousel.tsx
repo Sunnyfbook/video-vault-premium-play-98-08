@@ -152,9 +152,9 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
           ))}
         </CarouselContent>
         
-        {/* Show navigation arrows permanently on desktop, on hover for mobile */}
-        <CarouselPrevious className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 md:opacity-70" />
-        <CarouselNext className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 md:opacity-70" />
+        {/* Always visible navigation arrows, more visible on hover */}
+        <CarouselPrevious className="opacity-70 md:opacity-70 hover:opacity-100 transition-opacity duration-300" />
+        <CarouselNext className="opacity-70 md:opacity-70 hover:opacity-100 transition-opacity duration-300" />
       </Carousel>
       
       {/* Dots indicator at the bottom */}
