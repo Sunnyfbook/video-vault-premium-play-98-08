@@ -26,11 +26,13 @@ const AdsSection: React.FC<AdsSectionProps> = ({
         // Calculate delay based on index if staggering is enabled
         // Use a larger staggering delay to prevent conflicts
         const delaySeconds = staggerDelay 
-          ? baseDelaySeconds + (index * 6) // Increased to 6 seconds delay between ads
+          ? baseDelaySeconds + (index * 2) // Reduced to 2 seconds delay between ads for faster loading
           : baseDelaySeconds;
         
-        // Generate a truly unique key
-        const uniqueKey = `${ad.id}-${ad.position}-${index}-${Math.random().toString(36).substring(2, 9)}-${Date.now()}`;
+        // Generate a more reliable unique key using ad ID and position
+        const uniqueKey = `ad-${ad.id}-${ad.position}-${index}`;
+        
+        console.log(`Rendering ad: ${ad.name} at position ${ad.position} with delay ${delaySeconds}s`);
         
         return (
           <AdContainer 
@@ -40,6 +42,8 @@ const AdsSection: React.FC<AdsSectionProps> = ({
             className={`mb-4 w-full ads-position-${ad.position} ${ad.position === 'in-video' ? 'in-video-ad' : ''}`}
             delaySeconds={delaySeconds}
             position={ad.position}
+            adId={ad.id}
+            adName={ad.name}
           />
         );
       })}
