@@ -18,7 +18,7 @@ const AdsSection: React.FC<AdsSectionProps> = ({ ads, className = "" }) => {
           key={ad.id} 
           adType={ad.type} 
           adCode={ad.code} 
-          className="mb-4 w-full"
+          className={`mb-4 w-full ${ad.position === 'in-video' ? 'in-video-ad shadow-lg rounded-lg overflow-hidden' : ''}`}
         />
       ))}
     </div>

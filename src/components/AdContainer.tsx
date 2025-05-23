@@ -86,13 +86,17 @@ const AdContainer: React.FC<AdContainerProps> = ({ adType, adCode, className }) 
     };
   }, [adCode, adType]);
 
+  // Add specific styling for in-video ads
+  const isInVideo = className?.includes('in-video-ad');
+
   return (
     <div 
       ref={adContainerRef} 
       className={`ad-container min-h-[100px] ${className} ${
         adType === 'monetag' ? 'monetag-ad' : 'adstera-ad'
-      }`}
+      } ${isInVideo ? 'bg-opacity-90 backdrop-blur-sm' : ''}`}
       data-ad-type={adType}
+      style={isInVideo ? { maxHeight: '100px', overflow: 'hidden' } : undefined}
     ></div>
   );
 };

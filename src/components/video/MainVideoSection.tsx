@@ -33,10 +33,12 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
           className="w-full h-full object-contain"
         />
         
-        {/* In-video ads section (if any) */}
+        {/* In-video ads section (if any) - Positioned at the bottom with padding */}
         {inVideoAds.length > 0 && (
-          <div className="absolute bottom-16 left-0 w-full px-4 z-10">
-            <AdsSection ads={inVideoAds} className="max-w-md mx-auto" />
+          <div className="absolute bottom-16 left-0 w-full px-4 z-10 pointer-events-none">
+            <div className="max-w-md mx-auto pointer-events-auto">
+              <AdsSection ads={inVideoAds.slice(0, 1)} className="opacity-90 hover:opacity-100 transition-opacity" />
+            </div>
           </div>
         )}
       </div>

@@ -1,3 +1,4 @@
+
 /* Video Player Styles */
 .video-container {
   position: relative;
@@ -43,6 +44,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* In-video ad specific styles */
+.in-video-ad {
+  max-height: 100px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  transition: opacity 0.3s ease;
+}
+
+.in-video-ad:hover {
+  opacity: 1;
 }
 
 .ad-placeholder {
@@ -136,3 +151,4 @@ input[type="range"]::-moz-range-thumb {
     background-color: #1a1a1a;
   }
 }
+
