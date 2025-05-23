@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getVideoById, getVideoByCustomUrl, incrementViews, Video } from '@/models/Video';
@@ -205,13 +204,13 @@ const VideoPage: React.FC = () => {
       </Helmet>
 
       <div className="min-h-screen bg-gradient-to-br from-slate-100 via-gray-100 to-slate-200 dark:from-slate-900 dark:via-gray-950 dark:to-slate-800 animate-fade-in">
-        <div className="container mx-auto px-4 py-8 lg:py-12">
-          {/* Top ads - EXACT same implementation as homepage */}
+        <div className="container mx-auto px-4 py-6 lg:py-8">
+          {/* Top ads - REDUCED SPACING */}
           {topAds.length > 0 && (
-            <div className="mb-6 md:mb-8 top-ads-container">
+            <div className="mb-4 top-ads-container">
               <AdsSection 
                 ads={topAds} 
-                className="grid grid-cols-1 gap-4" 
+                className="grid grid-cols-1 gap-2" 
                 staggerDelay={true}
                 baseDelaySeconds={0.5}
                 positionClass="top-ads-section"
@@ -221,7 +220,7 @@ const VideoPage: React.FC = () => {
           
           <VideoHeader onCopyLink={copyCurrentLink} copied={copied} />
           
-          <div className="flex flex-col lg:flex-row gap-8 lg:gap-10">
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
             <MainVideoSection 
               video={video} 
               inVideoAds={inVideoAds} 

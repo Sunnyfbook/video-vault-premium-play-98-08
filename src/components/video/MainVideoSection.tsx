@@ -69,7 +69,7 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
   };
 
   return (
-    <div className="flex-1 space-y-6">
+    <div className="flex-1 space-y-4">
       <div className="relative">
         <VideoPlayer src={video.url} title={video.title} disableClickToToggle={true} />
         
@@ -97,13 +97,13 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
       
       <VideoInfo video={video} />
       
-      {/* Bottom ads - EXACT same implementation as homepage */}
+      {/* Bottom ads - REDUCED SPACING */}
       {bottomAds.length > 0 && (
-        <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-          <h4 className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider text-center">Advertisement</h4>
+        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider text-center">Advertisement</h4>
           <AdsSection 
             ads={bottomAds} 
-            className="grid grid-cols-1 gap-4"
+            className="grid grid-cols-1 gap-2"
             staggerDelay={true}
             baseDelaySeconds={2}
             positionClass="bottom-ads-section"

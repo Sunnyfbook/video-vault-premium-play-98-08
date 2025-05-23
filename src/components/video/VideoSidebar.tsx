@@ -26,14 +26,14 @@ const VideoSidebar: React.FC<VideoSidebarProps> = ({ sidebarAds, onCopyLink }) =
   }
 
   return (
-    <aside className="w-full lg:w-4/12 mt-8 lg:mt-0 space-y-6 md:space-y-8">
-      {/* Sidebar ads - EXACT same implementation as homepage */}
+    <aside className="w-full lg:w-4/12 mt-6 lg:mt-0 space-y-4 md:space-y-6">
+      {/* Sidebar ads - REDUCED SPACING */}
       {sidebarAds.length > 0 && (
-        <div className="bg-card p-4 rounded-xl shadow-card video-sidebar-ads-container">
-          <h3 className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider text-center">Advertisement</h3>
+        <div className="bg-card p-3 rounded-xl shadow-card video-sidebar-ads-container">
+          <h3 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider text-center">Advertisement</h3>
           <AdsSection 
             ads={sidebarAds} 
-            className="flex flex-col gap-4" 
+            className="flex flex-col gap-3" 
             staggerDelay={true}
             baseDelaySeconds={3}
             positionClass="sidebar-ads-section"
