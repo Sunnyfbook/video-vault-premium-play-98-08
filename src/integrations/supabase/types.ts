@@ -42,6 +42,65 @@ export type Database = {
         }
         Relationships: []
       }
+      analytics: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          page_views: number | null
+          source: string | null
+          unique_visitors: number | null
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          id?: string
+          page_views?: number | null
+          source?: string | null
+          unique_visitors?: number | null
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          page_views?: number | null
+          source?: string | null
+          unique_visitors?: number | null
+        }
+        Relationships: []
+      }
+      comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          user_name: string
+          video_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          user_name: string
+          video_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          user_name?: string
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       homepage_config: {
         Row: {
           container_aspect_ratio: string | null
@@ -104,6 +163,35 @@ export type Database = {
           url?: string
         }
         Relationships: []
+      }
+      reactions: {
+        Row: {
+          count: number
+          id: string
+          type: string
+          video_id: string
+        }
+        Insert: {
+          count?: number
+          id?: string
+          type: string
+          video_id: string
+        }
+        Update: {
+          count?: number
+          id?: string
+          type?: string
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reactions_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       seo_settings: {
         Row: {
@@ -185,6 +273,8 @@ export type Database = {
       }
       videos: {
         Row: {
+          ad_timing_seconds: number | null
+          custom_url: string | null
           date_added: string
           description: string | null
           id: string
@@ -194,6 +284,8 @@ export type Database = {
           views: number
         }
         Insert: {
+          ad_timing_seconds?: number | null
+          custom_url?: string | null
           date_added?: string
           description?: string | null
           id?: string
@@ -203,6 +295,8 @@ export type Database = {
           views?: number
         }
         Update: {
+          ad_timing_seconds?: number | null
+          custom_url?: string | null
           date_added?: string
           description?: string | null
           id?: string

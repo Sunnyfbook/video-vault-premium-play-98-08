@@ -1,11 +1,13 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getVideoById, incrementViews, Video } from '@/models/Video';
+import { getVideoById, getVideoByCustomUrl, incrementViews, Video } from '@/models/Video';
 import { getAdsByPosition, Ad } from '@/models/Ad';
 import { getSEOSettingByPage, SEOSetting } from '@/models/SEO'; 
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Helmet } from 'react-helmet';
+import { incrementPageView, incrementUniqueVisitor } from '@/models/Analytics';
 
 // Import our components
 import AdsSection from '@/components/video/AdsSection';
@@ -16,7 +18,7 @@ import LoadingState from '@/components/video/LoadingState';
 import ErrorState from '@/components/video/ErrorState';
 
 const VideoPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id, customUrl } = useParams<{ id?: string, customUrl?: string }>();
   const [video, setVideo] = useState<Video | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,61 +30,81 @@ const VideoPage: React.FC = () => {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
 
+  // Track visit
+  useEffect(() => {
+    // Track page view
+    incrementPageView();
+    
+    // Track unique visitor (in a real app, you'd check cookies/localStorage)
+    // This is simplified for demo purposes
+    const hasVisitedBefore = localStorage.getItem('hasVisited');
+    if (!hasVisitedBefore) {
+      incrementUniqueVisitor();
+      localStorage.setItem('hasVisited', 'true');
+    }
+  }, []);
+
   // Load video and SEO settings
   useEffect(() => {
     const loadData = async () => {
-      if (id) {
-        // Reset states when ID changes
-        setLoading(true);
-        setError(null);
-        setVideo(null); // Explicitly clear previous video
+      // Reset states when URL params change
+      setLoading(true);
+      setError(null);
+      setVideo(null);
+      
+      try {
+        let foundVideo: Video | undefined;
         
-        try {
-          // Load video data
-          const foundVideo = await getVideoById(id);
-          
-          if (foundVideo) {
-            setVideo(foundVideo);
-            await incrementViews(id); // Increment views only if video found
-            const seoData = await getSEOSettingByPage('video'); // Fetch SEO settings for 'video' page
-            setSeoSettings(seoData);
-          } else {
-            setError(`Video with ID ${id} was not found.`);
-            toast({
-              title: "Video Not Found",
-              description: "The requested video could not be found.",
-              variant: "destructive",
-            });
-          }
-        } catch (e) {
-          console.error("Error loading video:", e);
-          setError("An error occurred while loading the video.");
+        // Try to load by custom URL first if available
+        if (customUrl) {
+          foundVideo = await getVideoByCustomUrl(customUrl);
+        } 
+        // If no custom URL or not found by custom URL, try regular ID
+        if (!foundVideo && id) {
+          foundVideo = await getVideoById(id);
+        }
+        
+        if (foundVideo) {
+          setVideo(foundVideo);
+          await incrementViews(foundVideo.id); // Increment views
+          const seoData = await getSEOSettingByPage('video');
+          setSeoSettings(seoData);
+        } else {
+          setError(`Video was not found.`);
           toast({
-            title: "Error",
-            description: "An error occurred while loading the video.",
+            title: "Video Not Found",
+            description: "The requested video could not be found.",
             variant: "destructive",
           });
-        } finally {
-          setLoading(false); // Ensure loading is set to false in all cases
         }
-
-        // Load ads by position
-        const [
-          fetchTopAds,
-          fetchBottomAds,
-          fetchSidebarAds,
-          fetchInVideoAds,
-        ] = await Promise.all([
-          getAdsByPosition('top'),
-          getAdsByPosition('bottom'),
-          getAdsByPosition('sidebar'),
-          getAdsByPosition('in-video'),
-        ]);
-        setTopAds(fetchTopAds);
-        setBottomAds(fetchBottomAds);
-        setSidebarAds(fetchSidebarAds);
-        setInVideoAds(fetchInVideoAds);
+      } catch (e) {
+        console.error("Error loading video:", e);
+        setError("An error occurred while loading the video.");
+        toast({
+          title: "Error",
+          description: "An error occurred while loading the video.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
       }
+
+      // Load ads by position
+      const [
+        fetchTopAds,
+        fetchBottomAds,
+        fetchSidebarAds,
+        fetchInVideoAds,
+      ] = await Promise.all([
+        getAdsByPosition('top'),
+        getAdsByPosition('bottom'),
+        getAdsByPosition('sidebar'),
+        getAdsByPosition('in-video'),
+      ]);
+      setTopAds(fetchTopAds);
+      setBottomAds(fetchBottomAds);
+      setSidebarAds(fetchSidebarAds);
+      setInVideoAds(fetchInVideoAds);
     };
 
     loadData();
@@ -92,8 +114,8 @@ const VideoPage: React.FC = () => {
       .channel('public:ads')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'ads' },
-        async (payload) => { // Make async for awaiting ad fetches
-          console.log('Ads changed, refetching:', payload);
+        async () => {
+          console.log('Ads changed, refetching');
           // Reload ads when changes occur
           const [
             refetchedTopAds,
@@ -118,7 +140,7 @@ const VideoPage: React.FC = () => {
     return () => {
       supabase.removeChannel(adsChannel);
     };
-  }, [id, toast]);
+  }, [id, customUrl, toast]);
 
   const copyCurrentLink = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -149,6 +171,11 @@ const VideoPage: React.FC = () => {
     seoSettings.description.replace('{description}', video.description || '') : 
     (video?.description || 'Watch this exciting video on our platform.');
 
+  // Generate shorter share URL if custom URL exists
+  const shareUrl = video.custom_url ? 
+    `${window.location.origin}/v/${video.custom_url}` : 
+    `${window.location.origin}/video/${video.id}`;
+
   return (
     <>
       {/* SEO Meta Tags */}
@@ -163,6 +190,7 @@ const VideoPage: React.FC = () => {
         {seoSettings?.og_image && <meta property="og:image" content={seoSettings.og_image} />}
         <meta property="og:type" content="video.movie" />
         {video.url && <meta property="og:video" content={video.url} />}
+        <meta property="og:url" content={shareUrl} />
         
         {/* Twitter Card */}
         <meta name="twitter:card" content={seoSettings?.twitter_card || "summary_large_image"} />
@@ -171,7 +199,10 @@ const VideoPage: React.FC = () => {
         {seoSettings?.twitter_image && <meta name="twitter:image" content={seoSettings.twitter_image} />}
         
         {/* Canonical URL */}
-        {seoSettings?.canonical_url && <link rel="canonical" href={seoSettings.canonical_url} />}
+        {video.custom_url ? 
+          <link rel="canonical" href={`${window.location.origin}/v/${video.custom_url}`} /> : 
+          <link rel="canonical" href={`${window.location.origin}/video/${video.id}`} />
+        }
       </Helmet>
 
       <div className="min-h-screen bg-gradient-to-br from-slate-100 via-gray-100 to-slate-200 dark:from-slate-900 dark:via-gray-950 dark:to-slate-800 animate-fade-in">

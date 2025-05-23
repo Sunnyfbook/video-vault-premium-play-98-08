@@ -9,6 +9,8 @@ export interface Video {
   thumbnail?: string;
   date_added: string;
   views: number;
+  custom_url?: string;
+  ad_timing_seconds?: number;
 }
 
 // Video service functions
@@ -46,6 +48,28 @@ export const getVideoById = async (id: string): Promise<Video | undefined> => {
     return data as Video;
   } catch (error) {
     console.error(`Error finding video with id ${id}:`, error);
+    return undefined;
+  }
+};
+
+export const getVideoByCustomUrl = async (customUrl: string): Promise<Video | undefined> => {
+  try {
+    if (!customUrl) return undefined;
+    
+    const { data, error } = await supabase
+      .from("videos")
+      .select("*")
+      .eq("custom_url", customUrl)
+      .single();
+    
+    if (error) {
+      console.error(`Error finding video with custom URL ${customUrl}:`, error);
+      return undefined;
+    }
+    
+    return data as Video;
+  } catch (error) {
+    console.error(`Error finding video with custom URL ${customUrl}:`, error);
     return undefined;
   }
 };

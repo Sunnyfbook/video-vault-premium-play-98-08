@@ -1,62 +1,73 @@
+import React, { useEffect } from 'react';
+import { createBrowserRouter, RouterProvider, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { incrementPageView, incrementUniqueVisitor } from '@/models/Analytics';
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import Index from "./pages/Index";
-import VideoPage from "./pages/VideoPage";
-import Login from "./pages/Login";
-import Admin from "./pages/Admin";
-import NotFound from "./pages/NotFound";
-import './videoPlayer.css';
+// Import pages
+import Index from '@/pages/Index';
+import Login from '@/pages/Login';
+import Admin from '@/pages/Admin';
+import VideoPage from '@/pages/VideoPage';
+import NotFound from '@/pages/NotFound';
 
-const queryClient = new QueryClient();
-
-// Protected route component
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+const App: React.FC = () => {
+  // Use the authentication context
   const { isLoggedIn } = useAuth();
-  const location = useLocation();
   
-  if (!isLoggedIn) {
-    // Redirect to login but save the attempted location
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-  
-  return <>{children}</>;
+  // Track visit
+  useEffect(() => {
+    // Track page view
+    incrementPageView();
+    
+    // Track unique visitor (in a real app, you'd check cookies/localStorage)
+    // This is simplified for demo purposes
+    const hasVisitedBefore = localStorage.getItem('hasVisited');
+    if (!hasVisitedBefore) {
+      incrementUniqueVisitor();
+      localStorage.setItem('hasVisited', 'true');
+    }
+  }, []);
+
+  // Create a router
+  const router = createBrowserRouter([
+    {
+      path: "/",
+      element: <Index />,
+      errorElement: <NotFound />
+    },
+    {
+      path: "/login",
+      element: <Login />,
+    },
+    {
+      path: "/admin",
+      element: isLoggedIn ? <Admin /> : <NavigateToLogin />,
+    },
+    {
+      path: "/video/:id",
+      element: <VideoPage />,
+    },
+    // Add a route for custom URLs
+    {
+      path: "/v/:customUrl",
+      element: <VideoPage />,
+    }
+  ]);
+
+  return (
+    <RouterProvider router={router} />
+  );
 };
 
-// App Routes with route protection
-const AppRoutes = () => (
-  <Routes>
-    <Route path="/" element={<Index />} />
-    <Route path="/video/:id" element={<VideoPage />} />
-    <Route path="/login" element={<Login />} />
-    <Route 
-      path="/admin" 
-      element={
-        <ProtectedRoute>
-          <Admin />
-        </ProtectedRoute>
-      } 
-    />
-    <Route path="*" element={<NotFound />} />
-  </Routes>
-);
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+// Create a simple component that navigates to the login page
+const NavigateToLogin: React.FC = () => {
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    navigate('/login');
+  }, [navigate]);
+  
+  return null;
+};
 
 export default App;

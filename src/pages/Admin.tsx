@@ -19,6 +19,7 @@ import HomepageContentManager from "@/components/admin/HomepageContentManager";
 import { getHomepageConfig, updateHomepageConfig, HomepageConfig, defaultConfig as initialHomepageConfigValues } from '@/models/HomepageConfig';
 import { useHomepageConfig } from '@/hooks/useHomepageConfig';
 import AdminCredentialsManager from '@/components/admin/AdminCredentialsManager';
+import AnalyticsOverview from '@/components/admin/AnalyticsOverview';
 
 const Admin: React.FC = () => {
   const { isLoggedIn, logout } = useAuth();
@@ -45,6 +46,10 @@ const Admin: React.FC = () => {
   const [savingHomepageConfig, setSavingHomepageConfig] = useState(false);
   const [customAspectRatio, setCustomAspectRatio] = useState(false);
   
+  // New state for custom URLs and ad timing
+  const [customUrl, setCustomUrl] = useState<string>('');
+  const [adTimingSeconds, setAdTimingSeconds] = useState<number>(10);
+  
   // Redirect if not logged in
   if (!isLoggedIn) {
     return <Navigate to="/login" replace />;
@@ -64,7 +69,6 @@ const Admin: React.FC = () => {
         setSeoSettings(seoData);
         
         // Fetch initial homepage config for the form
-        // The hook useHomepageConfig already fetches, so we can populate the form from it.
       } catch (error) {
         console.error("Error loading data:", error);
         toast({
@@ -108,7 +112,7 @@ const Admin: React.FC = () => {
       supabase.removeChannel(adsChannel);
       supabase.removeChannel(seoChannel);
     };
-  }, [toast]); // Add any new dependencies if necessary, refetchHomepageConfig might be one if used directly here
+  }, [toast]);
   
   useEffect(() => {
     if (currentHomepageConfig) {
@@ -153,7 +157,11 @@ const Admin: React.FC = () => {
     }
     
     try {
-      await addVideo(newVideo);
+      await addVideo({
+        ...newVideo,
+        custom_url: customUrl.trim() || undefined,
+        ad_timing_seconds: adTimingSeconds || 10
+      });
       
       // Reset form
       setNewVideo({
@@ -162,6 +170,8 @@ const Admin: React.FC = () => {
         url: '',
         thumbnail: ''
       });
+      setCustomUrl('');
+      setAdTimingSeconds(10);
       
       toast({
         title: "Video Added",
@@ -324,7 +334,6 @@ const Admin: React.FC = () => {
           title: "Homepage Settings Updated",
           description: "Your homepage texts and layout have been updated.",
         });
-        // Data will refresh via realtime, or call refetchHomepageConfig() if needed
       } else {
         throw new Error("Failed to update homepage settings");
       }
@@ -360,6 +369,7 @@ const Admin: React.FC = () => {
           <TabsTrigger value="videos">Videos</TabsTrigger>
           <TabsTrigger value="ads">Ads</TabsTrigger>
           <TabsTrigger value="seo">SEO Settings</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="homepage">Homepage</TabsTrigger>
           <TabsTrigger value="homepage_settings">Homepage Settings</TabsTrigger>
           <TabsTrigger value="account">Account</TabsTrigger>
@@ -420,6 +430,36 @@ const Admin: React.FC = () => {
                         placeholder="https://example.com/thumbnail.jpg"
                       />
                     </div>
+
+                    {/* Custom URL Field */}
+                    <div className="space-y-2">
+                      <Label htmlFor="customUrl">Custom URL (Optional)</Label>
+                      <Input
+                        id="customUrl"
+                        value={customUrl}
+                        onChange={(e) => setCustomUrl(e.target.value)}
+                        placeholder="my-awesome-video"
+                      />
+                      <p className="text-xs text-gray-500">
+                        Creates a shorter, user-friendly URL like /v/my-awesome-video
+                      </p>
+                    </div>
+
+                    {/* Ad Timing Field */}
+                    <div className="space-y-2">
+                      <Label htmlFor="adTimingSeconds">Ad Timing (seconds)</Label>
+                      <Input
+                        id="adTimingSeconds"
+                        type="number"
+                        min="0"
+                        value={adTimingSeconds}
+                        onChange={(e) => setAdTimingSeconds(parseInt(e.target.value) || 10)}
+                        placeholder="10"
+                      />
+                      <p className="text-xs text-gray-500">
+                        Time to wait before showing in-video ads (seconds)
+                      </p>
+                    </div>
                     
                     <Button type="submit" className="w-full">
                       Add Video
@@ -475,7 +515,7 @@ const Admin: React.FC = () => {
                             >
                               Copy Link
                             </Button>
-                            <Link to={`/video/${video.id}`} target="_blank">
+                            <Link to={video.custom_url ? `/v/${video.custom_url}` : `/video/${video.id}`} target="_blank">
                               <Button size="sm" variant="outline">
                                 Preview
                               </Button>
@@ -1030,6 +1070,10 @@ const Admin: React.FC = () => {
         {/* Account Tab - New tab for admin credentials */}
         <TabsContent value="account">
           <AdminCredentialsManager />
+        </TabsContent>
+        {/* Analytics Tab */}
+        <TabsContent value="analytics">
+          <AnalyticsOverview />
         </TabsContent>
       </Tabs>
     </div>
