@@ -37,6 +37,16 @@ const AdContainer: React.FC<AdContainerProps> = ({ adType, adCode, className, de
         adContainerRef.current.innerHTML = '';
         
         try {
+          // Create a containing element for the ad that will be positioned correctly
+          const adWrapper = document.createElement('div');
+          adWrapper.className = 'ad-wrapper';
+          adWrapper.style.width = '100%';
+          adWrapper.style.height = '100%';
+          adWrapper.style.position = 'relative';
+          adWrapper.id = `${uniqueIdRef.current}-wrapper`;
+          
+          adContainerRef.current.appendChild(adWrapper);
+          
           // Replace any placeholder IDs in the ad code with our unique ID
           const modifiedAdCode = adCode.replace(/id="[^"]*"/g, `id="${uniqueIdRef.current}"`);
           
@@ -62,9 +72,9 @@ const AdContainer: React.FC<AdContainerProps> = ({ adType, adCode, className, de
               }
             }
             
-            // Append all non-script elements first
+            // Append all non-script elements first to the wrapper
             while (tempContainer.firstChild) {
-              adContainerRef.current.appendChild(tempContainer.firstChild);
+              adWrapper.appendChild(tempContainer.firstChild);
             }
             
             // Now execute scripts separately with an increasing delay between them
@@ -83,8 +93,9 @@ const AdContainer: React.FC<AdContainerProps> = ({ adType, adCode, className, de
                 
                 // Copy inline script content if present
                 if (originalScript.innerHTML) {
-                  newScript.innerHTML = originalScript.innerHTML.replace(/document\.write/g, 
-                    `document.getElementById('${uniqueIdRef.current}').innerHTML +=`);
+                  newScript.innerHTML = originalScript.innerHTML
+                    .replace(/document\.write/g, `document.getElementById('${uniqueIdRef.current}-wrapper').innerHTML +=`)
+                    .replace(/document\.getElementById\(['"](.*?)['"]/, `document.getElementById('${uniqueIdRef.current}-wrapper')`);
                 }
                 
                 // Set src for external scripts
@@ -92,24 +103,14 @@ const AdContainer: React.FC<AdContainerProps> = ({ adType, adCode, className, de
                   newScript.src = originalScript.src;
                 }
                 
-                // Append to container with a unique wrapper
-                if (adContainerRef.current) {
-                  // Create a wrapper for the script to isolate its execution context
-                  const scriptWrapper = document.createElement('div');
-                  scriptWrapper.id = `${uniqueIdRef.current}-wrapper-${index}`;
-                  adContainerRef.current.appendChild(scriptWrapper);
-                  
-                  // Add the script to the document body instead of the container
-                  // This helps prevent script conflicts between multiple ad containers
-                  document.body.appendChild(newScript);
-                  
-                  console.log(`Script ${index + 1} loaded for ad container ${uniqueIdRef.current}`);
-                }
-              }, index * 300); // Increase delay between scripts significantly
+                // Append the script to the target container to ensure proper positioning
+                adWrapper.appendChild(newScript);
+                console.log(`Script ${index + 1} loaded for ad container ${uniqueIdRef.current}`);
+              }, index * 400); // Increase delay between scripts significantly
             });
           } else {
-            // For non-script HTML, just set innerHTML
-            adContainerRef.current.innerHTML = modifiedAdCode;
+            // For non-script HTML, just set innerHTML of the wrapper
+            adWrapper.innerHTML = modifiedAdCode;
           }
           
           console.log(`Ad of type ${adType} mounted successfully with ID ${uniqueIdRef.current}`);
@@ -125,7 +126,7 @@ const AdContainer: React.FC<AdContainerProps> = ({ adType, adCode, className, de
         adContainerRef.current.innerHTML = '';
       }
       
-      // Clean up any scripts we might have added to document.body
+      // Clean up any scripts we might have added
       document.querySelectorAll(`script[id^="${uniqueIdRef.current}-script-"]`).forEach(script => {
         script.remove();
       });
@@ -141,6 +142,7 @@ const AdContainer: React.FC<AdContainerProps> = ({ adType, adCode, className, de
       }`}
       data-ad-type={adType}
       data-delay={delaySeconds}
+      style={{ position: 'relative', minHeight: '150px' }}
     ></div>
   );
 };

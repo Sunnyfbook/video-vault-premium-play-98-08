@@ -77,8 +77,14 @@ const Index = () => {
       <div className="container mx-auto px-4 py-12 sm:py-16 lg:py-20">
         {/* Top Ads */}
         {topAds.length > 0 && (
-          <div className="mb-8">
-            <AdsSection ads={topAds} className="w-full" staggerDelay={true} baseDelaySeconds={0.5} />
+          <div className="mb-8 top-ads-container">
+            <AdsSection 
+              ads={topAds} 
+              className="w-full" 
+              staggerDelay={true} 
+              baseDelaySeconds={0.5}
+              positionClass="top-ads-section" 
+            />
           </div>
         )}
 
@@ -145,8 +151,14 @@ const Index = () => {
 
             {/* Bottom Ads */}
             {bottomAds.length > 0 && (
-              <div className="mt-8">
-                <AdsSection ads={bottomAds} className="w-full" staggerDelay={true} baseDelaySeconds={4} />
+              <div className="mt-8 bottom-ads-container">
+                <AdsSection 
+                  ads={bottomAds} 
+                  className="w-full" 
+                  staggerDelay={true} 
+                  baseDelaySeconds={6} 
+                  positionClass="bottom-ads-section"
+                />
               </div>
             )}
           </main>
@@ -154,8 +166,13 @@ const Index = () => {
           {/* Sidebar Ads */}
           {sidebarAds.length > 0 && (
             <aside className="w-full lg:w-64 xl:w-80 shrink-0">
-              <div className="sticky top-8">
-                <AdsSection ads={sidebarAds} staggerDelay={true} baseDelaySeconds={7} />
+              <div className="sticky top-8 sidebar-ads-container">
+                <AdsSection 
+                  ads={sidebarAds} 
+                  staggerDelay={true} 
+                  baseDelaySeconds={3} 
+                  positionClass="sidebar-ads-section"
+                />
               </div>
             </aside>
           )}

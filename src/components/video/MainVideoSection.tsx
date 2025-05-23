@@ -82,6 +82,7 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
                 ads={[inVideoAds[currentInVideoAdIndex]]} 
                 className="in-video-ad shadow-xl"
                 staggerDelay={false}
+                positionClass="in-video-ads-section"
               />
             </div>
           </div>
@@ -95,7 +96,8 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
           <AdsSection 
             ads={bottomAds} 
             staggerDelay={true} 
-            baseDelaySeconds={2} // Increased base delay
+            baseDelaySeconds={2}
+            positionClass="video-bottom-ads-section"
           />
         </div>
       )}
