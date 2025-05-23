@@ -48,9 +48,9 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
       <div className="relative">
         <VideoPlayer src={video.url} title={video.title} />
         
-        {/* In-video ad overlay */}
+        {/* In-video ad overlay - centered in the player */}
         {showInVideoAd && inVideoAds.length > 0 && (
-          <div className="absolute bottom-16 left-0 right-0 flex justify-center animate-fade-in z-50">
+          <div className="absolute inset-0 flex items-center justify-center animate-fade-in z-50">
             <div className="in-video-ad-container">
               <button 
                 className="absolute -top-2 -right-2 bg-black/70 text-white rounded-full w-6 h-6 flex items-center justify-center z-50"

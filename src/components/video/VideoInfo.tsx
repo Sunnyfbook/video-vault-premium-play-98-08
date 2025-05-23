@@ -4,12 +4,25 @@ import { Video } from '@/models/Video';
 import { formatDistanceToNow } from 'date-fns';
 import ReactionSection from './ReactionSection';
 import CommentSection from './CommentSection';
+import { Share2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 interface VideoInfoProps {
   video: Video;
 }
 
 const VideoInfo: React.FC<VideoInfoProps> = ({ video }) => {
+  const { toast } = useToast();
+  
+  const handleShareClick = () => {
+    navigator.clipboard.writeText(window.location.href);
+    toast({
+      title: "Link Copied!",
+      description: "Video link copied to clipboard!",
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -24,6 +37,15 @@ const VideoInfo: React.FC<VideoInfoProps> = ({ video }) => {
               })}
             </span>
           </div>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={handleShareClick}
+            className="text-primary hover:bg-primary/10"
+          >
+            <Share2 size={16} className="mr-1" />
+            Share
+          </Button>
         </div>
       </div>
       

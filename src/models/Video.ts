@@ -13,6 +13,17 @@ export interface Video {
   ad_timing_seconds?: number;
 }
 
+// Helper function to generate a slug from a title
+const generateSlug = (title: string): string => {
+  return title
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '') // Remove special chars
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+    .substring(0, 50) // Limit length
+    + '-' + Math.random().toString(36).substring(2, 7); // Add random string for uniqueness
+};
+
 // Video service functions
 export const getVideos = async (): Promise<Video[]> => {
   try {
@@ -74,10 +85,14 @@ export const getVideoByCustomUrl = async (customUrl: string): Promise<Video | un
   }
 };
 
-export const addVideo = async (video: Omit<Video, "id" | "date_added" | "views">): Promise<Video> => {
+export const addVideo = async (video: Omit<Video, "id" | "date_added" | "views" | "custom_url">): Promise<Video> => {
   try {
+    // Generate custom URL from title
+    const customUrl = generateSlug(video.title);
+    
     const newVideo = {
       ...video,
+      custom_url: customUrl,
       views: 0
     };
     
@@ -101,6 +116,11 @@ export const addVideo = async (video: Omit<Video, "id" | "date_added" | "views">
 
 export const updateVideo = async (updatedVideo: Video): Promise<Video | undefined> => {
   try {
+    // If no custom_url exists, generate one
+    if (!updatedVideo.custom_url) {
+      updatedVideo.custom_url = generateSlug(updatedVideo.title);
+    }
+    
     const { data, error } = await supabase
       .from("videos")
       .update(updatedVideo)
