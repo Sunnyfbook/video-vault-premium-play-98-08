@@ -18,7 +18,7 @@ interface ContentCarouselProps {
 }
 
 const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
-  const [emblaRef, setEmblaRef] = React.useState<HTMLElement | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const videoRefs = useRef<HTMLVideoElement[]>([]);
   const { config } = useHomepageConfig();
@@ -34,10 +34,10 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
 
   // Handle carousel slide change
   useEffect(() => {
-    if (!emblaRef) return;
+    if (!containerRef.current) return;
     
     // Get the embla API from the carousel viewport
-    const viewport = emblaRef.querySelector('[data-embla="viewport"]');
+    const viewport = containerRef.current.querySelector('[data-embla="viewport"]');
     if (!viewport) return;
     
     // @ts-ignore - accessing the custom property we added
@@ -69,7 +69,7 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
     return () => {
       emblaApi.off('select', onSelect);
     };
-  }, [emblaRef]);
+  }, [containerRef.current, items]);
 
   const renderContent = (item: HomepageContent, index: number) => {
     if (item.type === "instagram") {
@@ -114,7 +114,7 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
   };
 
   return (
-    <div className="relative group" ref={setEmblaRef}>
+    <div className="relative group" ref={containerRef}>
       <Carousel
         opts={{
           loop: true,

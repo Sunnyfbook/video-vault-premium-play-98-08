@@ -1,8 +1,8 @@
 
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import useEmblaCarousel, { type EmblaOptionsType as CarouselOptions } from "embla-carousel-react"
-import { type EmblaCarouselType as CarouselApi } from "embla-carousel"
+import useEmblaCarousel from "embla-carousel-react"
+import type { EmblaCarouselType as CarouselApi } from "embla-carousel"
 import { cn } from "@/lib/utils"
 
 import { Button } from "@/components/ui/button"
@@ -19,7 +19,7 @@ function useCarousel() {
 }
 
 interface CarouselProps extends React.HTMLAttributes<HTMLElement> {
-  opts?: CarouselOptions
+  opts?: Parameters<typeof useEmblaCarousel>[0]
   children: React.ReactNode
 }
 
@@ -43,8 +43,10 @@ const Carousel = React.forwardRef<HTMLElement, CarouselProps>(
 
     return (
       <CarouselContext.Provider value={emblaApi}>
-        <div className={cn("relative", className)} {...props}>
-          {children}
+        <div className={cn("relative", className)} ref={ref} {...props}>
+          <div ref={emblaRef} className="overflow-hidden">
+            {children}
+          </div>
         </div>
       </CarouselContext.Provider>
     )
