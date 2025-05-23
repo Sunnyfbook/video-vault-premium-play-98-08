@@ -18,7 +18,7 @@ interface ContentCarouselProps {
 }
 
 const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
-  const [emblaRef, setEmblaRef] = React.useState<HTMLDivElement | null>(null);
+  const [emblaRef, setEmblaRef] = React.useState<HTMLElement | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const videoRefs = useRef<HTMLVideoElement[]>([]);
   const { config } = useHomepageConfig();
@@ -36,10 +36,12 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
   useEffect(() => {
     if (!emblaRef) return;
     
-    // Get the embla API from the carousel
-    const emblaNode = emblaRef;
-    const emblaApi = emblaNode?.querySelector('[data-embla="viewport"]')?.__emblaApi__;
+    // Get the embla API from the carousel viewport
+    const viewport = emblaRef.querySelector('[data-embla="viewport"]');
+    if (!viewport) return;
     
+    // @ts-ignore - accessing the custom property we added
+    const emblaApi = viewport.__emblaApi__;
     if (!emblaApi) return;
     
     const onSelect = () => {
@@ -107,11 +109,12 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
   // Apply custom style for container from config
   const containerStyle = {
     maxWidth: containerMaxWidth,
-    aspectRatio: containerAspectRatio
+    aspectRatio: containerAspectRatio,
+    width: '100%' // Make sure it takes full available width up to max width
   };
 
   return (
-    <div className="relative group">
+    <div className="relative group" ref={setEmblaRef}>
       <Carousel
         opts={{
           loop: true,
@@ -121,29 +124,27 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
         }}
         className="w-full"
       >
-        <div className="overflow-hidden" ref={setEmblaRef}>
-          <CarouselContent>
-            {items.map((item, index) => (
-              <CarouselItem 
-                key={item.id} 
-                className={`basis-full md:basis-1/2 lg:basis-1/3 xl:basis-1/4 transition-all duration-300 ${
-                  activeIndex === index 
-                    ? "opacity-100 scale-100" 
-                    : "opacity-80 scale-95"
-                }`}
-              >
-                <Card className="rounded-xl overflow-hidden shadow-lg border-0">
-                  <div 
-                    className="bg-black overflow-hidden mx-auto" 
-                    style={containerStyle}
-                  >
-                    {renderContent(item, index)}
-                  </div>
-                </Card>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-        </div>
+        <CarouselContent>
+          {items.map((item, index) => (
+            <CarouselItem 
+              key={item.id} 
+              className={`basis-full md:basis-auto flex justify-center transition-all duration-300 ${
+                activeIndex === index 
+                  ? "opacity-100 scale-100" 
+                  : "opacity-80 scale-95"
+              }`}
+            >
+              <Card className="rounded-xl overflow-hidden shadow-lg border-0 w-auto">
+                <div 
+                  className="bg-black overflow-hidden" 
+                  style={containerStyle}
+                >
+                  {renderContent(item, index)}
+                </div>
+              </Card>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
         <CarouselPrevious className="opacity-0 group-hover:opacity-100" />
         <CarouselNext className="opacity-0 group-hover:opacity-100" />
       </Carousel>

@@ -1,9 +1,8 @@
 
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import useEmblaCarousel from "embla-carousel-react"
+import useEmblaCarousel, { type EmblaOptionsType as CarouselOptions } from "embla-carousel-react"
 import { type EmblaCarouselType as CarouselApi } from "embla-carousel"
-import { type EmblaOptionsType as CarouselOptions } from "embla-carousel"
 import { cn } from "@/lib/utils"
 
 import { Button } from "@/components/ui/button"
@@ -33,8 +32,8 @@ const Carousel = React.forwardRef<HTMLElement, CarouselProps>(
 
       // Make CarouselApi available through context
       // Additionally, we attach the API to the DOM node for direct access
-      if (emblaRef.current) {
-        const viewport = emblaRef.current.querySelector('[data-embla="viewport"]')
+      if (emblaRef) {
+        const viewport = emblaRef.querySelector('[data-embla="viewport"]')
         if (viewport) {
           // @ts-ignore - we're adding a custom property to the DOM node
           viewport.__emblaApi__ = emblaApi
