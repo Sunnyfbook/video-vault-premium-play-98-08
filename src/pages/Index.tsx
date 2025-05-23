@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from "react";
 import { useHomepageContent } from "@/hooks/useHomepageContent";
 import { useHomepageConfig } from "@/hooks/useHomepageConfig";
@@ -79,7 +78,7 @@ const Index = () => {
         {/* Top Ads */}
         {topAds.length > 0 && (
           <div className="mb-8">
-            <AdsSection ads={topAds} className="w-full" />
+            <AdsSection ads={topAds} className="w-full" staggerDelay={true} baseDelaySeconds={0.5} />
           </div>
         )}
 
@@ -147,7 +146,7 @@ const Index = () => {
             {/* Bottom Ads */}
             {bottomAds.length > 0 && (
               <div className="mt-8">
-                <AdsSection ads={bottomAds} className="w-full" />
+                <AdsSection ads={bottomAds} className="w-full" staggerDelay={true} baseDelaySeconds={4} />
               </div>
             )}
           </main>
@@ -156,7 +155,7 @@ const Index = () => {
           {sidebarAds.length > 0 && (
             <aside className="w-full lg:w-64 xl:w-80 shrink-0">
               <div className="sticky top-8">
-                <AdsSection ads={sidebarAds} />
+                <AdsSection ads={sidebarAds} staggerDelay={true} baseDelaySeconds={7} />
               </div>
             </aside>
           )}

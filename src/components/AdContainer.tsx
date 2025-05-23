@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface AdContainerProps {
   adType: 'monetag' | 'adstera';
@@ -10,25 +10,25 @@ interface AdContainerProps {
 
 const AdContainer: React.FC<AdContainerProps> = ({ adType, adCode, className, delaySeconds = 0 }) => {
   const adContainerRef = useRef<HTMLDivElement>(null);
-  const adLoadedRef = useRef<boolean>(false);
-  // Generate a unique ID for each ad container
-  const uniqueIdRef = useRef<string>(`ad-${adType}-${Math.random().toString(36).substring(2, 9)}`);
+  const [adLoaded, setAdLoaded] = useState(false);
+  // Generate a truly unique ID for each ad container
+  const uniqueIdRef = useRef<string>(`ad-${adType}-${Math.random().toString(36).substring(2, 9)}-${Date.now()}`);
 
   useEffect(() => {
-    if (!adContainerRef.current || !adCode) return;
+    if (!adContainerRef.current || !adCode || adLoaded) return;
 
     // If there's a delay, wait before loading the ad
-    if (delaySeconds > 0 && !adLoadedRef.current) {
-      console.log(`Delaying ad load for ${delaySeconds} seconds`);
+    if (delaySeconds > 0) {
+      console.log(`Delaying ad load for ${delaySeconds} seconds for ${uniqueIdRef.current}`);
       const timeoutId = setTimeout(() => {
         loadAd();
-        adLoadedRef.current = true;
+        setAdLoaded(true);
       }, delaySeconds * 1000);
       
       return () => clearTimeout(timeoutId);
-    } else if (!adLoadedRef.current) {
+    } else {
       loadAd();
-      adLoadedRef.current = true;
+      setAdLoaded(true);
     }
     
     function loadAd() {
@@ -67,7 +67,7 @@ const AdContainer: React.FC<AdContainerProps> = ({ adType, adCode, className, de
               adContainerRef.current.appendChild(tempContainer.firstChild);
             }
             
-            // Now execute scripts separately with a small delay between them
+            // Now execute scripts separately with an increasing delay between them
             scripts.forEach((originalScript, index) => {
               setTimeout(() => {
                 const newScript = document.createElement('script');
@@ -77,14 +77,14 @@ const AdContainer: React.FC<AdContainerProps> = ({ adType, adCode, className, de
                   newScript.setAttribute(attr.name, attr.value);
                 });
                 
-                // Set a unique ID for the script if it doesn't have one
-                if (!newScript.id) {
-                  newScript.id = `${uniqueIdRef.current}-script-${index}`;
-                }
+                // Set a unique ID for the script
+                const scriptId = `${uniqueIdRef.current}-script-${index}-${Date.now()}`;
+                newScript.id = scriptId;
                 
                 // Copy inline script content if present
                 if (originalScript.innerHTML) {
-                  newScript.innerHTML = originalScript.innerHTML;
+                  newScript.innerHTML = originalScript.innerHTML.replace(/document\.write/g, 
+                    `document.getElementById('${uniqueIdRef.current}').innerHTML +=`);
                 }
                 
                 // Set src for external scripts
@@ -92,12 +92,20 @@ const AdContainer: React.FC<AdContainerProps> = ({ adType, adCode, className, de
                   newScript.src = originalScript.src;
                 }
                 
-                // Append to container
+                // Append to container with a unique wrapper
                 if (adContainerRef.current) {
-                  adContainerRef.current.appendChild(newScript);
+                  // Create a wrapper for the script to isolate its execution context
+                  const scriptWrapper = document.createElement('div');
+                  scriptWrapper.id = `${uniqueIdRef.current}-wrapper-${index}`;
+                  adContainerRef.current.appendChild(scriptWrapper);
+                  
+                  // Add the script to the document body instead of the container
+                  // This helps prevent script conflicts between multiple ad containers
+                  document.body.appendChild(newScript);
+                  
                   console.log(`Script ${index + 1} loaded for ad container ${uniqueIdRef.current}`);
                 }
-              }, index * 100); // Add a small delay between scripts
+              }, index * 300); // Increase delay between scripts significantly
             });
           } else {
             // For non-script HTML, just set innerHTML
@@ -107,11 +115,6 @@ const AdContainer: React.FC<AdContainerProps> = ({ adType, adCode, className, de
           console.log(`Ad of type ${adType} mounted successfully with ID ${uniqueIdRef.current}`);
         } catch (error) {
           console.error('Error rendering ad:', error);
-          
-          // Fallback: try direct insertion as a last resort
-          if (adContainerRef.current) {
-            adContainerRef.current.innerHTML = adCode;
-          }
         }
       }
     }
@@ -121,8 +124,13 @@ const AdContainer: React.FC<AdContainerProps> = ({ adType, adCode, className, de
       if (adContainerRef.current) {
         adContainerRef.current.innerHTML = '';
       }
+      
+      // Clean up any scripts we might have added to document.body
+      document.querySelectorAll(`script[id^="${uniqueIdRef.current}-script-"]`).forEach(script => {
+        script.remove();
+      });
     };
-  }, [adCode, adType, delaySeconds]);
+  }, [adCode, adType, delaySeconds, adLoaded]);
 
   return (
     <div 

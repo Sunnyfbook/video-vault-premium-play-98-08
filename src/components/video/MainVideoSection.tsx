@@ -95,7 +95,7 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
           <AdsSection 
             ads={bottomAds} 
             staggerDelay={true} 
-            baseDelaySeconds={1}
+            baseDelaySeconds={2} // Increased base delay
           />
         </div>
       )}

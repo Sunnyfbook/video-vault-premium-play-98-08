@@ -22,13 +22,17 @@ const AdsSection: React.FC<AdsSectionProps> = ({
     <div className={`ads-section ${className}`}>
       {ads.map((ad, index) => {
         // Calculate delay based on index if staggering is enabled
+        // Use a larger staggering delay to prevent conflicts
         const delaySeconds = staggerDelay 
-          ? baseDelaySeconds + (index * 2) // Increased to 2 second delay between ads
+          ? baseDelaySeconds + (index * 3) // Increased to 3 second delay between ads
           : baseDelaySeconds;
+        
+        // Generate a truly unique key that includes timestamp
+        const uniqueKey = `${ad.id}-${index}-${Math.random().toString(36).substring(2, 9)}-${Date.now()}`;
         
         return (
           <AdContainer 
-            key={`${ad.id}-${index}-${Math.random().toString(36).substring(2, 9)}`} // Enhanced uniqueness
+            key={uniqueKey}
             adType={ad.type} 
             adCode={ad.code} 
             className={`mb-4 w-full ${ad.position === 'in-video' ? 'in-video-ad' : ''}`}
