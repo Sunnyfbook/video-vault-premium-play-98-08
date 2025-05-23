@@ -23,7 +23,8 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
     // Show in-video ad after the specified time
     const adTimingSeconds = video.ad_timing_seconds || 10;
     
-    const timer = setTimeout(() => {
+    // Function to show the ad
+    const showAd = () => {
       if (inVideoAds.length > 0) {
         setShowInVideoAd(true);
         
@@ -34,9 +35,20 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
         
         return () => clearTimeout(hideTimer);
       }
-    }, adTimingSeconds * 1000);
+    };
+
+    // Initial ad display
+    const initialTimer = setTimeout(showAd, adTimingSeconds * 1000);
     
-    return () => clearTimeout(timer);
+    // Set up repeating timer for ads
+    const repeatingTimer = setInterval(() => {
+      showAd();
+    }, (adTimingSeconds * 2 + 30) * 1000); // Show ad again after adTiming*2 + 30 seconds
+    
+    return () => {
+      clearTimeout(initialTimer);
+      clearInterval(repeatingTimer);
+    };
   }, [video.ad_timing_seconds, inVideoAds]);
 
   const handleDismissAd = () => {

@@ -37,21 +37,29 @@ const ReactionSection: React.FC<ReactionSectionProps> = ({ videoId }) => {
 
   const loadReactions = async () => {
     setLoading(true);
-    const fetchedReactions = await getReactionsByVideoId(videoId);
-    setReactions(fetchedReactions);
-    setLoading(false);
+    try {
+      const fetchedReactions = await getReactionsByVideoId(videoId);
+      setReactions(fetchedReactions);
+    } catch (error) {
+      console.error("Error loading reactions:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAddReaction = async (type: ReactionType) => {
     setProcessing(true);
     try {
       await addReaction(videoId, type);
-      // Reactions will update via real-time subscription
+      // Force reload reactions to ensure we have the latest counts
+      await loadReactions();
+      
       toast({
         title: "Thanks for your reaction!",
         variant: "default"
       });
     } catch (error) {
+      console.error("Error adding reaction:", error);
       toast({
         title: "Error",
         description: "Failed to add your reaction. Please try again.",
