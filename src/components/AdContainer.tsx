@@ -86,9 +86,6 @@ const AdContainer: React.FC<AdContainerProps> = ({ adType, adCode, className }) 
     };
   }, [adCode, adType]);
 
-  // Add specific styling for in-video ads
-  const isInVideo = className?.includes('in-video-ad');
-
   return (
     <div 
       ref={adContainerRef} 

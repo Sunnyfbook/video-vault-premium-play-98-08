@@ -5,6 +5,7 @@ import { Ad } from "@/models/Ad";
 import VideoInfo from "./VideoInfo";
 import AdsSection from "./AdsSection";
 import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface MainVideoSectionProps {
   video: Video;
@@ -103,15 +104,17 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
         
         {/* In-video ads section with close button */}
         {showInVideoAd && inVideoAds.length > 0 && (
-          <div className="absolute bottom-20 left-0 w-full px-4 z-10 animate-fade-in">
-            <div className="max-w-md mx-auto relative">
-              <button 
+          <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+            <div className="relative max-w-md w-full pointer-events-auto">
+              <Button 
                 onClick={dismissAd}
-                className="absolute -top-2 -right-2 bg-white dark:bg-gray-800 rounded-full p-1 shadow-md z-20"
+                variant="secondary"
+                size="icon"
+                className="absolute -top-2 -right-2 bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-full p-1 shadow-lg z-20 border border-gray-200 dark:border-gray-700"
                 aria-label="Close advertisement"
               >
                 <X size={16} className="text-gray-700 dark:text-gray-200" />
-              </button>
+              </Button>
               <AdsSection 
                 ads={[inVideoAds[currentAdIndex]]} 
                 className="in-video-ad-container" 
