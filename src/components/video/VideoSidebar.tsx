@@ -28,9 +28,9 @@ const VideoSidebar: React.FC<VideoSidebarProps> = ({ sidebarAds, onCopyLink }) =
           <h3 className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider text-center">Advertisement</h3>
           <AdsSection 
             ads={sidebarAds} 
-            className="grid grid-cols-1 gap-4" 
+            className="flex flex-col gap-4" 
             staggerDelay={true}
-            baseDelaySeconds={1}
+            baseDelaySeconds={0.5}  // Reduced delay to start loading sooner
             positionClass="video-sidebar-ads-section"
           />
         </div>

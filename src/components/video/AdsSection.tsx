@@ -8,7 +8,7 @@ interface AdsSectionProps {
   className?: string;
   staggerDelay?: boolean;
   baseDelaySeconds?: number;
-  positionClass?: string; // Added position class prop
+  positionClass?: string;
 }
 
 const AdsSection: React.FC<AdsSectionProps> = ({ 
@@ -16,7 +16,7 @@ const AdsSection: React.FC<AdsSectionProps> = ({
   className = "", 
   staggerDelay = false, 
   baseDelaySeconds = 0,
-  positionClass = "" // Default to empty string
+  positionClass = ""
 }) => {
   if (ads.length === 0) return null;
 
@@ -26,10 +26,10 @@ const AdsSection: React.FC<AdsSectionProps> = ({
         // Calculate delay based on index if staggering is enabled
         // Use a larger staggering delay to prevent conflicts
         const delaySeconds = staggerDelay 
-          ? baseDelaySeconds + (index * 4) // Increased to 4 second delay between ads
+          ? baseDelaySeconds + (index * 6) // Increased to 6 seconds delay between ads
           : baseDelaySeconds;
         
-        // Generate a truly unique key that includes timestamp and position
+        // Generate a truly unique key
         const uniqueKey = `${ad.id}-${ad.position}-${index}-${Math.random().toString(36).substring(2, 9)}-${Date.now()}`;
         
         return (
@@ -37,8 +37,9 @@ const AdsSection: React.FC<AdsSectionProps> = ({
             key={uniqueKey}
             adType={ad.type} 
             adCode={ad.code} 
-            className={`mb-4 w-full ${ad.position}-ad ${ad.position === 'in-video' ? 'in-video-ad' : ''}`}
+            className={`mb-4 w-full ads-position-${ad.position} ${ad.position === 'in-video' ? 'in-video-ad' : ''}`}
             delaySeconds={delaySeconds}
+            position={ad.position}
           />
         );
       })}

@@ -93,10 +93,11 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
       
       {bottomAds.length > 0 && (
         <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <h4 className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider text-center">Advertisement</h4>
           <AdsSection 
             ads={bottomAds} 
             staggerDelay={true} 
-            baseDelaySeconds={2}
+            baseDelaySeconds={0.5}  // Reduced delay to load sooner
             positionClass="video-bottom-ads-section"
           />
         </div>

@@ -6,20 +6,30 @@ interface AdContainerProps {
   adCode: string;
   className?: string;
   delaySeconds?: number;
+  position?: 'top' | 'bottom' | 'sidebar' | 'in-video';
 }
 
-const AdContainer: React.FC<AdContainerProps> = ({ adType, adCode, className, delaySeconds = 0 }) => {
+const AdContainer: React.FC<AdContainerProps> = ({ 
+  adType, 
+  adCode, 
+  className, 
+  delaySeconds = 0,
+  position = 'top' 
+}) => {
   const adContainerRef = useRef<HTMLDivElement>(null);
   const [adLoaded, setAdLoaded] = useState(false);
+  const [adRendered, setAdRendered] = useState(false);
+  const [adHeight, setAdHeight] = useState<number | null>(null);
+  
   // Generate a truly unique ID for each ad container
-  const uniqueIdRef = useRef<string>(`ad-${adType}-${Math.random().toString(36).substring(2, 9)}-${Date.now()}`);
+  const uniqueIdRef = useRef<string>(`ad-${adType}-${position}-${Math.random().toString(36).substring(2, 9)}-${Date.now()}`);
 
   useEffect(() => {
     if (!adContainerRef.current || !adCode || adLoaded) return;
 
     // If there's a delay, wait before loading the ad
     if (delaySeconds > 0) {
-      console.log(`Delaying ad load for ${delaySeconds} seconds for ${uniqueIdRef.current}`);
+      console.log(`Delaying ad load for ${delaySeconds} seconds for ${uniqueIdRef.current} (position: ${position})`);
       const timeoutId = setTimeout(() => {
         loadAd();
         setAdLoaded(true);
@@ -39,10 +49,13 @@ const AdContainer: React.FC<AdContainerProps> = ({ adType, adCode, className, de
         try {
           // Create a containing element for the ad that will be positioned correctly
           const adWrapper = document.createElement('div');
-          adWrapper.className = 'ad-wrapper';
+          adWrapper.className = `ad-wrapper position-${position}`;
           adWrapper.style.width = '100%';
           adWrapper.style.height = '100%';
           adWrapper.style.position = 'relative';
+          adWrapper.style.display = 'flex';
+          adWrapper.style.justifyContent = 'center';
+          adWrapper.style.alignItems = 'center';
           adWrapper.id = `${uniqueIdRef.current}-wrapper`;
           
           adContainerRef.current.appendChild(adWrapper);
@@ -105,15 +118,27 @@ const AdContainer: React.FC<AdContainerProps> = ({ adType, adCode, className, de
                 
                 // Append the script to the target container to ensure proper positioning
                 adWrapper.appendChild(newScript);
-                console.log(`Script ${index + 1} loaded for ad container ${uniqueIdRef.current}`);
-              }, index * 400); // Increase delay between scripts significantly
+                console.log(`Script ${index + 1} loaded for ad container ${uniqueIdRef.current} (position: ${position})`);
+              }, index * 500); // Increase delay between scripts significantly
             });
           } else {
             // For non-script HTML, just set innerHTML of the wrapper
             adWrapper.innerHTML = modifiedAdCode;
           }
           
-          console.log(`Ad of type ${adType} mounted successfully with ID ${uniqueIdRef.current}`);
+          console.log(`Ad of type ${adType} mounted successfully with ID ${uniqueIdRef.current} (position: ${position})`);
+          
+          // After a short delay, check for the actual content height
+          setTimeout(() => {
+            if (adContainerRef.current) {
+              const actualHeight = adContainerRef.current.scrollHeight;
+              if (actualHeight > 0) {
+                setAdHeight(actualHeight);
+                setAdRendered(true);
+              }
+            }
+          }, 1000);
+          
         } catch (error) {
           console.error('Error rendering ad:', error);
         }
@@ -131,7 +156,25 @@ const AdContainer: React.FC<AdContainerProps> = ({ adType, adCode, className, de
         script.remove();
       });
     };
-  }, [adCode, adType, delaySeconds, adLoaded]);
+  }, [adCode, adType, delaySeconds, position, adLoaded]);
+
+  const getMinHeight = () => {
+    if (adRendered && adHeight) {
+      return `${adHeight}px`;
+    }
+    
+    // Default minimum heights based on position
+    switch (position) {
+      case 'in-video':
+        return '120px';
+      case 'sidebar':
+        return '250px';
+      case 'top':
+      case 'bottom':
+      default:
+        return '150px';
+    }
+  };
 
   return (
     <div 
@@ -139,10 +182,19 @@ const AdContainer: React.FC<AdContainerProps> = ({ adType, adCode, className, de
       id={uniqueIdRef.current}
       className={`ad-container ${className} ${
         adType === 'monetag' ? 'monetag-ad' : 'adstera-ad'
-      }`}
+      } position-${position}`}
       data-ad-type={adType}
       data-delay={delaySeconds}
-      style={{ position: 'relative', minHeight: '150px' }}
+      data-position={position}
+      style={{ 
+        position: 'relative', 
+        minHeight: getMinHeight(),
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        overflow: 'hidden',
+        transition: 'min-height 0.3s ease'
+      }}
     ></div>
   );
 };
