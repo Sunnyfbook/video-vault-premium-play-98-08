@@ -12,6 +12,7 @@ import { Card } from "@/components/ui/card";
 import { HomepageContent } from "@/hooks/useHomepageContent";
 import InstagramEmbed from "@/components/InstagramEmbed";
 import { useHomepageConfig } from "@/hooks/useHomepageConfig";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface ContentCarouselProps {
   items: HomepageContent[];
@@ -120,6 +121,18 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
 
   return (
     <div className="relative group" ref={carouselRef}>
+      {/* Swipe hint overlay - only show on first load */}
+      {items.length > 1 && (
+        <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-between px-8 animate-fade-in opacity-70">
+          <div className="bg-black/40 text-white p-2 rounded-full backdrop-blur-sm">
+            <ChevronLeft className="h-8 w-8 animate-pulse" />
+          </div>
+          <div className="bg-black/40 text-white p-2 rounded-full backdrop-blur-sm">
+            <ChevronRight className="h-8 w-8 animate-pulse" />
+          </div>
+        </div>
+      )}
+      
       <Carousel
         opts={{
           loop: true,
@@ -151,9 +164,29 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious className="opacity-0 group-hover:opacity-100" />
-        <CarouselNext className="opacity-0 group-hover:opacity-100" />
+        
+        {/* Show navigation arrows permanently on desktop, on hover for mobile */}
+        <CarouselPrevious className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 md:opacity-70" />
+        <CarouselNext className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 md:opacity-70" />
       </Carousel>
+      
+      {/* Dots indicator at the bottom */}
+      {items.length > 1 && (
+        <div className="flex justify-center mt-4 gap-2">
+          {items.map((_, index) => (
+            <button
+              key={index}
+              className={`w-2.5 h-2.5 rounded-full transition-all ${
+                activeIndex === index 
+                  ? "bg-primary scale-125" 
+                  : "bg-gray-300 dark:bg-gray-600"
+              }`}
+              onClick={() => embla?.scrollTo(index)}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
