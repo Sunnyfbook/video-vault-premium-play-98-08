@@ -12,7 +12,7 @@ interface DownloadButtonProps {
 
 const DownloadButton: React.FC<DownloadButtonProps> = ({ videoSrc, videoTitle }) => {
   const [downloadClickCount, setDownloadClickCount] = useState(0);
-  const [downloadUrl, setDownloadUrl] = useState('https://example.com/download-page');
+  const [downloadUrl, setDownloadUrl] = useState('https://www.profitableratecpm.com/f3q79p604b?key=85d2abaa690441f1f256ac2e30814b92');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -62,7 +62,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ videoSrc, videoTitle })
       className="flex items-center gap-2"
     >
       <Download size={16} />
-      {downloadClickCount % 2 === 0 ? "Visit Download Page" : "Download Video"}
+      {downloadClickCount % 2 === 0 ? "Download" : "Download"}
     </Button>
   );
 };
