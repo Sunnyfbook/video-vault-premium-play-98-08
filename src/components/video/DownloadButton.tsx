@@ -26,7 +26,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ videoSrc, videoTitle })
     loadDownloadConfig();
   }, []);
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     const isFirstClick = downloadClickCount % 2 === 0;
     
     if (isFirstClick) {
@@ -37,18 +37,34 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ videoSrc, videoTitle })
         description: "Click the download button again to download the video directly.",
       });
     } else {
-      // Second click - start video download
-      const link = document.createElement('a');
-      link.href = videoSrc;
-      link.download = videoTitle || 'video';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      toast({
-        title: "Download Started",
-        description: "Your video download has begun.",
-      });
+      // Second click - start video download directly
+      try {
+        const response = await fetch(videoSrc);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${videoTitle || 'video'}.mp4`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Clean up the blob URL
+        window.URL.revokeObjectURL(url);
+        
+        toast({
+          title: "Download Started",
+          description: "Your video download has begun.",
+        });
+      } catch (error) {
+        console.error('Download failed:', error);
+        toast({
+          title: "Download Failed",
+          description: "Could not download the video. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
     
     setDownloadClickCount(count => count + 1);
@@ -62,7 +78,7 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ videoSrc, videoTitle })
       className="flex items-center gap-2"
     >
       <Download size={16} />
-      {downloadClickCount % 2 === 0 ? "Visit Download Page" : "Download Video"}
+      Download
     </Button>
   );
 };
