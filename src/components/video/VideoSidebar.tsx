@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Copy, ExternalLink, Share2, Home, CheckCircle, Gift } from 'lucide-react'; // Added CheckCircle, Gift
 import { Button } from '@/components/ui/button';
 import { Ad } from '@/models/Ad';
@@ -13,6 +13,11 @@ interface VideoSidebarProps {
 
 const VideoSidebar: React.FC<VideoSidebarProps> = ({ sidebarAds, onCopyLink }) => {
   const [linkCopied, setLinkCopied] = React.useState(false);
+
+  useEffect(() => {
+    // Log sidebar ads count
+    console.log(`VideoSidebar: ${sidebarAds.length} sidebar ads available`);
+  }, [sidebarAds]);
 
   const handleCopyLink = () => {
     onCopyLink();
@@ -29,8 +34,8 @@ const VideoSidebar: React.FC<VideoSidebarProps> = ({ sidebarAds, onCopyLink }) =
           <AdsSection 
             ads={sidebarAds} 
             className="flex flex-col gap-4" 
-            staggerDelay={true}
-            baseDelaySeconds={0.5}  // Reduced delay to start loading sooner
+            staggerDelay={false}  // Changed to false for immediate loading
+            baseDelaySeconds={0.2}  // Reduced delay to start loading sooner
             positionClass="video-sidebar-ads-section"
           />
         </div>

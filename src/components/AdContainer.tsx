@@ -9,6 +9,7 @@ interface AdContainerProps {
   position?: 'top' | 'bottom' | 'sidebar' | 'in-video';
   adId?: string;
   adName?: string;
+  forceBrowserRender?: boolean;
 }
 
 const AdContainer: React.FC<AdContainerProps> = ({ 
@@ -18,17 +19,20 @@ const AdContainer: React.FC<AdContainerProps> = ({
   delaySeconds = 0,
   position = 'top',
   adId = '',
-  adName = ''
+  adName = '',
+  forceBrowserRender = false
 }) => {
   const adContainerRef = useRef<HTMLDivElement>(null);
   const [adLoaded, setAdLoaded] = useState(false);
   const [adRendered, setAdRendered] = useState(false);
   const [adHeight, setAdHeight] = useState<number | null>(null);
   const loadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const checkIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
   // Generate a truly unique ID for each ad container using adId if available
   const uniqueIdRef = useRef<string>(
-    adId ? `ad-${adId}-${position}` : `ad-${adType}-${position}-${Math.random().toString(36).substring(2, 9)}`
+    adId ? `ad-${adId}-${position}-${Math.random().toString(36).substring(2, 5)}` : 
+    `ad-${adType}-${position}-${Math.random().toString(36).substring(2, 5)}`
   );
 
   useEffect(() => {
@@ -105,7 +109,7 @@ const AdContainer: React.FC<AdContainerProps> = ({
             adWrapper.appendChild(tempContainer.firstChild);
           }
           
-          // Now execute scripts separately with an increasing delay between them
+          // Now execute scripts separately with minimal delay between them
           scripts.forEach((originalScript, index) => {
             setTimeout(() => {
               const newScript = document.createElement('script');
@@ -134,7 +138,7 @@ const AdContainer: React.FC<AdContainerProps> = ({
               // Append the script to the target container to ensure proper positioning
               adWrapper.appendChild(newScript);
               console.log(`Script ${index + 1} loaded for ad: ${adName || uniqueIdRef.current} (position: ${position})`);
-            }, index * 300); // Reduced delay between scripts
+            }, index * 200); // Reduced delay between scripts to 200ms
           });
         } else {
           // For non-script HTML, just set innerHTML of the wrapper
@@ -143,17 +147,46 @@ const AdContainer: React.FC<AdContainerProps> = ({
         
         console.log(`Ad ${adName || uniqueIdRef.current} of type ${adType} mounted successfully (position: ${position})`);
         
-        // After a short delay, check for the actual content height
-        setTimeout(() => {
+        // If forceBrowserRender is enabled, force a reflow to ensure browser renders the content
+        if (forceBrowserRender) {
+          setTimeout(() => {
+            if (adContainerRef.current) {
+              // Force reflow by accessing offsetHeight
+              const reflow = adContainerRef.current.offsetHeight;
+              console.log(`Forced reflow for ad ${adName || uniqueIdRef.current}, height: ${reflow}px`);
+            }
+          }, 100);
+        }
+        
+        // Check for content height repeatedly over a short period
+        checkIntervalRef.current = setInterval(() => {
           if (adContainerRef.current) {
             const actualHeight = adContainerRef.current.scrollHeight;
-            if (actualHeight > 0) {
+            if (actualHeight > 10) { // Check if height is significant
               setAdHeight(actualHeight);
               setAdRendered(true);
               console.log(`Ad ${adName || uniqueIdRef.current} rendered with height: ${actualHeight}px`);
+              
+              // Clear the interval once we've detected content
+              if (checkIntervalRef.current) {
+                clearInterval(checkIntervalRef.current);
+                checkIntervalRef.current = null;
+              }
             }
           }
-        }, 1000);
+        }, 500);
+        
+        // Set a timeout to clear the interval if content is never detected
+        setTimeout(() => {
+          if (checkIntervalRef.current) {
+            clearInterval(checkIntervalRef.current);
+            checkIntervalRef.current = null;
+            console.log(`Checking timed out for ad ${adName || uniqueIdRef.current}`);
+            
+            // Set rendered anyway so we at least get minimum height
+            setAdRendered(true);
+          }
+        }, 5000);
         
       } catch (error) {
         console.error(`Error rendering ad ${adName || uniqueIdRef.current}:`, error);
@@ -166,6 +199,10 @@ const AdContainer: React.FC<AdContainerProps> = ({
         clearTimeout(loadTimeoutRef.current);
       }
       
+      if (checkIntervalRef.current) {
+        clearInterval(checkIntervalRef.current);
+      }
+      
       if (adContainerRef.current) {
         adContainerRef.current.innerHTML = '';
       }
@@ -175,7 +212,7 @@ const AdContainer: React.FC<AdContainerProps> = ({
         script.remove();
       });
     };
-  }, [adCode, adType, delaySeconds, position, adLoaded, adId, adName]);
+  }, [adCode, adType, delaySeconds, position, adLoaded, adId, adName, forceBrowserRender]);
 
   const getMinHeight = () => {
     if (adRendered && adHeight) {
@@ -207,6 +244,7 @@ const AdContainer: React.FC<AdContainerProps> = ({
       data-position={position}
       data-ad-id={adId}
       data-ad-name={adName}
+      data-rendered={adRendered ? "true" : "false"}
       style={{ 
         position: 'relative', 
         minHeight: getMinHeight(),

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import AdContainer from '@/components/AdContainer';
 import { Ad } from '@/models/Ad';
 
@@ -18,19 +18,26 @@ const AdsSection: React.FC<AdsSectionProps> = ({
   baseDelaySeconds = 0,
   positionClass = ""
 }) => {
+  useEffect(() => {
+    // Log ads to be rendered for debugging
+    if (ads.length > 0) {
+      console.log(`AdsSection: Rendering ${ads.length} ads in ${positionClass || 'unknown'} section`);
+    }
+  }, [ads, positionClass]);
+
   if (ads.length === 0) return null;
 
   return (
     <div className={`ads-section ${className} ${positionClass}`}>
       {ads.map((ad, index) => {
         // Calculate delay based on index if staggering is enabled
-        // Use a larger staggering delay to prevent conflicts
+        // Use a smaller staggering delay to prevent conflicts
         const delaySeconds = staggerDelay 
-          ? baseDelaySeconds + (index * 2) // Reduced to 2 seconds delay between ads for faster loading
+          ? baseDelaySeconds + (index * 1) // Reduced to 1 second delay between ads for faster loading
           : baseDelaySeconds;
         
         // Generate a more reliable unique key using ad ID and position
-        const uniqueKey = `ad-${ad.id}-${ad.position}-${index}`;
+        const uniqueKey = `ad-${ad.id}-${ad.position}-${index}-${positionClass}`;
         
         console.log(`Rendering ad: ${ad.name} at position ${ad.position} with delay ${delaySeconds}s`);
         
@@ -44,6 +51,7 @@ const AdsSection: React.FC<AdsSectionProps> = ({
             position={ad.position}
             adId={ad.id}
             adName={ad.name}
+            forceBrowserRender={true} // Force browser to render the ad
           />
         );
       })}

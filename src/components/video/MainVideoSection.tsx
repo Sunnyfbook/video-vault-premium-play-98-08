@@ -53,6 +53,11 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
     };
   }, [video.ad_timing_seconds, inVideoAds]);
 
+  useEffect(() => {
+    // Log ad count for debugging
+    console.log(`MainVideoSection: ${inVideoAds.length} in-video ads, ${bottomAds.length} bottom ads available`);
+  }, [inVideoAds, bottomAds]);
+
   const handleDismissAd = () => {
     console.log('Ad manually dismissed');
     setShowInVideoAd(false);
@@ -96,8 +101,8 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
           <h4 className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider text-center">Advertisement</h4>
           <AdsSection 
             ads={bottomAds} 
-            staggerDelay={true} 
-            baseDelaySeconds={0.5}  // Reduced delay to load sooner
+            staggerDelay={false}  // Changed to false for immediate loading 
+            baseDelaySeconds={0.2}  // Reduced delay to load sooner
             positionClass="video-bottom-ads-section"
           />
         </div>
