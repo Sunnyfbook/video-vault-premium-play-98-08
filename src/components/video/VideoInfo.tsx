@@ -4,6 +4,7 @@ import { Video } from '@/models/Video';
 import { formatDistanceToNow } from 'date-fns';
 import ReactionSection from './ReactionSection';
 import CommentSection from './CommentSection';
+import DownloadButton from './DownloadButton';
 import { Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -27,7 +28,7 @@ const VideoInfo: React.FC<VideoInfoProps> = ({ video }) => {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold mb-2">{video.title}</h1>
-        <div className="flex justify-between items-center text-gray-500 text-sm">
+        <div className="flex justify-between items-center text-gray-500 text-sm mb-4">
           <div>
             <span>{video.views} views</span>
             <span className="mx-2">•</span>
@@ -37,15 +38,18 @@ const VideoInfo: React.FC<VideoInfoProps> = ({ video }) => {
               })}
             </span>
           </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={handleShareClick}
-            className="text-primary hover:bg-primary/10"
-          >
-            <Share2 size={16} className="mr-1" />
-            Share
-          </Button>
+          <div className="flex items-center gap-3">
+            <DownloadButton videoSrc={video.url} videoTitle={video.title} />
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleShareClick}
+              className="text-primary hover:bg-primary/10"
+            >
+              <Share2 size={16} className="mr-1" />
+              Share
+            </Button>
+          </div>
         </div>
       </div>
       

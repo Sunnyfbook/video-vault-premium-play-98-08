@@ -101,6 +101,27 @@ export type Database = {
           },
         ]
       }
+      download_config: {
+        Row: {
+          created_at: string
+          download_url: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          download_url?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          download_url?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       homepage_config: {
         Row: {
           container_aspect_ratio: string | null
