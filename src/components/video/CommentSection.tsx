@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Comment, addComment, getCommentsByVideoId } from '@/models/Comment';
@@ -14,6 +15,7 @@ interface CommentSectionProps {
 const CommentSection: React.FC<CommentSectionProps> = ({ videoId }) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userName, setUserName] = useState('');
   const [content, setContent] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
@@ -21,13 +23,12 @@ const CommentSection: React.FC<CommentSectionProps> = ({ videoId }) => {
   useEffect(() => {
     loadComments();
     
-    // Set up realtime subscription with a unique channel name
+    // Set up realtime subscription
     const channel = supabase
-      .channel(`comments-channel-${videoId}`)
+      .channel('public:comments')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'comments', filter: `video_id=eq.${videoId}` },
-        (payload) => {
-          console.log('Comment update received:', payload);
+        () => {
           loadComments();
         }
       )
@@ -48,6 +49,15 @@ const CommentSection: React.FC<CommentSectionProps> = ({ videoId }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!userName.trim()) {
+      toast({
+        title: "Name Required",
+        description: "Please enter your name to comment.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     if (!content.trim()) {
       toast({
         title: "Comment Required",
@@ -60,12 +70,9 @@ const CommentSection: React.FC<CommentSectionProps> = ({ videoId }) => {
     setSubmitting(true);
     
     try {
-      // Generate a random guest name
-      const guestName = `Guest_${Math.floor(Math.random() * 10000)}`;
-      
       const newComment = await addComment({
         video_id: videoId,
-        user_name: guestName,
+        user_name: userName,
         content
       });
       
@@ -113,10 +120,18 @@ const CommentSection: React.FC<CommentSectionProps> = ({ videoId }) => {
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
+          <Input
+            value={userName}
+            onChange={(e) => setUserName(e.target.value)}
+            placeholder="Your name"
+            className="w-full"
+          />
+        </div>
+        <div>
           <Textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="Add a comment as a guest..."
+            placeholder="Add a comment..."
             rows={3}
             className="w-full"
           />

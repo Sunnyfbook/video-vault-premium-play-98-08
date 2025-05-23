@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { ReactionType, Reaction, getReactionsByVideoId, addReaction } from '@/models/Reaction';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { ThumbsUp, Heart, Laugh, Smile, Frown, AngryIcon } from 'lucide-react';
+import { Heart, ThumbsUp, Laugh, Frown, AngryIcon, Smile } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface ReactionSectionProps {
@@ -13,23 +13,15 @@ interface ReactionSectionProps {
 const ReactionSection: React.FC<ReactionSectionProps> = ({ videoId }) => {
   const [reactions, setReactions] = useState<Reaction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [processing, setProcessing] = useState<ReactionType | null>(null);
-  const [activeReactions, setActiveReactions] = useState<Record<ReactionType, boolean>>({
-    like: false,
-    love: false,
-    laugh: false,
-    wow: false,
-    sad: false,
-    angry: false
-  });
+  const [processing, setProcessing] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     loadReactions();
     
-    // Set up a proper real-time subscription
+    // Configure proper real-time subscription using the proper channel name
     const channel = supabase
-      .channel(`reactions-channel-${videoId}`) 
+      .channel(`reactions-${videoId}`) // Use unique channel name per video
       .on('postgres_changes', 
         { 
           event: '*', 
@@ -38,7 +30,7 @@ const ReactionSection: React.FC<ReactionSectionProps> = ({ videoId }) => {
           filter: `video_id=eq.${videoId}` 
         },
         (payload) => {
-          console.log('Reaction update received:', payload);
+          console.log('Reaction update detected:', payload);
           loadReactions(); // Reload reactions when changes occur
         }
       )
@@ -47,7 +39,7 @@ const ReactionSection: React.FC<ReactionSectionProps> = ({ videoId }) => {
       });
     
     return () => {
-      console.log('Cleaning up reactions subscription');
+      console.log('Unsubscribing from reactions channel');
       supabase.removeChannel(channel);
     };
   }, [videoId]);
@@ -74,26 +66,17 @@ const ReactionSection: React.FC<ReactionSectionProps> = ({ videoId }) => {
   const handleAddReaction = async (type: ReactionType) => {
     if (processing) return;
     
-    setProcessing(type);
+    setProcessing(true);
     console.log(`Adding ${type} reaction to video ${videoId}`);
     
     try {
-      // Optimistically update the UI immediately
-      setActiveReactions(prev => ({ ...prev, [type]: true }));
-      
-      // Send to server
-      await addReaction(videoId, type);
-      console.log('Reaction added/updated successfully');
+      const updatedReaction = await addReaction(videoId, type);
+      console.log('Reaction added/updated:', updatedReaction);
       
       toast({
         title: "Thanks for your reaction!",
         variant: "default"
       });
-      
-      // Create a small delay then clear the active state
-      setTimeout(() => {
-        setActiveReactions(prev => ({ ...prev, [type]: false }));
-      }, 1000);
     } catch (error) {
       console.error("Error adding reaction:", error);
       toast({
@@ -101,10 +84,8 @@ const ReactionSection: React.FC<ReactionSectionProps> = ({ videoId }) => {
         description: "Failed to add your reaction. Please try again.",
         variant: "destructive"
       });
-      // Reset the active state on error
-      setActiveReactions(prev => ({ ...prev, [type]: false }));
     } finally {
-      setProcessing(null);
+      setProcessing(false);
     }
   };
 
@@ -147,17 +128,15 @@ const ReactionSection: React.FC<ReactionSectionProps> = ({ videoId }) => {
         {reactionButtons.map(reaction => (
           <Button
             key={reaction.type}
-            variant={activeReactions[reaction.type] ? "default" : "outline"}
+            variant="outline"
             size="sm"
-            className={`flex items-center gap-1 transition-all duration-200 ${
-              processing === reaction.type ? "animate-pulse" : ""
-            } ${activeReactions[reaction.type] ? "bg-primary text-primary-foreground" : ""}`}
-            disabled={loading || processing !== null}
+            className="flex items-center gap-1"
+            disabled={processing || loading}
             onClick={() => handleAddReaction(reaction.type)}
           >
             {getReactionIcon(reaction.type)}
             <span>{reaction.label}</span>
-            <span className={`${activeReactions[reaction.type] ? "bg-primary-foreground/20 text-primary-foreground" : "bg-muted text-muted-foreground"} rounded-full px-1.5 text-xs ml-1`}>
+            <span className="bg-muted text-muted-foreground rounded-full px-1.5 text-xs ml-1">
               {getReactionCount(reaction.type)}
             </span>
           </Button>

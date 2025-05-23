@@ -10,24 +10,6 @@ export interface Reaction {
   count: number;
 }
 
-// Enable realtime for the reactions table by making Supabase track it
-export const configureRealtimeForReactions = async () => {
-  try {
-    // Enable realtime for the reactions table
-    await supabase
-      .from('reactions')
-      .select('id')
-      .limit(1);
-    
-    console.log("Reactions table is now being tracked for realtime updates");
-  } catch (error) {
-    console.error("Error configuring realtime for reactions:", error);
-  }
-};
-
-// Call this function when the app initializes
-configureRealtimeForReactions();
-
 export const getReactionsByVideoId = async (videoId: string): Promise<Reaction[]> => {
   try {
     const { data, error } = await supabase
