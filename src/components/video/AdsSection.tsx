@@ -30,14 +30,13 @@ const AdsSection: React.FC<AdsSectionProps> = ({
   return (
     <div className={`ads-section ${className} ${positionClass}`}>
       {ads.map((ad, index) => {
-        // Calculate delay based on index if staggering is enabled
-        // Match exactly what's in the homepage - use the same delay calculation
+        // Use the EXACT same delay calculation as homepage
         const delaySeconds = staggerDelay 
-          ? baseDelaySeconds + (index * 0.5) // Reduced delay between ads for faster loading
+          ? baseDelaySeconds + (index * 1.5) // Same as homepage
           : baseDelaySeconds;
         
-        // Generate a more reliable unique key using ad ID and position
-        const uniqueKey = `ad-${ad.id}-${ad.position}-${index}-${positionClass}-${Math.random().toString(36).substring(2, 5)}`;
+        // Use the EXACT same key generation as homepage
+        const uniqueKey = `${ad.id}-${ad.position}-${index}`;
         
         console.log(`Rendering ad: ${ad.name} at position ${ad.position} with delay ${delaySeconds}s`);
         
@@ -46,12 +45,11 @@ const AdsSection: React.FC<AdsSectionProps> = ({
             key={uniqueKey}
             adType={ad.type} 
             adCode={ad.code} 
-            className={`mb-4 w-full ads-position-${ad.position} ${ad.position === 'in-video' ? 'in-video-ad' : ''}`}
+            className={`mb-4 w-full ads-position-${ad.position}`}
             delaySeconds={delaySeconds}
             position={ad.position}
             adId={ad.id}
             adName={ad.name}
-            forceBrowserRender={true} // Force browser to render the ad
           />
         );
       })}

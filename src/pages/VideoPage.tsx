@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getVideoById, getVideoByCustomUrl, incrementViews, Video } from '@/models/Video';
@@ -88,7 +89,7 @@ const VideoPage: React.FC = () => {
         setLoading(false);
       }
 
-      // Load ads by position - do it like the homepage
+      // Load ads by position - EXACT same as homepage
       try {
         console.log("Fetching ads for video page...");
         const topAdsData = await getAdsByPosition('top');
@@ -109,7 +110,7 @@ const VideoPage: React.FC = () => {
 
     loadData();
     
-    // Set up real-time listeners for ads
+    // Set up real-time listeners for ads - EXACT same as homepage
     const adsChannel = supabase
       .channel('public:ads')
       .on('postgres_changes', 
@@ -205,7 +206,7 @@ const VideoPage: React.FC = () => {
 
       <div className="min-h-screen bg-gradient-to-br from-slate-100 via-gray-100 to-slate-200 dark:from-slate-900 dark:via-gray-950 dark:to-slate-800 animate-fade-in">
         <div className="container mx-auto px-4 py-8 lg:py-12">
-          {/* Top ads - match homepage implementation */}
+          {/* Top ads - EXACT same implementation as homepage */}
           {topAds.length > 0 && (
             <div className="mb-6 md:mb-8 top-ads-container">
               <AdsSection 

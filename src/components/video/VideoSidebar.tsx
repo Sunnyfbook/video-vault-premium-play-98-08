@@ -1,6 +1,6 @@
 
 import React, { useEffect } from 'react';
-import { Copy, ExternalLink, Share2, Home, CheckCircle, Gift } from 'lucide-react'; // Added CheckCircle, Gift
+import { Copy, ExternalLink, Share2, Home, CheckCircle, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Ad } from '@/models/Ad';
 import AdsSection from './AdsSection';
@@ -27,16 +27,16 @@ const VideoSidebar: React.FC<VideoSidebarProps> = ({ sidebarAds, onCopyLink }) =
 
   return (
     <aside className="w-full lg:w-4/12 mt-8 lg:mt-0 space-y-6 md:space-y-8">
-      {/* Sidebar ads */}
+      {/* Sidebar ads - EXACT same implementation as homepage */}
       {sidebarAds.length > 0 && (
         <div className="bg-card p-4 rounded-xl shadow-card video-sidebar-ads-container">
           <h3 className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider text-center">Advertisement</h3>
           <AdsSection 
             ads={sidebarAds} 
             className="flex flex-col gap-4" 
-            staggerDelay={true}  // Match homepage settings
-            baseDelaySeconds={1}  // Match homepage settings
-            positionClass="video-sidebar-ads-section"
+            staggerDelay={true}
+            baseDelaySeconds={3}
+            positionClass="sidebar-ads-section"
           />
         </div>
       )}

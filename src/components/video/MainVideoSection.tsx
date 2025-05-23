@@ -97,14 +97,16 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
       
       <VideoInfo video={video} />
       
+      {/* Bottom ads - EXACT same implementation as homepage */}
       {bottomAds.length > 0 && (
         <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
           <h4 className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider text-center">Advertisement</h4>
           <AdsSection 
             ads={bottomAds} 
-            staggerDelay={true}  // Match homepage setting 
-            baseDelaySeconds={1}  // Match homepage setting
-            positionClass="video-bottom-ads-section"
+            className="grid grid-cols-1 gap-4"
+            staggerDelay={true}
+            baseDelaySeconds={2}
+            positionClass="bottom-ads-section"
           />
         </div>
       )}
