@@ -38,6 +38,20 @@ const DownloadButton: React.FC<DownloadButtonProps> = ({ videoSrc, videoTitle })
       });
     } else {
       // Second click - start video download
+      // Get the file extension to determine how to handle the download
+      const fileExtension = videoSrc.split('.').pop()?.toLowerCase();
+      
+      // For streaming formats like m3u8, we can't direct download
+      if (fileExtension === 'm3u8') {
+        toast({
+          title: "Streaming Format",
+          description: "This video format (HLS) cannot be downloaded directly. Please use a browser extension or specialized downloader.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // For standard formats, proceed with download
       const link = document.createElement('a');
       link.href = videoSrc;
       link.download = videoTitle || 'video';

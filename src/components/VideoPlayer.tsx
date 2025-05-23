@@ -1,7 +1,9 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Volume2, VolumeX, Maximize, SkipBack, SkipForward } from 'lucide-react';
 import LoadingOverlay from './video/LoadingOverlay';
 import ErrorOverlay from './video/ErrorOverlay';
+import Hls from 'hls.js';
 
 interface VideoPlayerProps {
   src: string;
@@ -13,6 +15,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title, disableClickToTog
   // Refs
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const hlsRef = useRef<Hls | null>(null);
   
   // State
   const [isPlaying, setIsPlaying] = useState(false);
@@ -25,6 +28,62 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title, disableClickToTog
   const [showControls, setShowControls] = useState(true);
   const [volume, setVolume] = useState(1);
   const [isFullScreen, setIsFullScreen] = useState(false);
+
+  // Setup HLS player if needed
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !src) return;
+    
+    // Clean up any existing HLS instance
+    if (hlsRef.current) {
+      hlsRef.current.destroy();
+      hlsRef.current = null;
+    }
+
+    // Check if it's an HLS stream (.m3u8)
+    if (src.includes('.m3u8') && Hls.isSupported()) {
+      try {
+        const hls = new Hls({
+          enableWorker: true,
+          lowLatencyMode: true,
+        });
+        hls.loadSource(src);
+        hls.attachMedia(video);
+        
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          // Ready to play
+          if (isPlaying) video.play().catch(console.error);
+        });
+        
+        hls.on(Hls.Events.ERROR, (event, data) => {
+          if (data.fatal) {
+            console.error('HLS error:', data);
+            setError(`Failed to load video: ${data.type} error`);
+            hls.destroy();
+          }
+        });
+        
+        hlsRef.current = hls;
+      } catch (e) {
+        console.error("Error setting up HLS:", e);
+        setError("Failed to initialize HLS player. Please try again.");
+      }
+    } else {
+      // Regular video handling
+      video.src = src;
+    }
+    
+    // Try to detect video format from extension
+    const videoExtension = src.split('.').pop()?.toLowerCase();
+    console.log(`Video format detected: ${videoExtension}`);
+    
+    return () => {
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
+    };
+  }, [src]);
 
   // Initialize and handle events
   useEffect(() => {
@@ -43,8 +102,27 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title, disableClickToTog
     };
 
     const onError = () => {
-      console.error("Video error occurred");
-      setError("Failed to load video. Please try again.");
+      console.error("Video error occurred", video.error);
+      let errorMessage = "Failed to load video. Please try again.";
+      
+      if (video.error) {
+        switch(video.error.code) {
+          case 1:
+            errorMessage = "Video loading aborted.";
+            break;
+          case 2:
+            errorMessage = "Network error occurred while loading video.";
+            break;
+          case 3:
+            errorMessage = "Error decoding video. The format may not be supported.";
+            break;
+          case 4:
+            errorMessage = "Video is not supported or unavailable.";
+            break;
+        }
+      }
+      
+      setError(errorMessage);
       setLoading(false);
     };
 
@@ -197,8 +275,23 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title, disableClickToTog
   const handleRetry = () => {
     setError(null);
     setLoading(true);
-    if (videoRef.current) {
-      videoRef.current.load();
+    const video = videoRef.current;
+    if (video) {
+      // For HLS streams
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        
+        // Recreate HLS instance
+        if (src.includes('.m3u8') && Hls.isSupported()) {
+          const hls = new Hls();
+          hls.loadSource(src);
+          hls.attachMedia(video);
+          hlsRef.current = hls;
+        }
+      } else {
+        // For regular videos
+        video.load();
+      }
     }
   };
 
@@ -214,7 +307,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title, disableClickToTog
       
       <video
         ref={videoRef}
-        src={src}
         className="w-full h-full object-contain"
         title={title}
         playsInline
