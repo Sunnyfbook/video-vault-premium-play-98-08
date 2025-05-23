@@ -44,6 +44,8 @@ export type Database = {
       }
       homepage_config: {
         Row: {
+          container_aspect_ratio: string | null
+          container_max_width: string | null
           footer_copyright: string | null
           id: string
           site_description: string | null
@@ -51,6 +53,8 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          container_aspect_ratio?: string | null
+          container_max_width?: string | null
           footer_copyright?: string | null
           id: string
           site_description?: string | null
@@ -58,6 +62,8 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          container_aspect_ratio?: string | null
+          container_max_width?: string | null
           footer_copyright?: string | null
           id?: string
           site_description?: string | null

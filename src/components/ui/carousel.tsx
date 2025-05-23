@@ -32,7 +32,15 @@ const Carousel = React.forwardRef<HTMLElement, CarouselProps>(
       if (!emblaApi) return
 
       // Make CarouselApi available through context
-    }, [emblaApi])
+      // Additionally, we attach the API to the DOM node for direct access
+      if (emblaRef.current) {
+        const viewport = emblaRef.current.querySelector('[data-embla="viewport"]')
+        if (viewport) {
+          // @ts-ignore - we're adding a custom property to the DOM node
+          viewport.__emblaApi__ = emblaApi
+        }
+      }
+    }, [emblaApi, emblaRef])
 
     return (
       <CarouselContext.Provider value={emblaApi}>
@@ -49,7 +57,12 @@ const CarouselContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => {
-  return <div className={cn("flex", className)} {...props} ref={ref} />
+  return <div 
+    className={cn("flex", className)}
+    data-embla="viewport"
+    {...props} 
+    ref={ref} 
+  />
 })
 CarouselContent.displayName = "CarouselContent"
 

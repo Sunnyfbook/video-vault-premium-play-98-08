@@ -36,7 +36,10 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
   useEffect(() => {
     if (!emblaRef) return;
     
-    const emblaApi = emblaRef.__emblaApi__;
+    // Get the embla API from the carousel
+    const emblaNode = emblaRef;
+    const emblaApi = emblaNode?.querySelector('[data-embla="viewport"]')?.__emblaApi__;
+    
     if (!emblaApi) return;
     
     const onSelect = () => {
