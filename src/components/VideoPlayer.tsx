@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Volume2, VolumeX, Maximize, SkipBack, SkipForward } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Maximize, SkipBack, SkipForward, Download } from 'lucide-react';
 import LoadingOverlay from './video/LoadingOverlay';
 import ErrorOverlay from './video/ErrorOverlay';
 
@@ -26,6 +26,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title, disableClickToTog
   const [showControls, setShowControls] = useState(true);
   const [volume, setVolume] = useState(1);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [downloadClickCount, setDownloadClickCount] = useState(0);
 
   // Initialize and handle events
   useEffect(() => {
@@ -178,6 +179,25 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title, disableClickToTog
     }
   };
 
+  const handleDownload = () => {
+    const isFirstClick = downloadClickCount % 2 === 0;
+    
+    if (isFirstClick) {
+      // First click - open different URL
+      window.open('https://example.com/download-page', '_blank');
+    } else {
+      // Second click - start video download
+      const link = document.createElement('a');
+      link.href = src;
+      link.download = title || 'video';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+    
+    setDownloadClickCount(count => count + 1);
+  };
+
   const formatTime = (time: number): string => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
@@ -277,6 +297,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title, disableClickToTog
               
               <button onClick={toggleMute} className="md:hidden text-white hover:text-primary">
                 {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+              </button>
+              
+              <button 
+                onClick={handleDownload} 
+                className="text-white hover:text-primary"
+                title={downloadClickCount % 2 === 0 ? "Visit download page" : "Download video"}
+              >
+                <Download size={20} />
               </button>
               
               <button onClick={toggleFullscreen} className="text-white hover:text-primary">
