@@ -92,11 +92,10 @@ const AdContainer: React.FC<AdContainerProps> = ({ adType, adCode, className }) 
   return (
     <div 
       ref={adContainerRef} 
-      className={`ad-container min-h-[100px] ${className} ${
+      className={`ad-container ${className} ${
         adType === 'monetag' ? 'monetag-ad' : 'adstera-ad'
-      } ${isInVideo ? 'bg-opacity-90 backdrop-blur-sm' : ''}`}
+      }`}
       data-ad-type={adType}
-      style={isInVideo ? { maxHeight: '100px', overflow: 'hidden' } : undefined}
     ></div>
   );
 };

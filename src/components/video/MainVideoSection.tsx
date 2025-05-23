@@ -1,9 +1,10 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Video } from "@/models/Video";
 import { Ad } from "@/models/Ad";
 import VideoInfo from "./VideoInfo";
 import AdsSection from "./AdsSection";
+import { X } from "lucide-react";
 
 interface MainVideoSectionProps {
   video: Video;
@@ -17,9 +18,75 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
   bottomAds
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showInVideoAd, setShowInVideoAd] = useState(false);
+  const [currentAdIndex, setCurrentAdIndex] = useState(0);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const adIntervalRef = useRef<number | null>(null);
 
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
+  };
+
+  // Handle ad rotation and display timing
+  useEffect(() => {
+    if (inVideoAds.length === 0) return;
+
+    // Function to show next ad
+    const showNextAd = () => {
+      setShowInVideoAd(true);
+      setCurrentAdIndex((prevIndex) => (prevIndex + 1) % inVideoAds.length);
+      
+      // Auto-hide ad after 15 seconds if not dismissed
+      setTimeout(() => {
+        setShowInVideoAd(false);
+      }, 15000);
+    };
+
+    // Start timer when video is playing
+    const startAdTimer = () => {
+      if (adIntervalRef.current) {
+        clearInterval(adIntervalRef.current);
+      }
+      
+      // Show ads every 10 seconds
+      adIntervalRef.current = window.setInterval(() => {
+        showNextAd();
+      }, 10000);
+    };
+
+    // Clear timer when video is paused
+    const pauseAdTimer = () => {
+      if (adIntervalRef.current) {
+        clearInterval(adIntervalRef.current);
+        adIntervalRef.current = null;
+      }
+    };
+
+    // Add event listeners to the video element
+    const videoElement = videoRef.current;
+    if (videoElement) {
+      videoElement.addEventListener('play', startAdTimer);
+      videoElement.addEventListener('pause', pauseAdTimer);
+      videoElement.addEventListener('ended', pauseAdTimer);
+    }
+
+    // Cleanup
+    return () => {
+      if (videoElement) {
+        videoElement.removeEventListener('play', startAdTimer);
+        videoElement.removeEventListener('pause', pauseAdTimer);
+        videoElement.removeEventListener('ended', pauseAdTimer);
+      }
+      
+      if (adIntervalRef.current) {
+        clearInterval(adIntervalRef.current);
+      }
+    };
+  }, [inVideoAds]);
+
+  // Dismiss the ad
+  const dismissAd = () => {
+    setShowInVideoAd(false);
   };
 
   return (
@@ -27,17 +94,28 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
       {/* Video container */}
       <div className="relative rounded-xl overflow-hidden shadow-xl bg-black aspect-video">
         <video
+          ref={videoRef}
           src={video.url}
           poster={video.thumbnail}
           controls
           className="w-full h-full object-contain"
         />
         
-        {/* In-video ads section (if any) - Positioned at the bottom with padding */}
-        {inVideoAds.length > 0 && (
-          <div className="absolute bottom-16 left-0 w-full px-4 z-10 pointer-events-none">
-            <div className="max-w-md mx-auto pointer-events-auto">
-              <AdsSection ads={inVideoAds.slice(0, 1)} className="opacity-90 hover:opacity-100 transition-opacity" />
+        {/* In-video ads section with close button */}
+        {showInVideoAd && inVideoAds.length > 0 && (
+          <div className="absolute bottom-20 left-0 w-full px-4 z-10 animate-fade-in">
+            <div className="max-w-md mx-auto relative">
+              <button 
+                onClick={dismissAd}
+                className="absolute -top-2 -right-2 bg-white dark:bg-gray-800 rounded-full p-1 shadow-md z-20"
+                aria-label="Close advertisement"
+              >
+                <X size={16} className="text-gray-700 dark:text-gray-200" />
+              </button>
+              <AdsSection 
+                ads={[inVideoAds[currentAdIndex]]} 
+                className="in-video-ad-container" 
+              />
             </div>
           </div>
         )}
