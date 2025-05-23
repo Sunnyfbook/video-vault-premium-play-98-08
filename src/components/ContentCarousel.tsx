@@ -12,7 +12,6 @@ import { Card } from "@/components/ui/card";
 import { HomepageContent } from "@/hooks/useHomepageContent";
 import InstagramEmbed from "@/components/InstagramEmbed";
 import { useHomepageConfig } from "@/hooks/useHomepageConfig";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface ContentCarouselProps {
   items: HomepageContent[];
@@ -121,18 +120,6 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
 
   return (
     <div className="relative group" ref={carouselRef}>
-      {/* Swipe hint overlay - only show on first load */}
-      {items.length > 1 && (
-        <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-between px-8 animate-fade-in opacity-70">
-          <div className="bg-black/40 text-white p-2 rounded-full backdrop-blur-sm">
-            <ChevronLeft className="h-8 w-8 animate-pulse" />
-          </div>
-          <div className="bg-black/40 text-white p-2 rounded-full backdrop-blur-sm">
-            <ChevronRight className="h-8 w-8 animate-pulse" />
-          </div>
-        </div>
-      )}
-      
       <Carousel
         opts={{
           loop: true,
