@@ -6,6 +6,8 @@ export interface HomepageConfig {
   site_title: string | null;
   site_description: string | null;
   footer_copyright: string | null;
+  container_max_width: string | null; // New field for container width
+  container_aspect_ratio: string | null; // New field for container aspect ratio
   updated_at: string | null;
 }
 
@@ -14,6 +16,8 @@ export const defaultConfig: HomepageConfig = {
   site_title: 'Video Player Pro',
   site_description: 'Immerse yourself in our curated collection of high-definition videos and breathtaking featured images. Experience content like never before.',
   footer_copyright: '© 2025 Video Player Pro. All rights reserved.',
+  container_max_width: '280px', // Default width
+  container_aspect_ratio: '9/16', // Default aspect ratio
   updated_at: null
 };
 

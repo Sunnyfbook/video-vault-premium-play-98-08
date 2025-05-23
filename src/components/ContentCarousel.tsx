@@ -10,7 +10,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { HomepageContent } from "@/hooks/useHomepageContent";
 import InstagramEmbed from "@/components/InstagramEmbed";
-import useEmblaCarousel from "embla-carousel-react";
+import { useHomepageConfig } from "@/hooks/useHomepageConfig";
 
 interface ContentCarouselProps {
   items: HomepageContent[];
@@ -18,15 +18,14 @@ interface ContentCarouselProps {
 }
 
 const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
-  const [emblaRef, emblaApi] = useEmblaCarousel({
-    loop: true,
-    align: "center",
-    skipSnaps: false, // This ensures each swipe moves exactly to the next slide
-    containScroll: "keepSnaps" // Keeps slides within the viewport
-  });
-  
+  const [emblaRef, setEmblaRef] = React.useState<HTMLDivElement | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const videoRefs = useRef<HTMLVideoElement[]>([]);
+  const { config } = useHomepageConfig();
+  
+  // Default size values, with fallbacks if config values are missing
+  const containerMaxWidth = config?.container_max_width || '280px';
+  const containerAspectRatio = config?.container_aspect_ratio || '9/16';
 
   // Setup video refs
   useEffect(() => {
@@ -35,6 +34,9 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
 
   // Handle carousel slide change
   useEffect(() => {
+    if (!emblaRef) return;
+    
+    const emblaApi = emblaRef.__emblaApi__;
     if (!emblaApi) return;
     
     const onSelect = () => {
@@ -62,7 +64,7 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
     return () => {
       emblaApi.off('select', onSelect);
     };
-  }, [emblaApi]);
+  }, [emblaRef]);
 
   const renderContent = (item: HomepageContent, index: number) => {
     if (item.type === "instagram") {
@@ -99,6 +101,12 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
     }
   };
 
+  // Apply custom style for container from config
+  const containerStyle = {
+    maxWidth: containerMaxWidth,
+    aspectRatio: containerAspectRatio
+  };
+
   return (
     <div className="relative group">
       <Carousel
@@ -110,7 +118,7 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
         }}
         className="w-full"
       >
-        <div className="overflow-hidden" ref={emblaRef}>
+        <div className="overflow-hidden" ref={setEmblaRef}>
           <CarouselContent>
             {items.map((item, index) => (
               <CarouselItem 
@@ -122,7 +130,10 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
                 }`}
               >
                 <Card className="rounded-xl overflow-hidden shadow-lg border-0">
-                  <div className="aspect-[9/16] bg-black overflow-hidden max-w-[280px] mx-auto">
+                  <div 
+                    className="bg-black overflow-hidden mx-auto" 
+                    style={containerStyle}
+                  >
                     {renderContent(item, index)}
                   </div>
                 </Card>

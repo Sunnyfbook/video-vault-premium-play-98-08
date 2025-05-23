@@ -43,6 +43,7 @@ const Admin: React.FC = () => {
   const { config: currentHomepageConfig, loading: homepageConfigLoading, refetchConfig: refetchHomepageConfig } = useHomepageConfig();
   const [homepageConfigForm, setHomepageConfigForm] = useState<Partial<HomepageConfig>>(initialHomepageConfigValues);
   const [savingHomepageConfig, setSavingHomepageConfig] = useState(false);
+  const [customAspectRatio, setCustomAspectRatio] = useState(false);
   
   // Redirect if not logged in
   if (!isLoggedIn) {
@@ -115,10 +116,30 @@ const Admin: React.FC = () => {
         site_title: currentHomepageConfig.site_title,
         site_description: currentHomepageConfig.site_description,
         footer_copyright: currentHomepageConfig.footer_copyright,
+        container_max_width: currentHomepageConfig.container_max_width || '280px',
+        container_aspect_ratio: currentHomepageConfig.container_aspect_ratio || '9/16',
       });
+      
+      // Check if using custom aspect ratio
+      setCustomAspectRatio(
+        currentHomepageConfig.container_aspect_ratio !== '9/16' && 
+        currentHomepageConfig.container_aspect_ratio !== '1/1' && 
+        currentHomepageConfig.container_aspect_ratio !== '16/9'
+      );
     }
   }, [currentHomepageConfig]);
   
+  const handleHomepageConfigChange = (field: keyof HomepageConfig, value: string) => {
+    setHomepageConfigForm(prev => ({ ...prev, [field]: value }));
+  };
+  
+  const handleAspectRatioChange = (ratio: string) => {
+    setCustomAspectRatio(ratio === 'custom');
+    if (ratio !== 'custom') {
+      handleHomepageConfigChange('container_aspect_ratio', ratio);
+    }
+  };
+
   const handleAddVideo = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -286,10 +307,6 @@ const Admin: React.FC = () => {
       });
     }
   };
-  
-  const handleHomepageConfigChange = (field: keyof HomepageConfig, value: string) => {
-    setHomepageConfigForm(prev => ({ ...prev, [field]: value }));
-  };
 
   const handleSaveHomepageConfig = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -299,11 +316,13 @@ const Admin: React.FC = () => {
         site_title: homepageConfigForm.site_title,
         site_description: homepageConfigForm.site_description,
         footer_copyright: homepageConfigForm.footer_copyright,
+        container_max_width: homepageConfigForm.container_max_width,
+        container_aspect_ratio: homepageConfigForm.container_aspect_ratio,
       });
       if (result) {
         toast({
           title: "Homepage Settings Updated",
-          description: "Your homepage texts have been updated.",
+          description: "Your homepage texts and layout have been updated.",
         });
         // Data will refresh via realtime, or call refetchHomepageConfig() if needed
       } else {
@@ -853,13 +872,13 @@ const Admin: React.FC = () => {
         <TabsContent value="homepage">
           <HomepageContentManager />
         </TabsContent>
-        {/* New Tab Content for Homepage Settings */}
+        {/* Homepage Settings Tab - updated with container size controls */}
         <TabsContent value="homepage_settings">
           <Card>
             <CardHeader>
-              <CardTitle>Homepage Text Settings</CardTitle>
+              <CardTitle>Homepage Text & Layout Settings</CardTitle>
               <CardDescription>
-                Manage the main title, description, and footer copyright text displayed on your homepage.
+                Manage the main title, description, footer copyright text, and content container size displayed on your homepage.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -905,6 +924,99 @@ const Admin: React.FC = () => {
                      <p className="text-xs text-muted-foreground">
                       e.g., "© {new Date().getFullYear()} Your Company. All rights reserved."
                     </p>
+                  </div>
+                  
+                  {/* New Content Container Size Settings */}
+                  <div className="space-y-4 border-t pt-4">
+                    <h3 className="font-medium">Content Container Settings</h3>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="container_max_width">Container Width</Label>
+                      <Input
+                        id="container_max_width"
+                        value={homepageConfigForm.container_max_width || "280px"}
+                        onChange={(e) => handleHomepageConfigChange('container_max_width', e.target.value)}
+                        placeholder="e.g., 280px, 350px, 25rem, etc."
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Maximum width of video and image containers. Use CSS units (px, rem, etc).
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Aspect Ratio</Label>
+                      <div className="flex flex-wrap gap-3 pt-1">
+                        <div className="flex items-center space-x-2">
+                          <input 
+                            type="radio" 
+                            id="ratio_9_16" 
+                            name="aspect_ratio" 
+                            checked={homepageConfigForm.container_aspect_ratio === '9/16' && !customAspectRatio}
+                            onChange={() => handleAspectRatioChange('9/16')}
+                            className="h-4 w-4"
+                          />
+                          <Label htmlFor="ratio_9_16" className="text-sm cursor-pointer">
+                            9:16 (Portrait)
+                          </Label>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2">
+                          <input 
+                            type="radio" 
+                            id="ratio_1_1" 
+                            name="aspect_ratio" 
+                            checked={homepageConfigForm.container_aspect_ratio === '1/1' && !customAspectRatio}
+                            onChange={() => handleAspectRatioChange('1/1')}
+                            className="h-4 w-4"
+                          />
+                          <Label htmlFor="ratio_1_1" className="text-sm cursor-pointer">
+                            1:1 (Square)
+                          </Label>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2">
+                          <input 
+                            type="radio" 
+                            id="ratio_16_9" 
+                            name="aspect_ratio" 
+                            checked={homepageConfigForm.container_aspect_ratio === '16/9' && !customAspectRatio}
+                            onChange={() => handleAspectRatioChange('16/9')}
+                            className="h-4 w-4"
+                          />
+                          <Label htmlFor="ratio_16_9" className="text-sm cursor-pointer">
+                            16:9 (Landscape)
+                          </Label>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2">
+                          <input 
+                            type="radio" 
+                            id="ratio_custom" 
+                            name="aspect_ratio" 
+                            checked={customAspectRatio}
+                            onChange={() => handleAspectRatioChange('custom')}
+                            className="h-4 w-4"
+                          />
+                          <Label htmlFor="ratio_custom" className="text-sm cursor-pointer">
+                            Custom
+                          </Label>
+                        </div>
+                      </div>
+                      
+                      {customAspectRatio && (
+                        <div className="pt-2">
+                          <Input
+                            value={homepageConfigForm.container_aspect_ratio || ""}
+                            onChange={(e) => handleHomepageConfigChange('container_aspect_ratio', e.target.value)}
+                            placeholder="e.g., 4/3, 3/2, etc."
+                            className="max-w-[200px]"
+                          />
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Use format "width/height" (e.g., 4/3, 3/2)
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   
                   <Button type="submit" className="w-full" disabled={savingHomepageConfig}>
