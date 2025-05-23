@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { ReactionType, Reaction, getReactionsByVideoId, addReaction } from '@/models/Reaction';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Heart, ThumbsUp, Laugh, Frown, AngryIcon, Smile } from 'lucide-react';
+import { ThumbsUp, Heart, Laugh, Smile, Frown, AngryIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface ReactionSectionProps {
@@ -13,7 +13,15 @@ interface ReactionSectionProps {
 const ReactionSection: React.FC<ReactionSectionProps> = ({ videoId }) => {
   const [reactions, setReactions] = useState<Reaction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [processing, setProcessing] = useState(false);
+  const [processing, setProcessing] = useState<ReactionType | null>(null);
+  const [activeReactions, setActiveReactions] = useState<Record<ReactionType, boolean>>({
+    like: false,
+    love: false,
+    laugh: false,
+    wow: false,
+    sad: false,
+    angry: false
+  });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -66,10 +74,35 @@ const ReactionSection: React.FC<ReactionSectionProps> = ({ videoId }) => {
   const handleAddReaction = async (type: ReactionType) => {
     if (processing) return;
     
-    setProcessing(true);
+    setProcessing(type);
     console.log(`Adding ${type} reaction to video ${videoId}`);
     
     try {
+      // Optimistically update the UI immediately
+      setActiveReactions(prev => ({ ...prev, [type]: true }));
+      
+      const currentReaction = reactions.find(r => r.type === type);
+      const updatedReactions = [...reactions];
+      
+      if (currentReaction) {
+        const index = updatedReactions.findIndex(r => r.type === type);
+        updatedReactions[index] = {
+          ...currentReaction,
+          count: currentReaction.count + 1
+        };
+      } else {
+        updatedReactions.push({
+          id: 'temp-id',
+          video_id: videoId,
+          type: type,
+          count: 1
+        });
+      }
+      
+      // Update local state immediately for responsive UI
+      setReactions(updatedReactions);
+      
+      // Send to server
       const updatedReaction = await addReaction(videoId, type);
       console.log('Reaction added/updated:', updatedReaction);
       
@@ -77,6 +110,11 @@ const ReactionSection: React.FC<ReactionSectionProps> = ({ videoId }) => {
         title: "Thanks for your reaction!",
         variant: "default"
       });
+      
+      // Create a small delay then clear the active state
+      setTimeout(() => {
+        setActiveReactions(prev => ({ ...prev, [type]: false }));
+      }, 1000);
     } catch (error) {
       console.error("Error adding reaction:", error);
       toast({
@@ -84,8 +122,12 @@ const ReactionSection: React.FC<ReactionSectionProps> = ({ videoId }) => {
         description: "Failed to add your reaction. Please try again.",
         variant: "destructive"
       });
+      // Reset the active state on error
+      setActiveReactions(prev => ({ ...prev, [type]: false }));
+      // Reload correct data
+      loadReactions();
     } finally {
-      setProcessing(false);
+      setProcessing(null);
     }
   };
 
@@ -128,15 +170,17 @@ const ReactionSection: React.FC<ReactionSectionProps> = ({ videoId }) => {
         {reactionButtons.map(reaction => (
           <Button
             key={reaction.type}
-            variant="outline"
+            variant={activeReactions[reaction.type] ? "default" : "outline"}
             size="sm"
-            className="flex items-center gap-1"
-            disabled={processing || loading}
+            className={`flex items-center gap-1 transition-all duration-200 ${
+              processing === reaction.type ? "animate-pulse" : ""
+            } ${activeReactions[reaction.type] ? "bg-primary text-primary-foreground" : ""}`}
+            disabled={loading || processing !== null}
             onClick={() => handleAddReaction(reaction.type)}
           >
             {getReactionIcon(reaction.type)}
             <span>{reaction.label}</span>
-            <span className="bg-muted text-muted-foreground rounded-full px-1.5 text-xs ml-1">
+            <span className={`${activeReactions[reaction.type] ? "bg-primary-foreground/20 text-primary-foreground" : "bg-muted text-muted-foreground"} rounded-full px-1.5 text-xs ml-1`}>
               {getReactionCount(reaction.type)}
             </span>
           </Button>

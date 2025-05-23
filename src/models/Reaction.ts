@@ -10,6 +10,22 @@ export interface Reaction {
   count: number;
 }
 
+// Enable realtime for the reactions table in Supabase
+const enableRealtimeForReactions = async () => {
+  await supabase.rpc('supabase_functions.extension', {
+    name: 'realtime',
+    action: 'enable_publication',
+    table_name: 'reactions'
+  });
+};
+
+// Try to enable realtime on component mount
+try {
+  enableRealtimeForReactions();
+} catch (error) {
+  console.log("Realtime might already be enabled for reactions");
+}
+
 export const getReactionsByVideoId = async (videoId: string): Promise<Reaction[]> => {
   try {
     const { data, error } = await supabase
