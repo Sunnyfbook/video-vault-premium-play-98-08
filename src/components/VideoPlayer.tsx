@@ -7,9 +7,10 @@ import ErrorOverlay from './video/ErrorOverlay';
 interface VideoPlayerProps {
   src: string;
   title: string;
+  disableClickToToggle?: boolean;
 }
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title }) => {
+const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title, disableClickToToggle = false }) => {
   // Refs
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -185,7 +186,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title }) => {
 
   const handleVideoClick = () => {
     setShowControls(true);
-    togglePlay();
+    if (!disableClickToToggle) {
+      togglePlay();
+    }
   };
 
   const handleMouseMove = () => {

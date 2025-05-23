@@ -19,9 +19,9 @@ const ReactionSection: React.FC<ReactionSectionProps> = ({ videoId }) => {
   useEffect(() => {
     loadReactions();
     
-    // Set up realtime subscription
+    // Set up realtime subscription with the proper channel format
     const channel = supabase
-      .channel('public:reactions')
+      .channel('reactions-channel')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'reactions', filter: `video_id=eq.${videoId}` },
         () => {
@@ -37,21 +37,36 @@ const ReactionSection: React.FC<ReactionSectionProps> = ({ videoId }) => {
 
   const loadReactions = async () => {
     setLoading(true);
-    const fetchedReactions = await getReactionsByVideoId(videoId);
-    setReactions(fetchedReactions);
-    setLoading(false);
+    try {
+      const fetchedReactions = await getReactionsByVideoId(videoId);
+      setReactions(fetchedReactions);
+    } catch (error) {
+      console.error("Error loading reactions:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load reactions. Please refresh the page.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAddReaction = async (type: ReactionType) => {
+    if (processing) return;
+    
     setProcessing(true);
     try {
       await addReaction(videoId, type);
-      // Reactions will update via real-time subscription
       toast({
         title: "Thanks for your reaction!",
         variant: "default"
       });
+      
+      // Force a fresh load of reactions to ensure we have the latest counts
+      await loadReactions();
     } catch (error) {
+      console.error("Error adding reaction:", error);
       toast({
         title: "Error",
         description: "Failed to add your reaction. Please try again.",

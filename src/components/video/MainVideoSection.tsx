@@ -20,23 +20,21 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
   const [showInVideoAd, setShowInVideoAd] = useState(false);
   
   useEffect(() => {
-    // Show in-video ad after the specified time
+    // Show in-video ad after the specified time and repeat every adTimingSeconds
     const adTimingSeconds = video.ad_timing_seconds || 10;
     
-    const timer = setTimeout(() => {
+    const showAdInterval = setInterval(() => {
       if (inVideoAds.length > 0) {
         setShowInVideoAd(true);
         
         // Auto-hide after 15 seconds
-        const hideTimer = setTimeout(() => {
+        setTimeout(() => {
           setShowInVideoAd(false);
         }, 15000);
-        
-        return () => clearTimeout(hideTimer);
       }
     }, adTimingSeconds * 1000);
     
-    return () => clearTimeout(timer);
+    return () => clearInterval(showAdInterval);
   }, [video.ad_timing_seconds, inVideoAds]);
 
   const handleDismissAd = () => {
@@ -46,7 +44,7 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
   return (
     <div className="flex-1 space-y-6">
       <div className="relative">
-        <VideoPlayer src={video.url} title={video.title} />
+        <VideoPlayer src={video.url} title={video.title} disableClickToToggle={true} />
         
         {/* In-video ad overlay - centered in the player */}
         {showInVideoAd && inVideoAds.length > 0 && (
