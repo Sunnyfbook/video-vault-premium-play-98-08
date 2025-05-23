@@ -19,6 +19,7 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
 }) => {
   const [showInVideoAd, setShowInVideoAd] = useState(false);
   const [adDisplayTimeoutId, setAdDisplayTimeoutId] = useState<NodeJS.Timeout | null>(null);
+  const [currentInVideoAdIndex, setCurrentInVideoAdIndex] = useState(0);
   
   useEffect(() => {
     // Show in-video ad after the specified time and repeat every adTimingSeconds
@@ -28,6 +29,11 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
       if (inVideoAds.length > 0) {
         console.log('Displaying in-video ad');
         setShowInVideoAd(true);
+        
+        // Rotate through available in-video ads
+        setCurrentInVideoAdIndex(prevIndex => 
+          prevIndex >= inVideoAds.length - 1 ? 0 : prevIndex + 1
+        );
         
         // Auto-hide after 15 seconds
         const timeoutId = setTimeout(() => {
@@ -73,8 +79,9 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
                 ✕
               </button>
               <AdsSection 
-                ads={inVideoAds.slice(0, 1)} 
+                ads={[inVideoAds[currentInVideoAdIndex]]} 
                 className="in-video-ad shadow-xl"
+                staggerDelay={false}
               />
             </div>
           </div>
@@ -85,7 +92,11 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
       
       {bottomAds.length > 0 && (
         <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-          <AdsSection ads={bottomAds} />
+          <AdsSection 
+            ads={bottomAds} 
+            staggerDelay={true} 
+            baseDelaySeconds={1}
+          />
         </div>
       )}
     </div>
