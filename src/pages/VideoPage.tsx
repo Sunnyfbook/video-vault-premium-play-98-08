@@ -30,13 +30,11 @@ const VideoPage: React.FC = () => {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
 
-  // Track visit - EXACT same as homepage
+  // Track visit
   useEffect(() => {
-    // Track page view
+    console.log('VideoPage: Tracking page visit');
     incrementPageView();
     
-    // Track unique visitor (in a real app, you'd check cookies/localStorage)
-    // This is simplified for demo purposes
     const hasVisitedBefore = localStorage.getItem('hasVisited');
     if (!hasVisitedBefore) {
       incrementUniqueVisitor();
@@ -47,29 +45,33 @@ const VideoPage: React.FC = () => {
   // Load video and SEO settings
   useEffect(() => {
     const loadData = async () => {
-      // Reset states when URL params change
       setLoading(true);
       setError(null);
       setVideo(null);
       
       try {
+        console.log('VideoPage: Loading video data with params:', { id, customUrl });
         let foundVideo: Video | undefined;
         
         // Try to load by custom URL first if available
         if (customUrl) {
+          console.log('VideoPage: Attempting to load by custom URL:', customUrl);
           foundVideo = await getVideoByCustomUrl(customUrl);
         } 
         // If no custom URL or not found by custom URL, try regular ID
         if (!foundVideo && id) {
+          console.log('VideoPage: Attempting to load by ID:', id);
           foundVideo = await getVideoById(id);
         }
         
         if (foundVideo) {
+          console.log('VideoPage: Video found:', foundVideo.title);
           setVideo(foundVideo);
-          await incrementViews(foundVideo.id); // Increment views
+          await incrementViews(foundVideo.id);
           const seoData = await getSEOSettingByPage('video');
           setSeoSettings(seoData);
         } else {
+          console.error('VideoPage: Video not found');
           setError(`Video was not found.`);
           toast({
             title: "Video Not Found",
@@ -78,7 +80,7 @@ const VideoPage: React.FC = () => {
           });
         }
       } catch (e) {
-        console.error("Error loading video:", e);
+        console.error("VideoPage: Error loading video:", e);
         setError("An error occurred while loading the video.");
         toast({
           title: "Error",
@@ -90,40 +92,44 @@ const VideoPage: React.FC = () => {
       }
     };
 
-    loadData();
+    if (id || customUrl) {
+      loadData();
+    } else {
+      setError("No video identifier provided");
+      setLoading(false);
+    }
   }, [id, customUrl, toast]);
 
-  // Load ads - EXACT same as homepage
+  // Load ads
   useEffect(() => {
     const loadAds = async () => {
       try {
-        console.log("Fetching ads for video page...");
+        console.log("VideoPage: Fetching ads...");
         const topAdsData = await getAdsByPosition('top');
         const bottomAdsData = await getAdsByPosition('bottom');
         const sidebarAdsData = await getAdsByPosition('sidebar');
         const inVideoAdsData = await getAdsByPosition('in-video');
         
-        console.log(`Fetched ads: ${topAdsData.length} top, ${bottomAdsData.length} bottom, ${sidebarAdsData.length} sidebar, ${inVideoAdsData.length} in-video`);
+        console.log(`VideoPage: Fetched ads: ${topAdsData.length} top, ${bottomAdsData.length} bottom, ${sidebarAdsData.length} sidebar, ${inVideoAdsData.length} in-video`);
         
         setTopAds(topAdsData);
         setBottomAds(bottomAdsData);
         setSidebarAds(sidebarAdsData);
         setInVideoAds(inVideoAdsData);
       } catch (error) {
-        console.error("Error fetching ads:", error);
+        console.error("VideoPage: Error fetching ads:", error);
       }
     };
 
     loadAds();
     
-    // Set up real-time listeners for ads - EXACT same as homepage
+    // Set up real-time listeners for ads
     const adsChannel = supabase
-      .channel('public:ads')
+      .channel('video-page-ads')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'ads' },
         async () => {
-          console.log('Ads changed, refetching');
-          // Reload ads when changes occur - exactly like homepage
+          console.log('VideoPage: Ads changed, refetching');
           try {
             const topAdsData = await getAdsByPosition('top');
             const bottomAdsData = await getAdsByPosition('bottom');
@@ -135,13 +141,12 @@ const VideoPage: React.FC = () => {
             setSidebarAds(sidebarAdsData);
             setInVideoAds(inVideoAdsData);
           } catch (error) {
-            console.error("Error refetching ads:", error);
+            console.error("VideoPage: Error refetching ads:", error);
           }
         }
       )
       .subscribe();
       
-    // Clean up subscription
     return () => {
       supabase.removeChannel(adsChannel);
     };
@@ -160,11 +165,19 @@ const VideoPage: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="min-h-screen bg-gradient-to-br from-slate-100 via-gray-100 to-slate-200 dark:from-slate-900 dark:via-gray-950 dark:to-slate-800 flex items-center justify-center"><LoadingState /></div>;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-100 via-gray-100 to-slate-200 dark:from-slate-900 dark:via-gray-950 dark:to-slate-800 flex items-center justify-center">
+        <LoadingState />
+      </div>
+    );
   }
 
   if (error || !video) {
-    return <div className="min-h-screen bg-gradient-to-br from-slate-100 via-gray-100 to-slate-200 dark:from-slate-900 dark:via-gray-950 dark:to-slate-800 flex items-center justify-center"><ErrorState errorMessage={error || "Video data is unavailable."} /></div>;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-100 via-gray-100 to-slate-200 dark:from-slate-900 dark:via-gray-950 dark:to-slate-800 flex items-center justify-center">
+        <ErrorState errorMessage={error || "Video data is unavailable."} />
+      </div>
+    );
   }
 
   // Generate dynamic SEO metadata
@@ -212,7 +225,7 @@ const VideoPage: React.FC = () => {
 
       <div className="min-h-screen bg-gradient-to-br from-slate-100 via-gray-100 to-slate-200 dark:from-slate-900 dark:via-gray-950 dark:to-slate-800 animate-fade-in">
         <div className="container mx-auto px-4 py-6 lg:py-8">
-          {/* Top ads - EXACT same styling as homepage */}
+          {/* Top ads */}
           {topAds.length > 0 && (
             <div className="mb-8 top-ads-container">
               <AdsSection 

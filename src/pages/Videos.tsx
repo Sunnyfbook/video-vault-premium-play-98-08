@@ -14,10 +14,12 @@ const Videos: React.FC = () => {
   useEffect(() => {
     const fetchVideos = async () => {
       try {
+        console.log('Videos page: Fetching videos');
         const videosData = await getVideos();
+        console.log('Videos page: Fetched videos:', videosData.length);
         setVideos(videosData);
       } catch (error) {
-        console.error('Error fetching videos:', error);
+        console.error('Videos page: Error fetching videos:', error);
       } finally {
         setLoading(false);
       }
@@ -64,58 +66,60 @@ const Videos: React.FC = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {videos.map((video) => (
-              <Card key={video.id} className="group hover:shadow-lg transition-all duration-300 overflow-hidden">
-                <div className="relative aspect-video bg-gray-100 dark:bg-gray-800 overflow-hidden">
-                  {video.thumbnail ? (
-                    <img
-                      src={video.thumbnail}
-                      alt={video.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800">
-                      <Play size={32} className="text-gray-500 dark:text-gray-400" />
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                    <Play size={32} className="text-white" />
-                  </div>
-                </div>
-                
-                <CardHeader className="pb-3">
-                  <CardTitle className="line-clamp-2 text-lg">{video.title}</CardTitle>
-                  {video.description && (
-                    <CardDescription className="line-clamp-2">
-                      {video.description}
-                    </CardDescription>
-                  )}
-                </CardHeader>
-                
-                <CardContent className="pt-0">
-                  <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-4">
-                    <div className="flex items-center gap-1">
-                      <Eye size={14} />
-                      <span>{video.views} views</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Calendar size={14} />
-                      <span>{formatDistanceToNow(new Date(video.date_added))} ago</span>
+            {videos.map((video) => {
+              const videoUrl = video.custom_url ? `/v/${video.custom_url}` : `/video/${video.id}`;
+              console.log('Video card:', video.title, 'URL:', videoUrl);
+              
+              return (
+                <Card key={video.id} className="group hover:shadow-lg transition-all duration-300 overflow-hidden">
+                  <div className="relative aspect-video bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                    {video.thumbnail ? (
+                      <img
+                        src={video.thumbnail}
+                        alt={video.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800">
+                        <Play size={32} className="text-gray-500 dark:text-gray-400" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                      <Play size={32} className="text-white" />
                     </div>
                   </div>
                   
-                  <Link 
-                    to={video.custom_url ? `/v/${video.custom_url}` : `/video/${video.id}`}
-                    className="block"
-                  >
-                    <Button className="w-full">
-                      <Play size={16} className="mr-2" />
-                      Watch Video
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            ))}
+                  <CardHeader className="pb-3">
+                    <CardTitle className="line-clamp-2 text-lg">{video.title}</CardTitle>
+                    {video.description && (
+                      <CardDescription className="line-clamp-2">
+                        {video.description}
+                      </CardDescription>
+                    )}
+                  </CardHeader>
+                  
+                  <CardContent className="pt-0">
+                    <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-4">
+                      <div className="flex items-center gap-1">
+                        <Eye size={14} />
+                        <span>{video.views} views</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Calendar size={14} />
+                        <span>{formatDistanceToNow(new Date(video.date_added))} ago</span>
+                      </div>
+                    </div>
+                    
+                    <Link to={videoUrl} className="block">
+                      <Button className="w-full">
+                        <Play size={16} className="mr-2" />
+                        Watch Video
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>
