@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { login as authLogin, logout as authLogout, isAuthenticated, getCurrentUser } from '@/models/Auth';
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 
 type AuthContextType = {
   isLoggedIn: boolean;
@@ -14,6 +15,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [user, setUser] = useState<string | null>(null);
+
+  // Set up Supabase auth integration
+  useSupabaseAuth();
 
   useEffect(() => {
     // Check auth status when the component mounts
