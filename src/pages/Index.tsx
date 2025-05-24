@@ -1,78 +1,101 @@
-import React, { useEffect, useState, useRef } from "react";
-import { Link } from "react-router-dom";
-import { useHomepageContent } from "@/hooks/useHomepageContent";
-import { useHomepageConfig } from "@/hooks/useHomepageConfig";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Video, Image as ImageIcon, Zap, Instagram, ArrowRight } from "lucide-react";
-import { Ad, getActiveAds, getAdsByPosition } from "@/models/Ad";
-import AdsSection from "@/components/video/AdsSection";
-import InstagramEmbed from "@/components/InstagramEmbed";
-import ContentCarousel from "@/components/ContentCarousel";
+
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Video, ImageIcon, Zap, ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { getAdsByPosition, Ad } from '@/models/Ad';
+import { useHomepageContent } from '@/hooks/useHomepageContent';
+import { useHomepageConfig } from '@/hooks/useHomepageConfig';
+import { supabase } from '@/integrations/supabase/client';
+import { incrementPageView, incrementUniqueVisitor } from '@/models/Analytics';
+
+// Import our components
+import AdsSection from '@/components/video/AdsSection';
+import ContentCarousel from '@/components/ContentCarousel';
 
 const Index = () => {
-  const { videos, images, loading: contentLoading } = useHomepageContent();
-  const { config: homepageConfig, loading: configLoading, error: configError } = useHomepageConfig();
   const [topAds, setTopAds] = useState<Ad[]>([]);
   const [bottomAds, setBottomAds] = useState<Ad[]>([]);
   const [sidebarAds, setSidebarAds] = useState<Ad[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
   
-  const overallLoading = contentLoading || configLoading || loading;
+  const { 
+    videos, 
+    images, 
+    loading: contentLoading, 
+    error: contentError 
+  } = useHomepageContent();
+  
+  const { 
+    config: homepageConfig, 
+    loading: configLoading, 
+    error: configError 
+  } = useHomepageConfig();
 
+  const overallLoading = contentLoading || configLoading;
+
+  // Track visit
   useEffect(() => {
-    const fetchAds = async () => {
+    // Track page view
+    incrementPageView();
+    
+    // Track unique visitor (in a real app, you'd check cookies/localStorage)
+    // This is simplified for demo purposes
+    const hasVisitedBefore = localStorage.getItem('hasVisited');
+    if (!hasVisitedBefore) {
+      incrementUniqueVisitor();
+      localStorage.setItem('hasVisited', 'true');
+    }
+  }, []);
+
+  // Load ads
+  useEffect(() => {
+    const loadAds = async () => {
       try {
+        console.log("Fetching ads for homepage...");
         const topAdsData = await getAdsByPosition('top');
         const bottomAdsData = await getAdsByPosition('bottom');
         const sidebarAdsData = await getAdsByPosition('sidebar');
+        
+        console.log(`Fetched ads: ${topAdsData.length} top, ${bottomAdsData.length} bottom, ${sidebarAdsData.length} sidebar`);
         
         setTopAds(topAdsData);
         setBottomAds(bottomAdsData);
         setSidebarAds(sidebarAdsData);
       } catch (error) {
         console.error("Error fetching ads:", error);
-      } finally {
-        setLoading(false);
       }
     };
 
-    fetchAds();
+    loadAds();
+    
+    // Set up real-time listeners for ads
+    const adsChannel = supabase
+      .channel('public:ads')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'ads' },
+        async () => {
+          console.log('Ads changed, refetching');
+          // Reload ads when changes occur
+          try {
+            const topAdsData = await getAdsByPosition('top');
+            const bottomAdsData = await getAdsByPosition('bottom');
+            const sidebarAdsData = await getAdsByPosition('sidebar');
+            
+            setTopAds(topAdsData);
+            setBottomAds(bottomAdsData);
+            setSidebarAds(sidebarAdsData);
+          } catch (error) {
+            console.error("Error refetching ads:", error);
+          }
+        }
+      )
+      .subscribe();
+      
+    // Clean up subscription
+    return () => {
+      supabase.removeChannel(adsChannel);
+    };
   }, []);
-
-  // Helper function to render appropriate content based on type
-  const renderContent = (item) => {
-    if (item.type === "instagram") {
-      return (
-        <div className="w-full h-full">
-          <InstagramEmbed 
-            url={item.url}
-            title={item.title || "Instagram content"}
-            className="w-full h-full"
-          />
-        </div>
-      );
-    } else if (item.type === "video") {
-      return (
-        <video
-          src={item.url}
-          poster={item.thumbnail || undefined}
-          className="w-full h-full object-cover"
-          playsInline
-          muted
-          loop
-        />
-      );
-    } else {
-      return (
-        <img
-          src={item.url}
-          alt={item.title || "Featured image"}
-          className="w-full h-full object-cover"
-        />
-      );
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-100 to-slate-200 dark:from-slate-900 dark:via-gray-950 dark:to-slate-800 animate-fade-in overflow-x-hidden">
@@ -117,17 +140,9 @@ const Index = () => {
           <main className="space-y-16 md:space-y-20 flex-grow">
             {/* Featured Videos Section */}
             <section>
-              <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-3">
-                  <Video size={36} className="text-primary" />
-                  <h2 className="section-title !mb-0">Featured Videos</h2>
-                </div>
-                <Link to="/videos">
-                  <Button variant="outline" className="flex items-center gap-2">
-                    View All Videos
-                    <ArrowRight size={16} />
-                  </Button>
-                </Link>
+              <div className="flex items-center gap-3 mb-8">
+                <Video size={36} className="text-primary" />
+                <h2 className="section-title !mb-0">Featured Videos</h2>
               </div>
               {contentLoading ? (
                 <div className="h-80 bg-gray-200 dark:bg-slate-800 rounded-xl animate-pulse"></div>
@@ -139,6 +154,16 @@ const Index = () => {
               ) : (
                 <ContentCarousel items={videos} type="video" />
               )}
+              
+              {/* View All Videos Button - placed here below featured videos */}
+              <div className="text-center mt-8">
+                <Link to="/videos">
+                  <Button variant="outline" className="flex items-center gap-2 mx-auto">
+                    View All Videos
+                    <ArrowRight size={16} />
+                  </Button>
+                </Link>
+              </div>
             </section>
 
             {/* Featured Images Section */}
