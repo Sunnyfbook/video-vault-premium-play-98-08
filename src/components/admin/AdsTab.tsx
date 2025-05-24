@@ -61,7 +61,7 @@ const AdsTab: React.FC<AdsTabProps> = ({ ads }) => {
       
       toast({
         title: "Ad Added",
-        description: "Your ad has been added successfully.",
+        description: `Your ${newAd.position} ad has been added successfully.`,
       });
     } catch (error) {
       console.error("Error adding ad:", error);
@@ -121,7 +121,7 @@ const AdsTab: React.FC<AdsTabProps> = ({ ads }) => {
           <CardHeader>
             <CardTitle>Add New Ad</CardTitle>
             <CardDescription>
-              Configure your Monetag and Adstera ads
+              Configure your Monetag and Adstera ads for all positions
             </CardDescription>
           </CardHeader>
           <CardContent>
