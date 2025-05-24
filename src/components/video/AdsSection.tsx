@@ -27,7 +27,7 @@ const AdsSection: React.FC<AdsSectionProps> = ({
   if (ads.length === 0) return null;
 
   return (
-    <div className={`${className} ${positionClass}`} style={{ margin: 0, padding: 0 }}>
+    <div className={`${className} ${positionClass} no-spacing`}>
       {ads.map((ad, index) => {
         const delaySeconds = staggerDelay 
           ? baseDelaySeconds + (index * 1.5)
@@ -42,7 +42,7 @@ const AdsSection: React.FC<AdsSectionProps> = ({
             key={uniqueKey}
             adType={ad.type} 
             adCode={ad.code} 
-            className="w-full"
+            className="w-full no-spacing"
             delaySeconds={delaySeconds}
             position={ad.position}
             adId={ad.id}

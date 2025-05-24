@@ -70,6 +70,7 @@
 @layer base {
   * {
     @apply border-border;
+    box-sizing: border-box;
   }
 
   body {
@@ -77,10 +78,15 @@
     font-family: 'Inter', sans-serif; 
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+    padding: 0;
+    line-height: 1.5;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-semibold tracking-tight;
+    margin: 0;
+    padding: 0;
   }
 }
 
@@ -110,7 +116,11 @@
   }
   
   .ad-container {
-    @apply bg-ads-background border border-ads-border rounded-lg p-4 mb-4 flex justify-center items-center transition-all duration-300;
+    @apply bg-ads-background border border-ads-border rounded-lg flex justify-center items-center transition-all duration-300;
+    margin: 0 !important;
+    padding: 0.25rem !important;
+    min-height: 60px !important;
+    line-height: 1 !important;
   }
   
   .admin-card {
@@ -118,7 +128,8 @@
   }
 
   .section-title {
-    @apply text-3xl sm:text-4xl font-extrabold mb-8 text-gray-900 dark:text-white;
+    @apply text-3xl sm:text-4xl font-extrabold mb-4 text-gray-900 dark:text-white;
+    margin-bottom: 1rem !important;
   }
 
   .gradient-text {
@@ -126,6 +137,54 @@
   }
 }
 
-/* Add Inter font from Google Fonts (ensure this is in index.html if not already) */
-/* <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"> */
+/* Utility classes to remove spacing */
+@layer utilities {
+  .no-spacing {
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 0 !important;
+  }
+  
+  .compact-layout {
+    line-height: 1.2 !important;
+  }
+  
+  /* Remove default margins from common elements */
+  .mb-0-force {
+    margin-bottom: 0 !important;
+  }
+  
+  .mt-0-force {
+    margin-top: 0 !important;
+  }
+  
+  .p-0-force {
+    padding: 0 !important;
+  }
+}
 
+/* Global spacing resets for ad sections */
+[class*="ads-section"],
+[data-ad-type] {
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1 !important;
+}
+
+/* Remove spacing from containers */
+.container {
+  padding-top: 1rem !important;
+  padding-bottom: 1rem !important;
+}
+
+/* Compact spacing for mobile */
+@media (max-width: 768px) {
+  .container {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+  }
+  
+  .section-title {
+    margin-bottom: 0.5rem !important;
+  }
+}

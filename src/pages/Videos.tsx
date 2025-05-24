@@ -112,13 +112,13 @@ const Videos: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-100 to-slate-200 dark:from-slate-900 dark:via-gray-950 dark:to-slate-800">
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto px-4 py-3">
           {/* Top ads */}
           {topAds.length > 0 && (
-            <div className="mb-6">
+            <div className="mb-3 no-spacing">
               <AdsSection 
                 ads={topAds} 
-                className="w-full" 
+                className="w-full no-spacing" 
                 staggerDelay={true} 
                 baseDelaySeconds={0.5}
                 positionClass="top-ads-section" 
@@ -126,11 +126,11 @@ const Videos: React.FC = () => {
             </div>
           )}
           
-          <div className="flex flex-col lg:flex-row gap-8">
+          <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex-1">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[...Array(6)].map((_, i) => (
-                  <div key={i} className="h-80 bg-gray-200 dark:bg-slate-800 rounded-xl animate-pulse"></div>
+                  <div key={i} className="h-72 bg-gray-200 dark:bg-slate-800 rounded-xl animate-pulse"></div>
                 ))}
               </div>
             </div>
@@ -140,7 +140,7 @@ const Videos: React.FC = () => {
               <div className="lg:w-80">
                 <AdsSection 
                   ads={sidebarAds} 
-                  className="w-full" 
+                  className="w-full no-spacing" 
                   staggerDelay={true} 
                   baseDelaySeconds={1}
                   positionClass="sidebar-ads-section" 
@@ -155,13 +155,13 @@ const Videos: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-100 to-slate-200 dark:from-slate-900 dark:via-gray-950 dark:to-slate-800">
-      <div className="container mx-auto px-4 py-6">
-        {/* Top ads */}
+      <div className="container mx-auto px-4 py-3">
+        {/* Top ads - ZERO SPACING */}
         {topAds.length > 0 && (
-          <div className="mb-6">
+          <div className="mb-3 no-spacing">
             <AdsSection 
               ads={topAds} 
-              className="w-full" 
+              className="w-full no-spacing" 
               staggerDelay={true} 
               baseDelaySeconds={0.5}
               positionClass="top-ads-section" 
@@ -169,21 +169,21 @@ const Videos: React.FC = () => {
           </div>
         )}
 
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col lg:flex-row gap-4">
           <div className="flex-1">
-            <header className="mb-6 text-center">
-              <h1 className="text-4xl md:text-5xl font-extrabold mb-2">
+            <header className="mb-4 text-center">
+              <h1 className="text-3xl md:text-4xl font-extrabold mb-2">
                 <span className="gradient-text">All Videos</span>
               </h1>
-              <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              <p className="text-base text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
                 Browse through our complete collection of videos
               </p>
             </header>
 
             {videos.length === 0 ? (
-              <div className="text-center py-12">
-                <Play size={64} className="mx-auto text-gray-400 dark:text-gray-500 mb-6" />
-                <h2 className="text-2xl font-semibold text-gray-600 dark:text-gray-300 mb-4">
+              <div className="text-center py-8">
+                <Play size={48} className="mx-auto text-gray-400 dark:text-gray-500 mb-4" />
+                <h2 className="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-3">
                   No videos available
                 </h2>
                 <p className="text-gray-500 dark:text-gray-400">
@@ -191,7 +191,7 @@ const Videos: React.FC = () => {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {videos.map((video, index) => {
                   const videoUrl = video.custom_url ? `/v/${video.custom_url}` : `/video/${video.id}`;
                   console.log('Video card:', video.title, 'URL:', videoUrl);
@@ -216,8 +216,8 @@ const Videos: React.FC = () => {
                           </div>
                         </div>
                         
-                        <CardHeader className="pb-3">
-                          <CardTitle className="line-clamp-2 text-lg">{video.title}</CardTitle>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="line-clamp-2 text-base">{video.title}</CardTitle>
                           {video.description && (
                             <CardDescription className="line-clamp-2">
                               {video.description}
@@ -226,7 +226,7 @@ const Videos: React.FC = () => {
                         </CardHeader>
                         
                         <CardContent className="pt-0">
-                          <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-4">
+                          <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-3">
                             <div className="flex items-center gap-1">
                               <Eye size={14} />
                               <span>{video.views} views</span>
@@ -246,12 +246,12 @@ const Videos: React.FC = () => {
                         </CardContent>
                       </Card>
                       
-                      {/* Below Video Ads */}
+                      {/* Below Video Ads - ZERO SPACING */}
                       {belowVideoAds.length > 0 && (
-                        <div className="mt-4">
+                        <div className="mt-2 no-spacing">
                           <AdsSection 
                             ads={belowVideoAds} 
-                            className="w-full" 
+                            className="w-full no-spacing" 
                             staggerDelay={true} 
                             baseDelaySeconds={2 + (index * 0.5)}
                             positionClass="below-video-ads-section" 
@@ -265,12 +265,12 @@ const Videos: React.FC = () => {
             )}
           </div>
 
-          {/* Sidebar ads */}
+          {/* Sidebar ads - ZERO SPACING */}
           {sidebarAds.length > 0 && (
             <div className="lg:w-80">
               <AdsSection 
                 ads={sidebarAds} 
-                className="w-full" 
+                className="w-full no-spacing" 
                 staggerDelay={true} 
                 baseDelaySeconds={1}
                 positionClass="sidebar-ads-section" 
@@ -279,12 +279,12 @@ const Videos: React.FC = () => {
           )}
         </div>
 
-        {/* Bottom ads */}
+        {/* Bottom ads - ZERO SPACING */}
         {bottomAds.length > 0 && (
-          <div className="mt-8">
+          <div className="mt-4 no-spacing">
             <AdsSection 
               ads={bottomAds} 
-              className="w-full" 
+              className="w-full no-spacing" 
               staggerDelay={true} 
               baseDelaySeconds={2}
               positionClass="bottom-ads-section" 

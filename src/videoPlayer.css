@@ -1,3 +1,4 @@
+
 /* Video Player Styles */
 .video-container {
   position: relative;
@@ -31,7 +32,7 @@
   object-fit: contain;
 }
 
-/* Ad container styles - ZERO SPACING */
+/* Ad container styles - COMPLETELY REMOVE SPACING */
 .ad-container {
   width: 100%;
   background: #f3f4f6;
@@ -40,23 +41,25 @@
   overflow: hidden;
   margin: 0 !important;
   padding: 0 !important;
-  min-height: 80px;
+  min-height: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
+  line-height: 1;
 }
 
-/* Position-specific styling - ZERO MARGINS */
+/* Position-specific styling - ZERO MARGINS AND PADDING */
 .position-top,
 .position-bottom,
 .position-sidebar {
   margin: 0 !important;
   padding: 0 !important;
+  gap: 0 !important;
 }
 
 /* In-video ad specific styles */
 .in-video-ad {
-  max-height: 100px;
+  max-height: 80px;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(4px);
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -81,17 +84,20 @@
   animation: float 0.5s ease-out;
 }
 
-/* Section-specific styles - ZERO GAPS */
+/* Section-specific styles - REMOVE ALL GAPS AND SPACING */
 .top-ads-section,
 .bottom-ads-section,
 .sidebar-ads-section,
 .video-sidebar-ads-section,
-.video-bottom-ads-section {
+.video-bottom-ads-section,
+.below-video-ads-section {
   display: flex;
   flex-direction: column;
   gap: 0 !important;
   margin: 0 !important;
   padding: 0 !important;
+  line-height: 1 !important;
+  min-height: auto !important;
 }
 
 .in-video-ads-section {
@@ -99,6 +105,18 @@
   justify-content: center;
   margin: 0 !important;
   padding: 0 !important;
+  line-height: 1 !important;
+}
+
+/* Completely remove spacing between sections */
+.top-ads-section + * {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+.bottom-ads-section {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
 }
 
 /* Animations */
@@ -132,13 +150,14 @@
   justify-content: center;
   width: 100%;
   height: 100%;
-  min-height: 70px;
+  min-height: 50px;
   background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
   color: #64748b;
   font-weight: 500;
   text-align: center;
   margin: 0 !important;
-  padding: 0.75rem !important;
+  padding: 0.5rem !important;
+  line-height: 1.2;
 }
 
 .monetag-ad .ad-placeholder {
@@ -159,18 +178,25 @@
   align-items: center;
   margin: 0 !important;
   padding: 0 !important;
+  line-height: 1;
 }
 
-/* Responsive styling */
+/* Responsive styling - compact on mobile */
 @media (max-width: 768px) {
   .in-video-ad-container {
     width: 90%;
   }
   
   .ad-container {
-    min-height: 70px;
+    min-height: 50px;
     margin: 0 !important;
     padding: 0 !important;
+  }
+  
+  .ad-placeholder {
+    min-height: 40px;
+    padding: 0.25rem !important;
+    font-size: 0.875rem;
   }
 }
 
@@ -221,7 +247,7 @@ input[type="range"]::-moz-range-thumb {
   position: relative;
   width: 100%;
   height: 0;
-  padding-bottom: 125%; /* This helps maintain aspect ratio */
+  padding-bottom: 125%;
   background-color: #ffffff;
   overflow: hidden;
 }
@@ -240,4 +266,33 @@ input[type="range"]::-moz-range-thumb {
   .instagram-embed-container {
     background-color: #1a1a1a;
   }
+}
+
+/* Additional spacing fixes for all components */
+* {
+  box-sizing: border-box;
+}
+
+/* Remove any default browser spacing that might cause gaps */
+body, html {
+  margin: 0;
+  padding: 0;
+  line-height: 1.5;
+}
+
+/* Ensure no extra spacing in containers */
+.container {
+  line-height: 1.5 !important;
+}
+
+/* Remove any unwanted spacing from ad sections */
+[class*="ads-section"] > * {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+[class*="ads-section"] {
+  margin: 0 !important;
+  padding: 0 !important;
+  gap: 0 !important;
 }
