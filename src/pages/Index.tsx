@@ -1,7 +1,6 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Video, ImageIcon, Zap, ArrowRight } from 'lucide-react';
+import { Video, ImageIcon, Zap, ArrowRight, PlayCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getAdsByPosition, Ad } from '@/models/Ad';
 import { useHomepageContent } from '@/hooks/useHomepageContent';
@@ -153,12 +152,20 @@ const Index = () => {
                 <ContentCarousel items={videos} type="video" />
               )}
               
-              {/* View All Videos Button */}
-              <div className="text-center mt-3">
-                <Link to="/videos">
-                  <Button variant="outline" className="flex items-center gap-2 mx-auto">
-                    View All Videos
-                    <ArrowRight size={16} />
+              {/* Enhanced View All Videos Button */}
+              <div className="text-center mt-6">
+                <Link to="/videos" className="inline-block">
+                  <Button 
+                    size="lg" 
+                    className="group relative overflow-hidden bg-gradient-to-r from-primary via-brand-accent to-accent text-white font-bold text-lg px-8 py-4 rounded-2xl shadow-xl hover:shadow-2xl transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 border-0 min-w-[240px]"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-accent via-brand-accent to-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="relative flex items-center gap-3">
+                      <PlayCircle size={24} className="animate-pulse" />
+                      <span className="tracking-wide">Explore All Videos</span>
+                      <ArrowRight size={20} className="transition-transform duration-300 group-hover:translate-x-1" />
+                    </div>
+                    <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
                   </Button>
                 </Link>
               </div>
