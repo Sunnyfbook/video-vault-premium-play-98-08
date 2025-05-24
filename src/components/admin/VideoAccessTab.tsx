@@ -28,8 +28,12 @@ const VideoAccessTab: React.FC<VideoAccessTabProps> = ({ accessCodes }) => {
       return;
     }
     
+    console.log('Attempting to add access code:', newAccessCode.trim());
+    
     try {
       const result = await addAccessCode(newAccessCode.trim());
+      console.log('Add access code result:', result);
+      
       if (result) {
         setNewAccessCode('');
         toast({
@@ -43,16 +47,20 @@ const VideoAccessTab: React.FC<VideoAccessTabProps> = ({ accessCodes }) => {
       console.error("Error adding access code:", error);
       toast({
         title: "Error",
-        description: "Failed to add access code. It may already exist.",
+        description: "Failed to add access code. Check console for details.",
         variant: "destructive",
       });
     }
   };
 
   const handleToggleAccessCode = async (accessCode: VideoAccessCode) => {
+    console.log('Attempting to toggle access code:', accessCode.id, 'from', accessCode.is_active, 'to', !accessCode.is_active);
+    
     try {
       const updatedCode = { ...accessCode, is_active: !accessCode.is_active };
       const result = await updateAccessCode(updatedCode);
+      console.log('Toggle access code result:', result);
+      
       if (result) {
         toast({
           title: "Access Code Updated",
@@ -65,15 +73,19 @@ const VideoAccessTab: React.FC<VideoAccessTabProps> = ({ accessCodes }) => {
       console.error("Error toggling access code:", error);
       toast({
         title: "Error",
-        description: "Failed to update access code. Please try again.",
+        description: "Failed to update access code. Check console for details.",
         variant: "destructive",
       });
     }
   };
 
   const handleRemoveAccessCode = async (id: string) => {
+    console.log('Attempting to delete access code:', id);
+    
     try {
       const success = await deleteAccessCode(id);
+      console.log('Delete access code result:', success);
+      
       if (success) {
         toast({
           title: "Access Code Removed",
@@ -86,11 +98,18 @@ const VideoAccessTab: React.FC<VideoAccessTabProps> = ({ accessCodes }) => {
       console.error("Error removing access code:", error);
       toast({
         title: "Error",
-        description: "Failed to remove access code. Please try again.",
+        description: "Failed to remove access code. Check console for details.",
         variant: "destructive",
       });
     }
   };
+
+  // Add debugging info
+  React.useEffect(() => {
+    const userId = localStorage.getItem('userId');
+    const isAdmin = localStorage.getItem('isAdmin');
+    console.log('VideoAccessTab - Current user context:', { userId, isAdmin, accessCodesCount: accessCodes.length });
+  }, [accessCodes]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
