@@ -32,6 +32,7 @@ const Videos: React.FC = () => {
         const belowVideoAdsData = await getAdsByPosition('below-video');
         
         console.log(`Videos page: Fetched ads: ${topAdsData.length} top, ${bottomAdsData.length} bottom, ${sidebarAdsData.length} sidebar, ${belowVideoAdsData.length} below-video`);
+        console.log('Below video ads data:', belowVideoAdsData);
         
         setTopAds(topAdsData);
         setBottomAds(bottomAdsData);
@@ -56,6 +57,8 @@ const Videos: React.FC = () => {
             const bottomAdsData = await getAdsByPosition('bottom');
             const sidebarAdsData = await getAdsByPosition('sidebar');
             const belowVideoAdsData = await getAdsByPosition('below-video');
+            
+            console.log('Refetched below video ads:', belowVideoAdsData);
             
             setTopAds(topAdsData);
             setBottomAds(bottomAdsData);
@@ -191,13 +194,14 @@ const Videos: React.FC = () => {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {videos.map((video, index) => {
                   const videoUrl = video.custom_url ? `/v/${video.custom_url}` : `/video/${video.id}`;
                   console.log('Video card:', video.title, 'URL:', videoUrl);
+                  console.log(`Rendering video ${index + 1}, belowVideoAds available:`, belowVideoAds.length);
                   
                   return (
-                    <div key={video.id}>
+                    <div key={video.id} className="space-y-3">
                       <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden">
                         {/* Make thumbnail clickable */}
                         <Link to={videoUrl} className="block">
@@ -249,9 +253,9 @@ const Videos: React.FC = () => {
                         </CardContent>
                       </Card>
                       
-                      {/* Below Video Ads - ZERO SPACING */}
+                      {/* Below Video Ads - Show for every video if ads are available */}
                       {belowVideoAds.length > 0 && (
-                        <div className="mt-2 no-spacing">
+                        <div className="no-spacing">
                           <AdsSection 
                             ads={belowVideoAds} 
                             className="w-full no-spacing" 
