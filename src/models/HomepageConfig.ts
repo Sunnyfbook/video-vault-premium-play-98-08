@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface HomepageConfig {
@@ -6,8 +5,8 @@ export interface HomepageConfig {
   site_title: string | null;
   site_description: string | null;
   footer_copyright: string | null;
-  container_max_width: string | null; // New field for container width
-  container_aspect_ratio: string | null; // New field for container aspect ratio
+  container_max_width: string | null;
+  container_aspect_ratio: string | null;
   updated_at: string | null;
 }
 
@@ -16,9 +15,36 @@ export const defaultConfig: HomepageConfig = {
   site_title: 'Video Player Pro',
   site_description: 'Immerse yourself in our curated collection of high-definition videos and breathtaking featured images. Experience content like never before.',
   footer_copyright: '© 2025 Video Player Pro. All rights reserved.',
-  container_max_width: '280px', // Default width
-  container_aspect_ratio: '9/16', // Default aspect ratio
+  container_max_width: '280px',
+  container_aspect_ratio: '9/16',
   updated_at: null
+};
+
+// Helper function to ensure admin context is properly set
+const ensureAdminContext = async () => {
+  const userId = localStorage.getItem('userId');
+  const isAdmin = localStorage.getItem('isAdmin') === 'true';
+  
+  console.log('Setting admin context for homepage config:', { userId, isAdmin });
+  
+  if (!userId || !isAdmin) {
+    throw new Error('Admin access required');
+  }
+
+  // Set the custom auth context for RLS policies
+  const { data, error } = await supabase.rpc('set_config', {
+    setting_name: 'app.current_user_id',
+    setting_value: userId,
+    is_local: true
+  });
+
+  if (error) {
+    console.error('Error setting auth context:', error);
+    throw error;
+  }
+
+  console.log('Auth context set successfully for homepage config:', data);
+  return true;
 };
 
 export const getHomepageConfig = async (): Promise<HomepageConfig> => {
@@ -43,6 +69,8 @@ export const getHomepageConfig = async (): Promise<HomepageConfig> => {
 
 export const updateHomepageConfig = async (updates: Partial<HomepageConfig>): Promise<HomepageConfig | null> => {
   try {
+    await ensureAdminContext();
+
     // Don't update the id field
     const updateData = { ...updates };
     delete updateData.id;
@@ -81,14 +109,9 @@ export const ensureHomepageConfigExists = async (): Promise<void> => {
     }
 
     if (!data) {
-      // If not found, insert the default config
-      const { error: insertError } = await supabase
-        .from("homepage_config")
-        .insert([defaultConfig]);
-
-      if (insertError) {
-        console.error("Error creating default homepage config:", insertError);
-      }
+      // Since we've already created the default config in the SQL migration,
+      // this should not be needed anymore, but keeping it for safety
+      console.log("Homepage config already exists or was created by migration");
     }
   } catch (error) {
     console.error("Error ensuring homepage config exists:", error);
