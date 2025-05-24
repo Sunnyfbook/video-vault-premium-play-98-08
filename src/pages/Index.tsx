@@ -1,8 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
+import { Link } from "react-router-dom";
 import { useHomepageContent } from "@/hooks/useHomepageContent";
 import { useHomepageConfig } from "@/hooks/useHomepageConfig";
 import { Card } from "@/components/ui/card";
-import { Video, Image as ImageIcon, Zap, Instagram } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Video, Image as ImageIcon, Zap, Instagram, ArrowRight } from "lucide-react";
 import { Ad, getActiveAds, getAdsByPosition } from "@/models/Ad";
 import AdsSection from "@/components/video/AdsSection";
 import InstagramEmbed from "@/components/InstagramEmbed";
@@ -115,9 +117,17 @@ const Index = () => {
           <main className="space-y-16 md:space-y-20 flex-grow">
             {/* Featured Videos Section */}
             <section>
-              <div className="flex items-center gap-3 mb-8">
-                <Video size={36} className="text-primary" />
-                <h2 className="section-title !mb-0">Featured Videos</h2>
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-3">
+                  <Video size={36} className="text-primary" />
+                  <h2 className="section-title !mb-0">Featured Videos</h2>
+                </div>
+                <Link to="/videos">
+                  <Button variant="outline" className="flex items-center gap-2">
+                    View All Videos
+                    <ArrowRight size={16} />
+                  </Button>
+                </Link>
               </div>
               {contentLoading ? (
                 <div className="h-80 bg-gray-200 dark:bg-slate-800 rounded-xl animate-pulse"></div>

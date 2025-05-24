@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { createBrowserRouter, RouterProvider, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,6 +9,7 @@ import Index from '@/pages/Index';
 import Login from '@/pages/Login';
 import Admin from '@/pages/Admin';
 import VideoPage from '@/pages/VideoPage';
+import Videos from '@/pages/Videos';
 import NotFound from '@/pages/NotFound';
 
 const App: React.FC = () => {
@@ -42,6 +44,10 @@ const App: React.FC = () => {
     {
       path: "/admin",
       element: isLoggedIn ? <Admin /> : <NavigateToLogin />,
+    },
+    {
+      path: "/videos",
+      element: <Videos />,
     },
     {
       path: "/video/:id",
