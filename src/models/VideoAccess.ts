@@ -9,30 +9,6 @@ export interface VideoAccessCode {
   updated_at: string;
 }
 
-// Function to set user context for admin operations
-const setAdminContext = async () => {
-  const userId = localStorage.getItem('userId');
-  const isAdmin = localStorage.getItem('isAdmin') === 'true';
-  
-  console.log('Setting admin context - userId:', userId, 'isAdmin:', isAdmin);
-  
-  if (!userId || !isAdmin) {
-    throw new Error('Admin access required');
-  }
-  
-  // Execute a simple SQL to set the config
-  try {
-    await supabase.rpc('set_config', {
-      setting_name: 'app.current_user_id', 
-      setting_value: userId,
-      is_local: true
-    });
-  } catch (error) {
-    console.log('set_config function not available, using alternative approach');
-    // Alternative: just proceed since we've verified admin status
-  }
-};
-
 // Get all access codes (for admin panel)
 export const getAccessCodes = async (): Promise<VideoAccessCode[]> => {
   try {
@@ -46,8 +22,6 @@ export const getAccessCodes = async (): Promise<VideoAccessCode[]> => {
       return [];
     }
 
-    await setAdminContext();
-    
     const { data, error } = await supabase
       .from("video_access_codes")
       .select("*")
@@ -99,8 +73,6 @@ export const addAccessCode = async (code: string): Promise<VideoAccessCode | nul
       throw new Error('Admin access required');
     }
 
-    await setAdminContext();
-    
     const { data, error } = await supabase
       .from("video_access_codes")
       .insert({ code })
@@ -130,8 +102,6 @@ export const updateAccessCode = async (accessCode: VideoAccessCode): Promise<Vid
       throw new Error('Admin access required');
     }
 
-    await setAdminContext();
-    
     const { data, error } = await supabase
       .from("video_access_codes")
       .update({
@@ -165,8 +135,6 @@ export const deleteAccessCode = async (id: string): Promise<boolean> => {
       throw new Error('Admin access required');
     }
 
-    await setAdminContext();
-    
     const { error } = await supabase
       .from("video_access_codes")
       .delete()
