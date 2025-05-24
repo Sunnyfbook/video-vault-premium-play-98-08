@@ -16,16 +16,26 @@ export const executeAsAdmin = async <T>(operation: () => Promise<T>): Promise<T>
   const userId = localStorage.getItem('userId');
   const isAdmin = localStorage.getItem('isAdmin') === 'true';
   
+  console.log('executeAsAdmin - userId:', userId, 'isAdmin:', isAdmin);
+  
   if (!userId || !isAdmin) {
     throw new Error('Admin access required');
   }
   
-  // Set the custom user context for RLS policies
-  await supabase.rpc('set_config', {
-    setting_name: 'app.current_user_id',
-    setting_value: userId,
-    is_local: true
-  });
+  // Set the custom user context for RLS policies using raw SQL
+  try {
+    const { error } = await supabase.rpc('set_config', {
+      setting_name: 'app.current_user_id',
+      setting_value: userId,
+      is_local: true
+    });
+    
+    if (error) {
+      console.log('Could not set config, proceeding anyway:', error);
+    }
+  } catch (error) {
+    console.log('Config setting not available, proceeding anyway:', error);
+  }
   
   return operation();
 };
