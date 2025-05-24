@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,7 +18,7 @@ const AdsTab: React.FC<AdsTabProps> = ({ ads }) => {
     name: '',
     type: 'monetag' as 'monetag' | 'adstera',
     code: '',
-    position: 'top' as 'top' | 'bottom' | 'sidebar' | 'in-video',
+    position: 'top' as 'top' | 'bottom' | 'sidebar' | 'in-video' | 'below-video',
     is_active: true
   });
   const { toast } = useToast();
@@ -145,7 +144,7 @@ const AdsTab: React.FC<AdsTabProps> = ({ ads }) => {
                 <Label htmlFor="adPosition">Position</Label>
                 <Select 
                   value={newAd.position}
-                  onValueChange={(value: 'top' | 'bottom' | 'sidebar' | 'in-video') => 
+                  onValueChange={(value: 'top' | 'bottom' | 'sidebar' | 'in-video' | 'below-video') => 
                     setNewAd({ ...newAd, position: value })
                   }
                 >
@@ -157,6 +156,7 @@ const AdsTab: React.FC<AdsTabProps> = ({ ads }) => {
                     <SelectItem value="bottom">Bottom</SelectItem>
                     <SelectItem value="sidebar">Sidebar</SelectItem>
                     <SelectItem value="in-video">In-video</SelectItem>
+                    <SelectItem value="below-video">Below Video (Videos Page)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

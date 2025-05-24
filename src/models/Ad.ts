@@ -6,7 +6,7 @@ export interface Ad {
   name: string;
   type: 'monetag' | 'adstera';
   code: string;
-  position: 'top' | 'bottom' | 'sidebar' | 'in-video';
+  position: 'top' | 'bottom' | 'sidebar' | 'in-video' | 'below-video';
   is_active: boolean;
 }
 

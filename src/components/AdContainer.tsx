@@ -6,7 +6,7 @@ interface AdContainerProps {
   adCode: string;
   className?: string;
   delaySeconds?: number;
-  position?: 'top' | 'bottom' | 'sidebar' | 'in-video';
+  position?: 'top' | 'bottom' | 'sidebar' | 'in-video' | 'below-video';
   adId?: string;
   adName?: string;
 }
@@ -116,7 +116,9 @@ const AdContainer: React.FC<AdContainerProps> = ({
       data-ad-id={adId}
       data-ad-name={adName}
       style={{ 
-        minHeight: position === 'in-video' ? '120px' : position === 'sidebar' ? '250px' : '150px',
+        minHeight: position === 'in-video' ? '120px' : 
+                   position === 'below-video' ? '200px' : 
+                   position === 'sidebar' ? '250px' : '150px',
         width: '100%'
       }}
     ></div>
