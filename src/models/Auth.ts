@@ -1,6 +1,14 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
+export interface User {
+  id: string;
+  username: string;
+  password?: string;
+  is_admin: boolean;
+  created_at: string;
+}
+
 export const login = async (username: string, password: string): Promise<boolean> => {
   try {
     // First, get the user from the users table to verify admin status
@@ -26,6 +34,50 @@ export const login = async (username: string, password: string): Promise<boolean
   } catch (error) {
     console.error('Login error:', error);
     return false;
+  }
+};
+
+export const updateAdminUser = async (currentUsername: string, updates: Partial<User>): Promise<User | null> => {
+  try {
+    const updateData: any = {};
+    
+    if (updates.username && updates.username !== currentUsername) {
+      updateData.username = updates.username;
+    }
+    
+    if (updates.password) {
+      updateData.password = updates.password;
+    }
+
+    // Only proceed if there are actual updates
+    if (Object.keys(updateData).length === 0) {
+      // Return current user data if no updates
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('username', currentUsername)
+        .single();
+      
+      if (error) throw error;
+      return data as User;
+    }
+
+    const { data, error } = await supabase
+      .from('users')
+      .update(updateData)
+      .eq('username', currentUsername)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating admin user:', error);
+      throw new Error(error.message);
+    }
+
+    return data as User;
+  } catch (error) {
+    console.error('Error updating admin user:', error);
+    throw error;
   }
 };
 
