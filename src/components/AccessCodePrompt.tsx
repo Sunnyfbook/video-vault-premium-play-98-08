@@ -41,9 +41,12 @@ const AccessCodePrompt: React.FC<AccessCodePromptProps> = ({ onCodeVerified }) =
         async (payload) => {
           console.log('Button configuration changed, received payload:', payload);
           try {
+            // Force refresh from the database
             const config = await getAccessCodeButtonConfig();
             console.log('Refetched config:', config);
-            setButtonConfig(config);
+            if (config) {
+              setButtonConfig(config);
+            }
           } catch (error) {
             console.error('Error refetching button configuration:', error);
           }
