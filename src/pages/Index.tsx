@@ -99,18 +99,18 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-100 to-slate-200 dark:from-slate-900 dark:via-gray-950 dark:to-slate-800 animate-fade-in overflow-x-hidden">
       <div className="container mx-auto px-2 py-4 sm:px-4 sm:py-6">
-        {/* Top Ads - No margins */}
+        {/* Top Ads - Remove margins */}
         {topAds.length > 0 && (
           <AdsSection 
             ads={topAds} 
-            className="w-full mb-4" 
+            className="w-full mb-2" 
             staggerDelay={true} 
             baseDelaySeconds={0.5}
             positionClass="top-ads-section" 
           />
         )}
 
-        <header className="mb-6 md:mb-8 text-center">
+        <header className="mb-4 md:mb-6 text-center">
           <Zap size={48} className="mx-auto mb-4 text-brand-accent animate-pulse-soft" />
           {overallLoading ? (
             <>
@@ -134,7 +134,7 @@ const Index = () => {
         </header>
 
         <div className="flex flex-col lg:flex-row gap-4">
-          <main className="space-y-6 md:space-y-8 flex-grow">
+          <main className="space-y-4 md:space-y-6 flex-grow">
             {/* Featured Videos Section */}
             <section>
               <div className="flex items-center gap-3 mb-4">
@@ -181,11 +181,11 @@ const Index = () => {
               )}
             </section>
 
-            {/* Bottom Ads - No extra margins */}
+            {/* Bottom Ads - Reduce margins */}
             {bottomAds.length > 0 && (
               <AdsSection 
                 ads={bottomAds} 
-                className="w-full mt-6" 
+                className="w-full mt-2" 
                 staggerDelay={true} 
                 baseDelaySeconds={6} 
                 positionClass="bottom-ads-section"
@@ -208,7 +208,7 @@ const Index = () => {
           )}
         </div>
 
-        <footer className="mt-8 md:mt-12 pt-6 border-t border-border/50 text-center">
+        <footer className="mt-6 md:mt-8 pt-6 border-t border-border/50 text-center">
           {overallLoading ? (
              <div className="h-5 bg-gray-300 dark:bg-gray-700 rounded w-1/2 mx-auto animate-pulse"></div>
           ) : (
