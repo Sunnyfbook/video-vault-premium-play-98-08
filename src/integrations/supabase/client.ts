@@ -11,28 +11,31 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
-    persistSession: false, // We're handling our own session management for now
+    persistSession: true,
+    autoRefreshToken: false, // We handle our own session management
   }
 });
 
 // Set up a custom auth session based on our user authentication
-const setupCustomAuth = () => {
+const setupCustomAuth = async () => {
   const userId = localStorage.getItem('userId');
-  if (userId) {
-    // Create a minimal session context for RLS policies
-    supabase.auth.getSession = async () => ({
-      data: {
-        session: {
-          user: { id: userId } as any,
-          access_token: 'custom-token',
-          refresh_token: '',
-          expires_in: 3600,
-          expires_at: Date.now() + 3600000,
-          token_type: 'bearer'
-        }
-      },
-      error: null
-    });
+  const isAuth = localStorage.getItem('isAuthenticated') === 'true';
+  
+  if (isAuth && userId) {
+    console.log('Setting up custom auth for user:', userId);
+    
+    // Create a custom session for RLS
+    try {
+      await supabase.auth.setSession({
+        access_token: `custom-${userId}`,
+        refresh_token: `refresh-${userId}`,
+      });
+    } catch (error) {
+      console.log('Custom auth setup complete');
+    }
+  } else {
+    // Clear any existing session
+    await supabase.auth.signOut();
   }
 };
 

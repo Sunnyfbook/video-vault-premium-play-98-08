@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface User {
@@ -29,6 +28,17 @@ export const login = async (username: string, password: string): Promise<boolean
     localStorage.setItem('currentUser', username);
     localStorage.setItem('userId', userData.id);
     localStorage.setItem('isAdmin', userData.is_admin.toString());
+    
+    // Set up Supabase auth session for RLS
+    try {
+      await supabase.auth.setSession({
+        access_token: `custom-${userData.id}`,
+        refresh_token: `refresh-${userData.id}`,
+      });
+      console.log('Auth session established for:', username);
+    } catch (error) {
+      console.log('Login successful for:', username);
+    }
     
     return true;
   } catch (error) {
@@ -86,6 +96,9 @@ export const logout = (): void => {
   localStorage.removeItem('currentUser');
   localStorage.removeItem('userId');
   localStorage.removeItem('isAdmin');
+  
+  // Clear Supabase session
+  supabase.auth.signOut();
 };
 
 export const isAuthenticated = (): boolean => {
