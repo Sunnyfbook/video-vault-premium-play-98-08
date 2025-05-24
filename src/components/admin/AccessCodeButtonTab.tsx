@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { getAccessCodeButtonConfig, updateAccessCodeButtonConfig, AccessCodeButtonConfig } from '@/models/AccessCodeButton';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const AccessCodeButtonTab: React.FC = () => {
   const [config, setConfig] = useState<AccessCodeButtonConfig | null>(null);
@@ -50,22 +51,37 @@ const AccessCodeButtonTab: React.FC = () => {
 
     loadConfig();
 
-    // Listen for configuration changes from localStorage
-    const handleConfigChange = (event: CustomEvent) => {
-      console.log('Admin: Button configuration changed via localStorage:', event.detail);
-      const buttonConfig = event.detail as AccessCodeButtonConfig;
-      setConfig(buttonConfig);
-      setFormData({
-        button_text: buttonConfig.button_text,
-        button_url: buttonConfig.button_url,
-        is_enabled: buttonConfig.is_enabled,
-      });
-    };
+    // Set up real-time listener for configuration changes
+    const channel = supabase
+      .channel('admin_access_code_button_config_changes')
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'access_code_button_config',
+          filter: 'id=eq.main_config'
+        },
+        (payload) => {
+          console.log('Admin: Button configuration changed via real-time:', payload);
+          if (payload.new) {
+            const buttonConfig = payload.new as AccessCodeButtonConfig;
+            setConfig(buttonConfig);
+            setFormData({
+              button_text: buttonConfig.button_text,
+              button_url: buttonConfig.button_url,
+              is_enabled: buttonConfig.is_enabled,
+            });
+          } else {
+            // Refetch if payload.new is not available
+            loadConfig();
+          }
+        }
+      )
+      .subscribe();
 
-    window.addEventListener('accessCodeButtonConfigChanged', handleConfigChange as EventListener);
-    
     return () => {
-      window.removeEventListener('accessCodeButtonConfigChanged', handleConfigChange as EventListener);
+      supabase.removeChannel(channel);
     };
   }, [toast]);
 
@@ -98,7 +114,6 @@ const AccessCodeButtonTab: React.FC = () => {
       
       if (updatedConfig) {
         console.log('Config updated successfully:', updatedConfig);
-        setConfig(updatedConfig);
         toast({
           title: "Success",
           description: "Access code button configuration updated successfully.",

@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { getAccessCodeButtonConfig, AccessCodeButtonConfig } from '@/models/AccessCodeButton';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AccessCodePromptProps {
   onCodeVerified: (code: string) => Promise<boolean>;
@@ -32,16 +33,31 @@ const AccessCodePrompt: React.FC<AccessCodePromptProps> = ({ onCodeVerified }) =
 
     loadButtonConfig();
 
-    // Listen for configuration changes from localStorage
-    const handleConfigChange = (event: CustomEvent) => {
-      console.log('Button configuration changed via localStorage:', event.detail);
-      setButtonConfig(event.detail);
-    };
+    // Set up real-time listener for configuration changes
+    const channel = supabase
+      .channel('access_code_button_config_changes')
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'access_code_button_config',
+          filter: 'id=eq.main_config'
+        },
+        (payload) => {
+          console.log('Button configuration changed via real-time:', payload);
+          if (payload.new) {
+            setButtonConfig(payload.new as AccessCodeButtonConfig);
+          } else {
+            // Refetch if payload.new is not available
+            loadButtonConfig();
+          }
+        }
+      )
+      .subscribe();
 
-    window.addEventListener('accessCodeButtonConfigChanged', handleConfigChange as EventListener);
-    
     return () => {
-      window.removeEventListener('accessCodeButtonConfigChanged', handleConfigChange as EventListener);
+      supabase.removeChannel(channel);
     };
   }, []);
 

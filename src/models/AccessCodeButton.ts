@@ -1,4 +1,6 @@
 
+import { supabase } from '@/integrations/supabase/client';
+
 export interface AccessCodeButtonConfig {
   id: string;
   button_text: string;
@@ -8,66 +10,86 @@ export interface AccessCodeButtonConfig {
   updated_at: string;
 }
 
-const STORAGE_KEY = 'access_code_button_config';
-
 // Default configuration
-const defaultConfig: AccessCodeButtonConfig = {
+const defaultConfig: Omit<AccessCodeButtonConfig, 'created_at' | 'updated_at'> = {
   id: "main_config",
   button_text: "Get Access Code",
   button_url: "https://example.com/get-access",
-  is_enabled: true,
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString()
+  is_enabled: true
 };
 
-// Get the access code button configuration from localStorage
+// Get the access code button configuration from Supabase
 export const getAccessCodeButtonConfig = async (): Promise<AccessCodeButtonConfig | null> => {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const config = JSON.parse(stored) as AccessCodeButtonConfig;
-      console.log('Loaded access code button config from localStorage:', config);
-      return config;
-    }
+    console.log('Loading access code button config from Supabase...');
     
-    // Return default config if nothing stored
-    console.log('No config found in localStorage, returning default config');
-    return defaultConfig;
+    const { data, error } = await supabase
+      .from('access_code_button_config')
+      .select('*')
+      .eq('id', 'main_config')
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error loading access code button config:', error);
+      return null;
+    }
+
+    if (data) {
+      console.log('Loaded access code button config from Supabase:', data);
+      return data as AccessCodeButtonConfig;
+    }
+
+    // If no config exists, create default one
+    console.log('No config found, creating default config');
+    const { data: newData, error: insertError } = await supabase
+      .from('access_code_button_config')
+      .insert({
+        id: defaultConfig.id,
+        button_text: defaultConfig.button_text,
+        button_url: defaultConfig.button_url,
+        is_enabled: defaultConfig.is_enabled
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('Error creating default config:', insertError);
+      return null;
+    }
+
+    return newData as AccessCodeButtonConfig;
   } catch (error) {
-    console.error("Error loading access code button config from localStorage:", error);
-    return defaultConfig;
+    console.error("Error loading access code button config from Supabase:", error);
+    return null;
   }
 };
 
-// Update the access code button configuration in localStorage
+// Update the access code button configuration in Supabase
 export const updateAccessCodeButtonConfig = async (config: Partial<AccessCodeButtonConfig>): Promise<AccessCodeButtonConfig | null> => {
   try {
-    console.log('Attempting to update button config in localStorage with:', config);
+    console.log('Updating button config in Supabase with:', config);
     
-    // Get current config or use default
-    const currentConfig = await getAccessCodeButtonConfig() || defaultConfig;
+    const { data, error } = await supabase
+      .from('access_code_button_config')
+      .update({
+        button_text: config.button_text,
+        button_url: config.button_url,
+        is_enabled: config.is_enabled,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', 'main_config')
+      .select()
+      .single();
     
-    // Update with new values
-    const updatedConfig: AccessCodeButtonConfig = {
-      ...currentConfig,
-      ...config,
-      id: "main_config", // Always keep the same ID
-      updated_at: new Date().toISOString()
-    };
+    if (error) {
+      console.error("Error updating button config in Supabase:", error);
+      throw error;
+    }
     
-    // Store in localStorage
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedConfig));
-    
-    console.log('Successfully updated button config in localStorage:', updatedConfig);
-    
-    // Dispatch custom event to notify other components
-    window.dispatchEvent(new CustomEvent('accessCodeButtonConfigChanged', { 
-      detail: updatedConfig 
-    }));
-    
-    return updatedConfig;
+    console.log('Successfully updated button config in Supabase:', data);
+    return data as AccessCodeButtonConfig;
   } catch (error) {
-    console.error("Error updating button config in localStorage:", error);
+    console.error("Error updating button config in Supabase:", error);
     throw error;
   }
 };
