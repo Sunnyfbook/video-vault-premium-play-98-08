@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,7 +14,9 @@ interface VideoAccessTabProps {
 
 const VideoAccessTab: React.FC<VideoAccessTabProps> = ({ accessCodes }) => {
   const [newAccessCode, setNewAccessCode] = useState('');
+  const [loading, setLoading] = useState<{ [key: string]: boolean }>({});
   const { toast } = useToast();
+  const processingRef = useRef<Set<string>>(new Set());
 
   const handleAddAccessCode = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,11 +30,10 @@ const VideoAccessTab: React.FC<VideoAccessTabProps> = ({ accessCodes }) => {
       return;
     }
     
-    console.log('Attempting to add access code:', newAccessCode.trim());
+    setLoading(prev => ({ ...prev, add: true }));
     
     try {
       const result = await addAccessCode(newAccessCode.trim());
-      console.log('Add access code result:', result);
       
       if (result) {
         setNewAccessCode('');
@@ -47,24 +48,42 @@ const VideoAccessTab: React.FC<VideoAccessTabProps> = ({ accessCodes }) => {
       console.error("Error adding access code:", error);
       toast({
         title: "Error",
-        description: "Failed to add access code. Check console for details.",
+        description: "Failed to add access code.",
         variant: "destructive",
       });
+    } finally {
+      setLoading(prev => ({ ...prev, add: false }));
     }
   };
 
   const handleToggleAccessCode = async (accessCode: VideoAccessCode) => {
-    console.log('Attempting to toggle access code:', accessCode.id, 'from', accessCode.is_active, 'to', !accessCode.is_active);
+    // Prevent multiple operations on the same record
+    if (processingRef.current.has(accessCode.id) || loading[accessCode.id]) {
+      return;
+    }
+
+    // Check if the access code still exists in the current list
+    const currentCode = accessCodes.find(code => code.id === accessCode.id);
+    if (!currentCode) {
+      toast({
+        title: "Error",
+        description: "Access code no longer exists.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    processingRef.current.add(accessCode.id);
+    setLoading(prev => ({ ...prev, [accessCode.id]: true }));
     
     try {
-      const updatedCode = { ...accessCode, is_active: !accessCode.is_active };
+      const updatedCode = { ...currentCode, is_active: !currentCode.is_active };
       const result = await updateAccessCode(updatedCode);
-      console.log('Toggle access code result:', result);
       
       if (result) {
         toast({
           title: "Access Code Updated",
-          description: `Access code ${accessCode.is_active ? 'disabled' : 'enabled'} successfully.`,
+          description: `Access code ${currentCode.is_active ? 'disabled' : 'enabled'} successfully.`,
         });
       } else {
         throw new Error("Failed to update access code");
@@ -73,18 +92,37 @@ const VideoAccessTab: React.FC<VideoAccessTabProps> = ({ accessCodes }) => {
       console.error("Error toggling access code:", error);
       toast({
         title: "Error",
-        description: "Failed to update access code. Check console for details.",
+        description: "Failed to update access code.",
         variant: "destructive",
       });
+    } finally {
+      processingRef.current.delete(accessCode.id);
+      setLoading(prev => ({ ...prev, [accessCode.id]: false }));
     }
   };
 
   const handleRemoveAccessCode = async (id: string) => {
-    console.log('Attempting to delete access code:', id);
+    // Prevent multiple operations on the same record
+    if (processingRef.current.has(id) || loading[id]) {
+      return;
+    }
+
+    // Check if the access code still exists in the current list
+    const currentCode = accessCodes.find(code => code.id === id);
+    if (!currentCode) {
+      toast({
+        title: "Error",
+        description: "Access code no longer exists.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    processingRef.current.add(id);
+    setLoading(prev => ({ ...prev, [id]: true }));
     
     try {
       const success = await deleteAccessCode(id);
-      console.log('Delete access code result:', success);
       
       if (success) {
         toast({
@@ -98,17 +136,23 @@ const VideoAccessTab: React.FC<VideoAccessTabProps> = ({ accessCodes }) => {
       console.error("Error removing access code:", error);
       toast({
         title: "Error",
-        description: "Failed to remove access code. Check console for details.",
+        description: "Failed to remove access code.",
         variant: "destructive",
       });
+    } finally {
+      processingRef.current.delete(id);
+      setLoading(prev => ({ ...prev, [id]: false }));
     }
   };
 
-  // Add debugging info
-  React.useEffect(() => {
-    const userId = localStorage.getItem('userId');
-    const isAdmin = localStorage.getItem('isAdmin');
-    console.log('VideoAccessTab - Current user context:', { userId, isAdmin, accessCodesCount: accessCodes.length });
+  // Clean up processing refs when access codes change
+  useEffect(() => {
+    const currentIds = new Set(accessCodes.map(code => code.id));
+    processingRef.current.forEach(id => {
+      if (!currentIds.has(id)) {
+        processingRef.current.delete(id);
+      }
+    });
   }, [accessCodes]);
 
   return (
@@ -132,14 +176,15 @@ const VideoAccessTab: React.FC<VideoAccessTabProps> = ({ accessCodes }) => {
                   onChange={(e) => setNewAccessCode(e.target.value)}
                   placeholder="Enter new access code"
                   required
+                  disabled={loading.add}
                 />
                 <p className="text-xs text-gray-500">
                   This code will be required to access the videos page
                 </p>
               </div>
               
-              <Button type="submit" className="w-full">
-                Add Access Code
+              <Button type="submit" className="w-full" disabled={loading.add}>
+                {loading.add ? "Adding..." : "Add Access Code"}
               </Button>
             </form>
           </CardContent>
@@ -183,6 +228,7 @@ const VideoAccessTab: React.FC<VideoAccessTabProps> = ({ accessCodes }) => {
                           id={`access-toggle-${accessCode.id}`}
                           checked={accessCode.is_active}
                           onCheckedChange={() => handleToggleAccessCode(accessCode)}
+                          disabled={loading[accessCode.id]}
                         />
                         <Label htmlFor={`access-toggle-${accessCode.id}`} className="text-sm">
                           {accessCode.is_active ? 'Enabled' : 'Disabled'}
@@ -193,8 +239,9 @@ const VideoAccessTab: React.FC<VideoAccessTabProps> = ({ accessCodes }) => {
                         onClick={() => handleRemoveAccessCode(accessCode.id)} 
                         variant="destructive" 
                         size="sm"
+                        disabled={loading[accessCode.id]}
                       >
-                        Delete
+                        {loading[accessCode.id] ? "..." : "Delete"}
                       </Button>
                     </div>
                   </div>
