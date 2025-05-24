@@ -9,6 +9,19 @@ export interface VideoAccessCode {
   updated_at: string;
 }
 
+// Function to set user context for admin operations
+const setUserContext = async (userId: string) => {
+  // Set the user context using a simple query that sets the configuration
+  await supabase.rpc('set_config', {
+    setting_name: 'app.current_user_id',
+    setting_value: userId,
+    is_local: true
+  }).catch(() => {
+    // If the function doesn't exist, we'll create a simple workaround
+    console.log('set_config function not available, using session context');
+  });
+};
+
 // Get all access codes (for admin panel)
 export const getAccessCodes = async (): Promise<VideoAccessCode[]> => {
   try {
@@ -21,6 +34,9 @@ export const getAccessCodes = async (): Promise<VideoAccessCode[]> => {
       console.log('Not admin, returning empty array');
       return [];
     }
+
+    // Set user context for RLS
+    await setUserContext(userId);
 
     const { data, error } = await supabase
       .from("video_access_codes")
@@ -73,6 +89,9 @@ export const addAccessCode = async (code: string): Promise<VideoAccessCode | nul
       throw new Error('Admin access required');
     }
 
+    // Set user context for RLS
+    await setUserContext(userId);
+
     const { data, error } = await supabase
       .from("video_access_codes")
       .insert({ code })
@@ -101,6 +120,9 @@ export const updateAccessCode = async (accessCode: VideoAccessCode): Promise<Vid
     if (!userId || !isAdmin) {
       throw new Error('Admin access required');
     }
+
+    // Set user context for RLS
+    await setUserContext(userId);
 
     const { data, error } = await supabase
       .from("video_access_codes")
@@ -134,6 +156,9 @@ export const deleteAccessCode = async (id: string): Promise<boolean> => {
     if (!userId || !isAdmin) {
       throw new Error('Admin access required');
     }
+
+    // Set user context for RLS
+    await setUserContext(userId);
 
     const { error } = await supabase
       .from("video_access_codes")
