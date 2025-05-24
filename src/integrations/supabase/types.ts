@@ -361,6 +361,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      is_custom_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       set_config: {
         Args: {
           setting_name: string
