@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getVideoById, getVideoByCustomUrl, incrementViews, Video } from '@/models/Video';
@@ -29,7 +30,7 @@ const VideoPage: React.FC = () => {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
 
-  // Track visit
+  // Track visit - EXACT same as homepage
   useEffect(() => {
     // Track page view
     incrementPageView();
@@ -87,8 +88,14 @@ const VideoPage: React.FC = () => {
       } finally {
         setLoading(false);
       }
+    };
 
-      // Load ads by position - EXACT same as homepage
+    loadData();
+  }, [id, customUrl, toast]);
+
+  // Load ads - EXACT same as homepage
+  useEffect(() => {
+    const loadAds = async () => {
       try {
         console.log("Fetching ads for video page...");
         const topAdsData = await getAdsByPosition('top');
@@ -107,7 +114,7 @@ const VideoPage: React.FC = () => {
       }
     };
 
-    loadData();
+    loadAds();
     
     // Set up real-time listeners for ads - EXACT same as homepage
     const adsChannel = supabase
@@ -138,7 +145,7 @@ const VideoPage: React.FC = () => {
     return () => {
       supabase.removeChannel(adsChannel);
     };
-  }, [id, customUrl, toast]);
+  }, []);
 
   const copyCurrentLink = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -205,15 +212,15 @@ const VideoPage: React.FC = () => {
 
       <div className="min-h-screen bg-gradient-to-br from-slate-100 via-gray-100 to-slate-200 dark:from-slate-900 dark:via-gray-950 dark:to-slate-800 animate-fade-in">
         <div className="container mx-auto px-4 py-6 lg:py-8">
-          {/* Top ads - REDUCED SPACING */}
+          {/* Top ads - EXACT same styling as homepage */}
           {topAds.length > 0 && (
-            <div className="mb-4 top-ads-container">
+            <div className="mb-8 top-ads-container">
               <AdsSection 
                 ads={topAds} 
-                className="grid grid-cols-1 gap-2" 
-                staggerDelay={true}
+                className="w-full" 
+                staggerDelay={true} 
                 baseDelaySeconds={0.5}
-                positionClass="top-ads-section"
+                positionClass="top-ads-section" 
               />
             </div>
           )}

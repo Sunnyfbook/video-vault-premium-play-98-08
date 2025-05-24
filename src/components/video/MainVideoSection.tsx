@@ -97,15 +97,14 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
       
       <VideoInfo video={video} />
       
-      {/* Bottom ads - REDUCED SPACING */}
+      {/* Bottom ads - EXACT same styling as homepage */}
       {bottomAds.length > 0 && (
-        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-          <h4 className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider text-center">Advertisement</h4>
+        <div className="mt-8 bottom-ads-container">
           <AdsSection 
             ads={bottomAds} 
-            className="grid grid-cols-1 gap-2"
-            staggerDelay={true}
-            baseDelaySeconds={2}
+            className="w-full" 
+            staggerDelay={true} 
+            baseDelaySeconds={6} 
             positionClass="bottom-ads-section"
           />
         </div>
