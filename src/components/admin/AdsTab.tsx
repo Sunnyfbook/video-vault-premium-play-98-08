@@ -26,6 +26,17 @@ const AdsTab: React.FC<AdsTabProps> = ({ ads }) => {
   const handleAddAd = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('Form submission attempt:', newAd);
+    
+    if (!newAd.name.trim()) {
+      toast({
+        title: "Error",
+        description: "Ad name is required.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     if (!newAd.code.trim()) {
       toast({
         title: "Error",
@@ -36,7 +47,9 @@ const AdsTab: React.FC<AdsTabProps> = ({ ads }) => {
     }
     
     try {
-      await addAd(newAd);
+      console.log('Attempting to add ad with data:', newAd);
+      const result = await addAd(newAd);
+      console.log('Ad added successfully:', result);
       
       setNewAd({
         name: '',
@@ -119,7 +132,7 @@ const AdsTab: React.FC<AdsTabProps> = ({ ads }) => {
                   id="adName"
                   value={newAd.name}
                   onChange={(e) => setNewAd({ ...newAd, name: e.target.value })}
-                  placeholder="E.g. Top Banner"
+                  placeholder="E.g. Below Video Banner"
                   required
                 />
               </div>
@@ -144,9 +157,10 @@ const AdsTab: React.FC<AdsTabProps> = ({ ads }) => {
                 <Label htmlFor="adPosition">Position</Label>
                 <Select 
                   value={newAd.position}
-                  onValueChange={(value: 'top' | 'bottom' | 'sidebar' | 'in-video' | 'below-video') => 
-                    setNewAd({ ...newAd, position: value })
-                  }
+                  onValueChange={(value: 'top' | 'bottom' | 'sidebar' | 'in-video' | 'below-video') => {
+                    console.log('Position selected:', value);
+                    setNewAd({ ...newAd, position: value });
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select position" />
