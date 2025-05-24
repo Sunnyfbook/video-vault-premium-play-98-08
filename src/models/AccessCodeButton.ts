@@ -1,6 +1,4 @@
 
-import { supabase } from "@/integrations/supabase/client";
-
 export interface AccessCodeButtonConfig {
   id: string;
   button_text: string;
@@ -10,59 +8,66 @@ export interface AccessCodeButtonConfig {
   updated_at: string;
 }
 
-// Get the access code button configuration (public access)
+const STORAGE_KEY = 'access_code_button_config';
+
+// Default configuration
+const defaultConfig: AccessCodeButtonConfig = {
+  id: "main_config",
+  button_text: "Get Access Code",
+  button_url: "https://example.com/get-access",
+  is_enabled: true,
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString()
+};
+
+// Get the access code button configuration from localStorage
 export const getAccessCodeButtonConfig = async (): Promise<AccessCodeButtonConfig | null> => {
   try {
-    const { data, error } = await supabase
-      .from("access_code_button_config")
-      .select("*")
-      .eq("id", "main_config")
-      .maybeSingle();
-    
-    if (error) {
-      console.error("Error loading access code button config:", error);
-      return null;
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const config = JSON.parse(stored) as AccessCodeButtonConfig;
+      console.log('Loaded access code button config from localStorage:', config);
+      return config;
     }
     
-    console.log('Loaded access code button config:', data);
-    return data as AccessCodeButtonConfig;
+    // Return default config if nothing stored
+    console.log('No config found in localStorage, returning default config');
+    return defaultConfig;
   } catch (error) {
-    console.error("Error loading access code button config:", error);
-    return null;
+    console.error("Error loading access code button config from localStorage:", error);
+    return defaultConfig;
   }
 };
 
-// Update the access code button configuration (admin only)
+// Update the access code button configuration in localStorage
 export const updateAccessCodeButtonConfig = async (config: Partial<AccessCodeButtonConfig>): Promise<AccessCodeButtonConfig | null> => {
   try {
-    console.log('Attempting to update button config with:', config);
+    console.log('Attempting to update button config in localStorage with:', config);
     
-    // Use upsert method with explicit fields to avoid RLS issues
-    const { data, error } = await supabase
-      .from("access_code_button_config")
-      .upsert({
-        id: "main_config",
-        button_text: config.button_text,
-        button_url: config.button_url,
-        is_enabled: config.is_enabled,
-        updated_at: new Date().toISOString()
-      })
-      .select();
+    // Get current config or use default
+    const currentConfig = await getAccessCodeButtonConfig() || defaultConfig;
     
-    if (error) {
-      console.error("Error updating button config:", error);
-      throw new Error(error.message);
-    }
+    // Update with new values
+    const updatedConfig: AccessCodeButtonConfig = {
+      ...currentConfig,
+      ...config,
+      id: "main_config", // Always keep the same ID
+      updated_at: new Date().toISOString()
+    };
     
-    if (!data || data.length === 0) {
-      console.error("No data returned from update operation");
-      return null;
-    }
+    // Store in localStorage
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedConfig));
     
-    console.log('Successfully updated button config:', data[0]);
-    return data[0] as AccessCodeButtonConfig;
+    console.log('Successfully updated button config in localStorage:', updatedConfig);
+    
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new CustomEvent('accessCodeButtonConfigChanged', { 
+      detail: updatedConfig 
+    }));
+    
+    return updatedConfig;
   } catch (error) {
-    console.error("Error updating button config:", error);
+    console.error("Error updating button config in localStorage:", error);
     throw error;
   }
 };

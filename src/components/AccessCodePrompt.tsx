@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { getAccessCodeButtonConfig, AccessCodeButtonConfig } from '@/models/AccessCodeButton';
-import { supabase } from '@/integrations/supabase/client';
 
 interface AccessCodePromptProps {
   onCodeVerified: (code: string) => Promise<boolean>;
@@ -33,39 +32,16 @@ const AccessCodePrompt: React.FC<AccessCodePromptProps> = ({ onCodeVerified }) =
 
     loadButtonConfig();
 
-    // Set up real-time listener for button configuration changes with a unique channel name
-    const buttonConfigChannel = supabase
-      .channel('public:access-code-button-config-changes')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'access_code_button_config' },
-        async (payload) => {
-          console.log('Button configuration changed, received payload:', payload);
-          try {
-            // Force refresh from the database with no caching
-            const { data, error } = await supabase
-              .from("access_code_button_config")
-              .select("*")
-              .eq("id", "main_config")
-              .maybeSingle();
-            
-            if (!error && data) {
-              console.log('Directly fetched updated config:', data);
-              setButtonConfig(data as AccessCodeButtonConfig);
-            } else {
-              console.error('Error directly fetching config:', error);
-            }
-          } catch (error) {
-            console.error('Error refetching button configuration:', error);
-          }
-        }
-      )
-      .subscribe((status) => {
-        console.log('Button config channel status:', status);
-      });
-      
+    // Listen for configuration changes from localStorage
+    const handleConfigChange = (event: CustomEvent) => {
+      console.log('Button configuration changed via localStorage:', event.detail);
+      setButtonConfig(event.detail);
+    };
+
+    window.addEventListener('accessCodeButtonConfigChanged', handleConfigChange as EventListener);
+    
     return () => {
-      console.log('Cleaning up button config channel');
-      supabase.removeChannel(buttonConfigChannel);
+      window.removeEventListener('accessCodeButtonConfigChanged', handleConfigChange as EventListener);
     };
   }, []);
 
