@@ -51,32 +51,44 @@ const AccessCodeButtonTab: React.FC = () => {
 
     loadConfig();
 
-    // Set up real-time listener for configuration changes
+    // Set up real-time listener for configuration changes with unique channel name
     const configChannel = supabase
-      .channel('admin-button-config-changes')
+      .channel('admin-button-config-changes-unique')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'access_code_button_config' },
         async (payload) => {
           console.log('Admin: Button configuration changed, received payload:', payload);
           try {
-            const buttonConfig = await getAccessCodeButtonConfig();
-            if (buttonConfig) {
-              console.log('Admin: Refetched config:', buttonConfig);
+            // Direct database query to avoid caching issues
+            const { data, error } = await supabase
+              .from("access_code_button_config")
+              .select("*")
+              .eq("id", "main_config")
+              .maybeSingle();
+            
+            if (!error && data) {
+              const buttonConfig = data as AccessCodeButtonConfig;
+              console.log('Admin: Directly fetched updated config:', buttonConfig);
               setConfig(buttonConfig);
               setFormData({
                 button_text: buttonConfig.button_text,
                 button_url: buttonConfig.button_url,
                 is_enabled: buttonConfig.is_enabled,
               });
+            } else {
+              console.error('Error directly fetching config:', error);
             }
           } catch (error) {
             console.error('Error refetching button configuration:', error);
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Admin button config channel status:', status);
+      });
       
     return () => {
+      console.log('Cleaning up admin button config channel');
       supabase.removeChannel(configChannel);
     };
   }, [toast]);
@@ -115,6 +127,13 @@ const AccessCodeButtonTab: React.FC = () => {
           title: "Success",
           description: "Access code button configuration updated successfully.",
         });
+        
+        // Force reload of config from database to ensure we have the latest
+        const refreshedConfig = await getAccessCodeButtonConfig();
+        if (refreshedConfig) {
+          console.log('Post-save refresh config:', refreshedConfig);
+          setConfig(refreshedConfig);
+        }
       }
     } catch (error) {
       console.error("Error updating button configuration:", error);
