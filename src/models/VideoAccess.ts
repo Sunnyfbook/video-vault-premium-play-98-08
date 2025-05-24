@@ -11,15 +11,17 @@ export interface VideoAccessCode {
 
 // Function to set user context for admin operations
 const setUserContext = async (userId: string) => {
-  // Set the user context using a simple query that sets the configuration
-  await supabase.rpc('set_config', {
-    setting_name: 'app.current_user_id',
-    setting_value: userId,
-    is_local: true
-  }).catch(() => {
-    // If the function doesn't exist, we'll create a simple workaround
-    console.log('set_config function not available, using session context');
-  });
+  try {
+    // Set the user context using the set_config function
+    await supabase.rpc('set_config', {
+      setting_name: 'app.current_user_id',
+      setting_value: userId,
+      is_local: true
+    });
+  } catch (error) {
+    // If the function doesn't work, log the error
+    console.log('set_config function error:', error);
+  }
 };
 
 // Get all access codes (for admin panel)
