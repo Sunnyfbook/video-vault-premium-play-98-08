@@ -19,7 +19,6 @@ const AdsSection: React.FC<AdsSectionProps> = ({
   positionClass = ""
 }) => {
   useEffect(() => {
-    // Log ads to be rendered for debugging
     if (ads.length > 0) {
       console.log(`AdsSection: Rendering ${ads.length} ads in ${positionClass || 'unknown'} section`);
     }
@@ -28,14 +27,12 @@ const AdsSection: React.FC<AdsSectionProps> = ({
   if (ads.length === 0) return null;
 
   return (
-    <div className={`ads-section ${className} ${positionClass}`}>
+    <div className={`${className} ${positionClass}`} style={{ margin: 0, padding: 0 }}>
       {ads.map((ad, index) => {
-        // Use the EXACT same delay calculation as homepage
         const delaySeconds = staggerDelay 
-          ? baseDelaySeconds + (index * 1.5) // Same as homepage
+          ? baseDelaySeconds + (index * 1.5)
           : baseDelaySeconds;
         
-        // Use the EXACT same key generation as homepage
         const uniqueKey = `${ad.id}-${ad.position}-${index}`;
         
         console.log(`Rendering ad: ${ad.name} at position ${ad.position} with delay ${delaySeconds}s`);

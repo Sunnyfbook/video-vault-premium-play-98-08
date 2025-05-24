@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Video, ImageIcon, Zap, ArrowRight } from 'lucide-react';
@@ -9,7 +8,6 @@ import { useHomepageConfig } from '@/hooks/useHomepageConfig';
 import { supabase } from '@/integrations/supabase/client';
 import { incrementPageView, incrementUniqueVisitor } from '@/models/Analytics';
 
-// Import our components
 import AdsSection from '@/components/video/AdsSection';
 import ContentCarousel from '@/components/ContentCarousel';
 
@@ -99,15 +97,17 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-100 to-slate-200 dark:from-slate-900 dark:via-gray-950 dark:to-slate-800 animate-fade-in overflow-x-hidden">
       <div className="container mx-auto px-2 py-4 sm:px-4 sm:py-6">
-        {/* Top Ads - Remove margins */}
+        {/* Top Ads - NO MARGINS */}
         {topAds.length > 0 && (
-          <AdsSection 
-            ads={topAds} 
-            className="w-full mb-2" 
-            staggerDelay={true} 
-            baseDelaySeconds={0.5}
-            positionClass="top-ads-section" 
-          />
+          <div style={{ margin: 0, padding: 0 }}>
+            <AdsSection 
+              ads={topAds} 
+              className="w-full" 
+              staggerDelay={true} 
+              baseDelaySeconds={0.5}
+              positionClass="top-ads-section" 
+            />
+          </div>
         )}
 
         <header className="mb-4 md:mb-6 text-center">
@@ -181,22 +181,24 @@ const Index = () => {
               )}
             </section>
 
-            {/* Bottom Ads - Reduce margins */}
+            {/* Bottom Ads - NO MARGINS */}
             {bottomAds.length > 0 && (
-              <AdsSection 
-                ads={bottomAds} 
-                className="w-full mt-2" 
-                staggerDelay={true} 
-                baseDelaySeconds={6} 
-                positionClass="bottom-ads-section"
-              />
+              <div style={{ margin: 0, padding: 0 }}>
+                <AdsSection 
+                  ads={bottomAds} 
+                  className="w-full" 
+                  staggerDelay={true} 
+                  baseDelaySeconds={6} 
+                  positionClass="bottom-ads-section"
+                />
+              </div>
             )}
           </main>
 
-          {/* Sidebar Ads */}
+          {/* Sidebar Ads - NO MARGINS */}
           {sidebarAds.length > 0 && (
             <aside className="w-full lg:w-64 xl:w-80 shrink-0">
-              <div className="sticky top-4">
+              <div className="sticky top-4" style={{ margin: 0, padding: 0 }}>
                 <AdsSection 
                   ads={sidebarAds} 
                   staggerDelay={true} 

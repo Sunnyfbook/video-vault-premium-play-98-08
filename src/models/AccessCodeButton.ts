@@ -47,37 +47,23 @@ export const updateAccessCodeButtonConfig = async (config: Partial<AccessCodeBut
     
     console.log('Update data being sent:', updateData);
     
-    // First try to update existing record
-    const { data: updateResult, error: updateError } = await supabase
+    // Use upsert to either insert or update
+    const { data, error } = await supabase
       .from("access_code_button_config")
-      .update(updateData)
-      .eq("id", "main_config")
+      .upsert(updateData, { 
+        onConflict: 'id',
+        ignoreDuplicates: false 
+      })
       .select()
       .single();
     
-    if (updateError && updateError.code === 'PGRST116') {
-      // No rows returned, so insert new record
-      console.log('No existing record found, inserting new one');
-      const { data: insertResult, error: insertError } = await supabase
-        .from("access_code_button_config")
-        .insert(updateData)
-        .select()
-        .single();
-      
-      if (insertError) {
-        console.error("Error inserting access code button config:", insertError);
-        throw new Error(`Failed to create access code button config: ${insertError.message}`);
-      }
-      
-      console.log('Successfully created access code button config:', insertResult);
-      return insertResult as AccessCodeButtonConfig;
-    } else if (updateError) {
-      console.error("Error updating access code button config:", updateError);
-      throw new Error(`Failed to update access code button config: ${updateError.message}`);
+    if (error) {
+      console.error("Error upserting access code button config:", error);
+      throw new Error(`Failed to update access code button config: ${error.message}`);
     }
     
-    console.log('Successfully updated access code button config:', updateResult);
-    return updateResult as AccessCodeButtonConfig;
+    console.log('Successfully updated access code button config:', data);
+    return data as AccessCodeButtonConfig;
     
   } catch (error) {
     console.error("Error updating access code button config:", error);
