@@ -10,33 +10,6 @@ export interface AccessCodeButtonConfig {
   updated_at: string;
 }
 
-// Helper function to ensure admin context is properly set
-const ensureAdminContext = async () => {
-  const userId = localStorage.getItem('userId');
-  const isAdmin = localStorage.getItem('isAdmin') === 'true';
-  
-  console.log('Setting admin context for button config:', { userId, isAdmin });
-  
-  if (!userId || !isAdmin) {
-    throw new Error('Admin access required');
-  }
-
-  // Set the custom auth context for RLS policies
-  const { data, error } = await supabase.rpc('set_config', {
-    setting_name: 'app.current_user_id',
-    setting_value: userId,
-    is_local: true
-  });
-
-  if (error) {
-    console.error('Error setting auth context:', error);
-    throw error;
-  }
-
-  console.log('Auth context set successfully for button config:', data);
-  return true;
-};
-
 // Get the access code button configuration (public access)
 export const getAccessCodeButtonConfig = async (): Promise<AccessCodeButtonConfig | null> => {
   try {
@@ -44,7 +17,7 @@ export const getAccessCodeButtonConfig = async (): Promise<AccessCodeButtonConfi
       .from("access_code_button_config")
       .select("*")
       .eq("id", "main_config")
-      .single();
+      .maybeSingle();
     
     if (error) {
       console.error("Error loading access code button config:", error);
@@ -64,8 +37,8 @@ export const updateAccessCodeButtonConfig = async (config: Partial<AccessCodeBut
   try {
     console.log('Attempting to update access code button config with:', config);
     
-    // Direct update without admin context check for now
-    const { data, error } = await supabase
+    // First, try to update the existing row
+    const { data: updateData, error: updateError } = await supabase
       .from("access_code_button_config")
       .update({
         button_text: config.button_text,
@@ -75,16 +48,35 @@ export const updateAccessCodeButtonConfig = async (config: Partial<AccessCodeBut
       })
       .eq("id", "main_config")
       .select()
-      .single();
+      .maybeSingle();
     
-    if (error) {
-      console.error("Error updating access code button config:", error);
-      console.error("Error details:", error.message, error.details, error.hint);
-      throw new Error(`Failed to update access code button config: ${error.message}`);
+    // If update succeeded, return the data
+    if (!updateError && updateData) {
+      console.log('Successfully updated access code button config:', updateData);
+      return updateData as AccessCodeButtonConfig;
     }
     
-    console.log('Successfully updated access code button config:', data);
-    return data as AccessCodeButtonConfig;
+    // If no rows were affected, try to insert a new row
+    console.log('No existing row found, creating new one...');
+    const { data: insertData, error: insertError } = await supabase
+      .from("access_code_button_config")
+      .insert({
+        id: "main_config",
+        button_text: config.button_text || "Get Access Code",
+        button_url: config.button_url || "https://example.com/get-access",
+        is_enabled: config.is_enabled ?? true
+      })
+      .select()
+      .single();
+    
+    if (insertError) {
+      console.error("Error inserting access code button config:", insertError);
+      throw new Error(`Failed to create access code button config: ${insertError.message}`);
+    }
+    
+    console.log('Successfully created access code button config:', insertData);
+    return insertData as AccessCodeButtonConfig;
+    
   } catch (error) {
     console.error("Error updating access code button config:", error);
     throw error;

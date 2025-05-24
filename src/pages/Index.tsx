@@ -32,7 +32,6 @@ const Index = () => {
 
   const overallLoading = contentLoading || configLoading;
 
-  // Track visit
   useEffect(() => {
     // Track page view
     incrementPageView();
@@ -98,10 +97,10 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-100 to-slate-200 dark:from-slate-900 dark:via-gray-950 dark:to-slate-800 animate-fade-in overflow-x-hidden">
-      <div className="container mx-auto px-2 py-6 sm:px-4 sm:py-8 lg:py-12">
-        {/* Top Ads - Reduced margins */}
+      <div className="container mx-auto px-2 py-4 sm:px-4 sm:py-6">
+        {/* Top Ads - Minimal spacing */}
         {topAds.length > 0 && (
-          <div className="mb-4 top-ads-container">
+          <div className="mb-2 top-ads-container">
             <AdsSection 
               ads={topAds} 
               className="w-full" 
@@ -112,18 +111,18 @@ const Index = () => {
           </div>
         )}
 
-        <header className="mb-8 md:mb-12 text-center">
-          <Zap size={48} className="mx-auto mb-6 text-brand-accent animate-pulse-soft" />
+        <header className="mb-6 md:mb-8 text-center">
+          <Zap size={48} className="mx-auto mb-4 text-brand-accent animate-pulse-soft" />
           {overallLoading ? (
             <>
-              <div className="h-16 bg-gray-300 dark:bg-gray-700 rounded w-3/4 mx-auto mb-6 animate-pulse"></div>
+              <div className="h-16 bg-gray-300 dark:bg-gray-700 rounded w-3/4 mx-auto mb-4 animate-pulse"></div>
               <div className="h-10 bg-gray-200 dark:bg-gray-600 rounded w-full max-w-3xl mx-auto animate-pulse"></div>
             </>
           ) : configError ? (
             <p className="text-red-500">Error loading homepage configuration: {configError}</p>
           ) : (
             <>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-3">
                 <span className="gradient-text">
                   {homepageConfig.site_title}
                 </span>
@@ -135,18 +134,18 @@ const Index = () => {
           )}
         </header>
 
-        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
-          <main className="space-y-8 md:space-y-12 flex-grow">
+        <div className="flex flex-col lg:flex-row gap-3 lg:gap-4">
+          <main className="space-y-6 md:space-y-8 flex-grow">
             {/* Featured Videos Section */}
             <section>
-              <div className="flex items-center gap-3 mb-6">
+              <div className="flex items-center gap-3 mb-4">
                 <Video size={32} className="text-primary" />
                 <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white !mb-0">Featured Videos</h2>
               </div>
               {contentLoading ? (
                 <div className="h-80 bg-gray-200 dark:bg-slate-800 rounded-xl animate-pulse"></div>
               ) : videos.length === 0 ? (
-                <div className="bg-card border border-border rounded-xl p-8 text-center shadow-subtle">
+                <div className="bg-card border border-border rounded-xl p-6 text-center shadow-subtle">
                   <Video size={48} className="mx-auto text-gray-400 dark:text-gray-500 mb-4" />
                   <p className="text-lg text-muted-foreground">No featured videos available right now. Please check back later!</p>
                 </div>
@@ -155,7 +154,7 @@ const Index = () => {
               )}
               
               {/* View All Videos Button */}
-              <div className="text-center mt-6">
+              <div className="text-center mt-4">
                 <Link to="/videos">
                   <Button variant="outline" className="flex items-center gap-2 mx-auto">
                     View All Videos
@@ -167,14 +166,14 @@ const Index = () => {
 
             {/* Featured Images Section */}
             <section>
-              <div className="flex items-center gap-3 mb-6">
+              <div className="flex items-center gap-3 mb-4">
                 <ImageIcon size={32} className="text-brand-accent" />
                 <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white !mb-0">Featured Images</h2>
               </div>
               {contentLoading ? (
                 <div className="h-80 bg-gray-200 dark:bg-slate-800 rounded-xl animate-pulse"></div>
               ) : images.length === 0 ? (
-                <div className="bg-card border border-border rounded-xl p-8 text-center shadow-subtle">
+                <div className="bg-card border border-border rounded-xl p-6 text-center shadow-subtle">
                   <ImageIcon size={48} className="mx-auto text-gray-400 dark:text-gray-500 mb-4" />
                   <p className="text-lg text-muted-foreground">No featured images to showcase at the moment.</p>
                 </div>
@@ -183,9 +182,9 @@ const Index = () => {
               )}
             </section>
 
-            {/* Bottom Ads - Reduced margins */}
+            {/* Bottom Ads - Minimal spacing */}
             {bottomAds.length > 0 && (
-              <div className="mt-6 bottom-ads-container">
+              <div className="mt-4 bottom-ads-container">
                 <AdsSection 
                   ads={bottomAds} 
                   className="w-full" 
@@ -197,7 +196,7 @@ const Index = () => {
             )}
           </main>
 
-          {/* Sidebar Ads - Reduced margins */}
+          {/* Sidebar Ads - Closer to main content */}
           {sidebarAds.length > 0 && (
             <aside className="w-full lg:w-64 xl:w-80 shrink-0">
               <div className="sticky top-4 sidebar-ads-container">
@@ -212,7 +211,7 @@ const Index = () => {
           )}
         </div>
 
-        <footer className="mt-12 md:mt-16 pt-8 border-t border-border/50 text-center">
+        <footer className="mt-8 md:mt-12 pt-6 border-t border-border/50 text-center">
           {overallLoading ? (
              <div className="h-5 bg-gray-300 dark:bg-gray-700 rounded w-1/2 mx-auto animate-pulse"></div>
           ) : (
