@@ -16,6 +16,7 @@ import AnalyticsOverview from '@/components/admin/AnalyticsOverview';
 import VideosTab from '@/components/admin/VideosTab';
 import AdsTab from '@/components/admin/AdsTab';
 import VideoAccessTab from '@/components/admin/VideoAccessTab';
+import AccessCodeButtonTab from '@/components/admin/AccessCodeButtonTab';
 import SEOTab from '@/components/admin/SEOTab';
 import HomepageSettingsTab from '@/components/admin/HomepageSettingsTab';
 
@@ -121,6 +122,7 @@ const Admin: React.FC = () => {
           <TabsTrigger value="videos">Videos</TabsTrigger>
           <TabsTrigger value="ads">Ads</TabsTrigger>
           <TabsTrigger value="access_codes">Video Access</TabsTrigger>
+          <TabsTrigger value="access_button">Access Button</TabsTrigger>
           <TabsTrigger value="seo">SEO Settings</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="homepage">Homepage</TabsTrigger>
@@ -138,6 +140,10 @@ const Admin: React.FC = () => {
 
         <TabsContent value="access_codes">
           <VideoAccessTab accessCodes={accessCodes} />
+        </TabsContent>
+
+        <TabsContent value="access_button">
+          <AccessCodeButtonTab />
         </TabsContent>
 
         <TabsContent value="seo">

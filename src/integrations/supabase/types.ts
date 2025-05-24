@@ -9,6 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      access_code_button_config: {
+        Row: {
+          button_text: string
+          button_url: string
+          created_at: string
+          id: string
+          is_enabled: boolean
+          updated_at: string
+        }
+        Insert: {
+          button_text?: string
+          button_url?: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          updated_at?: string
+        }
+        Update: {
+          button_text?: string
+          button_url?: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ads: {
         Row: {
           code: string
