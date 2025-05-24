@@ -112,10 +112,10 @@ const Videos: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-100 to-slate-200 dark:from-slate-900 dark:via-gray-950 dark:to-slate-800">
-        <div className="container mx-auto px-4 py-12">
+        <div className="container mx-auto px-4 py-6">
           {/* Top ads */}
           {topAds.length > 0 && (
-            <div className="mb-8">
+            <div className="mb-6">
               <AdsSection 
                 ads={topAds} 
                 className="w-full" 
@@ -155,10 +155,10 @@ const Videos: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-100 to-slate-200 dark:from-slate-900 dark:via-gray-950 dark:to-slate-800">
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 py-6">
         {/* Top ads */}
         {topAds.length > 0 && (
-          <div className="mb-8">
+          <div className="mb-6">
             <AdsSection 
               ads={topAds} 
               className="w-full" 
@@ -171,8 +171,8 @@ const Videos: React.FC = () => {
 
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="flex-1">
-            <header className="mb-12 text-center">
-              <h1 className="text-4xl md:text-5xl font-extrabold mb-4">
+            <header className="mb-6 text-center">
+              <h1 className="text-4xl md:text-5xl font-extrabold mb-2">
                 <span className="gradient-text">All Videos</span>
               </h1>
               <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
@@ -181,7 +181,7 @@ const Videos: React.FC = () => {
             </header>
 
             {videos.length === 0 ? (
-              <div className="text-center py-20">
+              <div className="text-center py-12">
                 <Play size={64} className="mx-auto text-gray-400 dark:text-gray-500 mb-6" />
                 <h2 className="text-2xl font-semibold text-gray-600 dark:text-gray-300 mb-4">
                   No videos available
@@ -281,7 +281,7 @@ const Videos: React.FC = () => {
 
         {/* Bottom ads */}
         {bottomAds.length > 0 && (
-          <div className="mt-12">
+          <div className="mt-8">
             <AdsSection 
               ads={bottomAds} 
               className="w-full" 
