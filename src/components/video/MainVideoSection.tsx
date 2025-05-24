@@ -69,23 +69,23 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
   };
 
   return (
-    <div className="flex-1 space-y-4">
+    <div className="flex-1 space-y-3 md:space-y-4">
       <div className="relative">
         <VideoPlayer src={video.url} title={video.title} disableClickToToggle={true} />
         
-        {/* In-video ad overlay - centered in the player */}
+        {/* In-video ad overlay */}
         {showInVideoAd && inVideoAds.length > 0 && (
-          <div className="absolute inset-0 flex items-center justify-center animate-fade-in z-50">
-            <div className="in-video-ad-container">
+          <div className="absolute inset-0 flex items-center justify-center animate-fade-in z-50 p-2">
+            <div className="in-video-ad-container relative max-w-sm w-full">
               <button 
-                className="absolute -top-2 -right-2 bg-black/70 text-white rounded-full w-6 h-6 flex items-center justify-center z-50"
+                className="absolute -top-2 -right-2 bg-black/70 text-white rounded-full w-6 h-6 flex items-center justify-center z-50 touch-button"
                 onClick={handleDismissAd}
               >
                 ✕
               </button>
               <AdsSection 
                 ads={[inVideoAds[currentInVideoAdIndex]]} 
-                className="in-video-ad shadow-xl"
+                className="in-video-ad shadow-xl rounded-lg"
                 staggerDelay={false}
                 baseDelaySeconds={0}
                 positionClass="in-video-ads-section"
@@ -97,9 +97,9 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
       
       <VideoInfo video={video} />
       
-      {/* Bottom ads - EXACT same styling as homepage */}
+      {/* Bottom ads */}
       {bottomAds.length > 0 && (
-        <div className="mt-8 bottom-ads-container">
+        <div className="mt-4 md:mt-6 bottom-ads-container">
           <AdsSection 
             ads={bottomAds} 
             className="w-full" 

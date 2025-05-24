@@ -75,12 +75,13 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', sans-serif; 
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; 
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     margin: 0;
     padding: 0;
     line-height: 1.5;
+    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -88,11 +89,16 @@
     margin: 0;
     padding: 0;
   }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 @layer components {
   .video-container {
-    @apply relative w-full pt-[56.25%] bg-video-background rounded-xl overflow-hidden shadow-2xl border-2 border-transparent dark:border-gray-800;
+    @apply relative w-full aspect-video bg-video-background rounded-lg overflow-hidden shadow-lg border border-gray-200 dark:border-gray-700;
   }
   
   .video-player {
@@ -100,15 +106,15 @@
   }
   
   .video-controls {
-    @apply absolute bottom-0 left-0 right-0 flex items-center justify-between px-4 py-3 bg-gradient-to-t from-black/90 to-transparent transition-opacity duration-300;
+    @apply absolute bottom-0 left-0 right-0 flex items-center justify-between px-3 py-2 bg-gradient-to-t from-black/90 to-transparent transition-opacity duration-300;
   }
   
   .control-button {
-    @apply p-2.5 text-white rounded-full hover:bg-white/25 transition-colors duration-200;
+    @apply p-2 text-white rounded-full hover:bg-white/25 transition-colors duration-200 touch-manipulation;
   }
   
   .progress-bar {
-    @apply h-1.5 bg-gray-700/70 rounded-full overflow-hidden relative cursor-pointer;
+    @apply h-2 bg-gray-700/70 rounded-full overflow-hidden relative cursor-pointer touch-manipulation;
   }
   
   .progress-fill {
@@ -124,20 +130,42 @@
   }
   
   .admin-card {
-    @apply bg-card shadow-card rounded-xl p-6 transition-all duration-300 hover:shadow-card-hover;
+    @apply bg-card shadow-card rounded-xl p-4 md:p-6 transition-all duration-300 hover:shadow-card-hover;
   }
 
   .section-title {
-    @apply text-3xl sm:text-4xl font-extrabold mb-4 text-gray-900 dark:text-white;
-    margin-bottom: 1rem !important;
+    @apply text-2xl sm:text-3xl md:text-4xl font-extrabold mb-3 md:mb-4 text-gray-900 dark:text-white;
   }
 
   .gradient-text {
     @apply text-transparent bg-clip-text bg-gradient-to-r from-primary via-brand-accent to-accent;
   }
+
+  /* Professional container styling */
+  .app-container {
+    @apply max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8;
+  }
+
+  /* Responsive grid layouts */
+  .responsive-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6;
+  }
+
+  .responsive-flex {
+    @apply flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-6;
+  }
+
+  /* Touch-friendly buttons */
+  .touch-button {
+    @apply min-h-[44px] min-w-[44px] touch-manipulation;
+  }
+
+  /* Professional card styling */
+  .professional-card {
+    @apply bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-4 md:p-6 transition-all duration-300 hover:shadow-xl hover:scale-[1.02];
+  }
 }
 
-/* Utility classes to remove spacing */
 @layer utilities {
   .no-spacing {
     margin: 0 !important;
@@ -149,21 +177,35 @@
     line-height: 1.2 !important;
   }
   
-  /* Remove default margins from common elements */
-  .mb-0-force {
-    margin-bottom: 0 !important;
+  /* Safe area handling for mobile devices */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
   }
   
-  .mt-0-force {
-    margin-top: 0 !important;
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
   }
-  
-  .p-0-force {
-    padding: 0 !important;
+
+  /* Text size utilities for better readability */
+  .text-responsive {
+    @apply text-sm sm:text-base;
+  }
+
+  .heading-responsive {
+    @apply text-lg sm:text-xl md:text-2xl;
+  }
+
+  /* Smooth animations */
+  .animate-slide-up {
+    animation: slideUp 0.4s ease-out;
+  }
+
+  .animate-fade-in-up {
+    animation: fadeInUp 0.5s ease-out;
   }
 }
 
-/* Global spacing resets for ad sections */
+/* Remove spacing from ad sections */
 [class*="ads-section"],
 [data-ad-type] {
   margin: 0 !important;
@@ -171,20 +213,99 @@
   line-height: 1 !important;
 }
 
-/* Remove spacing from containers */
-.container {
-  padding-top: 1rem !important;
-  padding-bottom: 1rem !important;
-}
-
-/* Compact spacing for mobile */
+/* Responsive improvements */
 @media (max-width: 768px) {
   .container {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
     padding-top: 0.5rem !important;
     padding-bottom: 0.5rem !important;
   }
   
   .section-title {
-    margin-bottom: 0.5rem !important;
+    margin-bottom: 0.75rem !important;
   }
+
+  /* Better mobile video player */
+  .video-controls {
+    padding: 0.5rem !important;
+  }
+
+  .control-button {
+    padding: 0.75rem !important;
+  }
+
+  /* Mobile-friendly text sizes */
+  h1 {
+    @apply text-xl sm:text-2xl;
+  }
+
+  h2 {
+    @apply text-lg sm:text-xl;
+  }
+
+  /* Better mobile spacing */
+  .space-y-6 > * + * {
+    margin-top: 1rem !important;
+  }
+
+  .space-y-8 > * + * {
+    margin-top: 1.5rem !important;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Extra small devices */
+  .app-container {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+
+  .professional-card {
+    padding: 1rem !important;
+  }
+
+  .admin-card {
+    padding: 1rem !important;
+  }
+}
+
+/* Animations */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Performance optimizations */
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-opacity {
+  will-change: opacity;
+}
+
+/* Better focus states for accessibility */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  @apply outline-2 outline-offset-2 outline-primary;
 }

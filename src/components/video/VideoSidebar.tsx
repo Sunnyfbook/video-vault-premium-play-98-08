@@ -16,12 +16,12 @@ const VideoSidebar: React.FC<VideoSidebarProps> = ({
   onCopyLink 
 }) => {
   return (
-    <aside className="w-full lg:w-64 xl:w-80 shrink-0 space-y-6">
+    <aside className="w-full lg:w-64 xl:w-80 shrink-0 space-y-4 md:space-y-6">
       {/* Navigation and Share Actions */}
-      <div className="bg-card border border-border rounded-xl p-4 shadow-subtle">
+      <div className="professional-card">
         <div className="space-y-3">
           <Link to="/">
-            <Button variant="outline" className="w-full flex items-center gap-2">
+            <Button variant="outline" className="w-full flex items-center gap-2 touch-button text-responsive">
               <ArrowLeft size={16} />
               Back to Home
             </Button>
@@ -30,7 +30,7 @@ const VideoSidebar: React.FC<VideoSidebarProps> = ({
           <Button 
             variant="ghost" 
             onClick={onCopyLink}
-            className="w-full flex items-center gap-2 text-primary hover:bg-primary/10"
+            className="w-full flex items-center gap-2 text-primary hover:bg-primary/10 touch-button text-responsive"
           >
             <Share2 size={16} />
             Copy Link
@@ -38,7 +38,7 @@ const VideoSidebar: React.FC<VideoSidebarProps> = ({
         </div>
       </div>
 
-      {/* Sidebar ads - EXACT same styling as homepage */}
+      {/* Sidebar ads */}
       {sidebarAds.length > 0 && (
         <div className="sidebar-ads-container">
           <AdsSection 
