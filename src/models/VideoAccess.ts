@@ -9,25 +9,37 @@ export interface VideoAccessCode {
   updated_at: string;
 }
 
+// Helper function to ensure admin context is properly set
+const ensureAdminContext = async () => {
+  const userId = localStorage.getItem('userId');
+  const isAdmin = localStorage.getItem('isAdmin') === 'true';
+  
+  console.log('Setting admin context:', { userId, isAdmin });
+  
+  if (!userId || !isAdmin) {
+    throw new Error('Admin access required');
+  }
+
+  // Set the custom auth context for RLS policies
+  const { data, error } = await supabase.rpc('set_config', {
+    setting_name: 'app.current_user_id',
+    setting_value: userId,
+    is_local: true
+  });
+
+  if (error) {
+    console.error('Error setting auth context:', error);
+    throw error;
+  }
+
+  console.log('Auth context set successfully:', data);
+  return true;
+};
+
 // Get all access codes (for admin panel)
 export const getAccessCodes = async (): Promise<VideoAccessCode[]> => {
   try {
-    const userId = localStorage.getItem('userId');
-    const isAdmin = localStorage.getItem('isAdmin') === 'true';
-    
-    console.log('getAccessCodes - checking admin status:', { userId, isAdmin });
-    
-    if (!userId || !isAdmin) {
-      console.log('Not admin, returning empty array');
-      return [];
-    }
-
-    // Set the custom auth context for RLS policies
-    await supabase.rpc('set_config', {
-      setting_name: 'app.current_user_id',
-      setting_value: userId,
-      is_local: true
-    });
+    await ensureAdminContext();
 
     const { data, error } = await supabase
       .from("video_access_codes")
@@ -71,21 +83,7 @@ export const verifyAccessCode = async (code: string): Promise<boolean> => {
 // Add a new access code
 export const addAccessCode = async (code: string): Promise<VideoAccessCode | null> => {
   try {
-    const userId = localStorage.getItem('userId');
-    const isAdmin = localStorage.getItem('isAdmin') === 'true';
-    
-    console.log('addAccessCode - checking admin status:', { userId, isAdmin });
-    
-    if (!userId || !isAdmin) {
-      throw new Error('Admin access required');
-    }
-
-    // Set the custom auth context for RLS policies
-    await supabase.rpc('set_config', {
-      setting_name: 'app.current_user_id',
-      setting_value: userId,
-      is_local: true
-    });
+    await ensureAdminContext();
 
     const { data, error } = await supabase
       .from("video_access_codes")
@@ -109,19 +107,7 @@ export const addAccessCode = async (code: string): Promise<VideoAccessCode | nul
 // Update an access code
 export const updateAccessCode = async (accessCode: VideoAccessCode): Promise<VideoAccessCode | null> => {
   try {
-    const userId = localStorage.getItem('userId');
-    const isAdmin = localStorage.getItem('isAdmin') === 'true';
-    
-    if (!userId || !isAdmin) {
-      throw new Error('Admin access required');
-    }
-
-    // Set the custom auth context for RLS policies
-    await supabase.rpc('set_config', {
-      setting_name: 'app.current_user_id',
-      setting_value: userId,
-      is_local: true
-    });
+    await ensureAdminContext();
 
     const { data, error } = await supabase
       .from("video_access_codes")
@@ -149,19 +135,7 @@ export const updateAccessCode = async (accessCode: VideoAccessCode): Promise<Vid
 // Delete an access code
 export const deleteAccessCode = async (id: string): Promise<boolean> => {
   try {
-    const userId = localStorage.getItem('userId');
-    const isAdmin = localStorage.getItem('isAdmin') === 'true';
-    
-    if (!userId || !isAdmin) {
-      throw new Error('Admin access required');
-    }
-
-    // Set the custom auth context for RLS policies
-    await supabase.rpc('set_config', {
-      setting_name: 'app.current_user_id',
-      setting_value: userId,
-      is_local: true
-    });
+    await ensureAdminContext();
 
     const { error } = await supabase
       .from("video_access_codes")
