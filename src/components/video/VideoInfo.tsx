@@ -25,11 +25,11 @@ const VideoInfo: React.FC<VideoInfoProps> = ({ video }) => {
   };
 
   return (
-    <div className="space-y-4 md:space-y-6">
-      <div className="professional-card">
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3">{video.title}</h1>
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-gray-500 text-sm mb-4 gap-2 sm:gap-0">
-          <div className="text-responsive">
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold mb-2">{video.title}</h1>
+        <div className="flex justify-between items-center text-gray-500 text-sm mb-4">
+          <div>
             <span>{video.views} views</span>
             <span className="mx-2">•</span>
             <span>
@@ -38,13 +38,13 @@ const VideoInfo: React.FC<VideoInfoProps> = ({ video }) => {
               })}
             </span>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-3">
             <DownloadButton videoSrc={video.url} videoTitle={video.title} />
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={handleShareClick}
-              className="text-primary hover:bg-primary/10 touch-button text-responsive"
+              className="text-primary hover:bg-primary/10"
             >
               <Share2 size={16} className="mr-1" />
               Share
@@ -56,12 +56,12 @@ const VideoInfo: React.FC<VideoInfoProps> = ({ video }) => {
       <ReactionSection videoId={video.id} />
       
       {video.description && (
-        <div className="professional-card">
-          <p className="whitespace-pre-line text-responsive leading-relaxed">{video.description}</p>
+        <div className="bg-gray-50 dark:bg-gray-800/40 p-4 rounded-md">
+          <p className="whitespace-pre-line">{video.description}</p>
         </div>
       )}
       
-      <div className="professional-card">
+      <div className="pt-4 border-t">
         <CommentSection videoId={video.id} />
       </div>
     </div>

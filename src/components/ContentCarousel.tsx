@@ -25,8 +25,8 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
   const { config } = useHomepageConfig();
   const [embla, setEmbla] = useState<any>(null);
   
-  // Responsive sizing with better mobile defaults
-  const containerMaxWidth = config?.container_max_width || '320px';
+  // Default size values, with fallbacks if config values are missing
+  const containerMaxWidth = config?.container_max_width || '280px';
   const containerAspectRatio = config?.container_aspect_ratio || '9/16';
 
   // Setup video refs
@@ -107,12 +107,11 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
     }
   };
 
-  // Responsive container style
+  // Apply custom style for container from config
   const containerStyle = {
     maxWidth: containerMaxWidth,
     aspectRatio: containerAspectRatio,
-    width: '100%',
-    minWidth: '280px' // Ensure minimum size on mobile
+    width: '100%' // Make sure it takes full available width up to max width
   };
 
   const onCarouselCreated = React.useCallback((api) => {
@@ -120,7 +119,7 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
   }, []);
 
   return (
-    <div className="relative group px-2 sm:px-0" ref={carouselRef}>
+    <div className="relative group" ref={carouselRef}>
       <Carousel
         opts={{
           loop: true,
@@ -131,17 +130,17 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
         className="w-full"
         onCreated={onCarouselCreated}
       >
-        <CarouselContent className="-ml-2 md:-ml-4">
+        <CarouselContent>
           {items.map((item, index) => (
             <CarouselItem 
               key={item.id} 
-              className={`pl-2 md:pl-4 basis-full sm:basis-auto flex justify-center transition-all duration-300 ${
+              className={`basis-full md:basis-auto flex justify-center transition-all duration-300 ${
                 activeIndex === index 
                   ? "opacity-100 scale-100" 
                   : "opacity-80 scale-95"
               }`}
             >
-              <Card className="rounded-xl overflow-hidden shadow-lg border-0 w-auto will-change-transform">
+              <Card className="rounded-xl overflow-hidden shadow-lg border-0 w-auto">
                 <div 
                   className="bg-black overflow-hidden" 
                   style={containerStyle}
@@ -153,18 +152,18 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
           ))}
         </CarouselContent>
         
-        {/* Touch-friendly navigation arrows */}
-        <CarouselPrevious className="opacity-80 hover:opacity-100 transition-opacity duration-300 touch-button left-2 sm:left-4" />
-        <CarouselNext className="opacity-80 hover:opacity-100 transition-opacity duration-300 touch-button right-2 sm:right-4" />
+        {/* Always visible navigation arrows, more visible on hover */}
+        <CarouselPrevious className="opacity-70 md:opacity-70 hover:opacity-100 transition-opacity duration-300" />
+        <CarouselNext className="opacity-70 md:opacity-70 hover:opacity-100 transition-opacity duration-300" />
       </Carousel>
       
-      {/* Responsive dots indicator */}
+      {/* Dots indicator at the bottom */}
       {items.length > 1 && (
-        <div className="flex justify-center mt-3 md:mt-4 gap-2">
+        <div className="flex justify-center mt-4 gap-2">
           {items.map((_, index) => (
             <button
               key={index}
-              className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full transition-all touch-button ${
+              className={`w-2.5 h-2.5 rounded-full transition-all ${
                 activeIndex === index 
                   ? "bg-primary scale-125" 
                   : "bg-gray-300 dark:bg-gray-600"
