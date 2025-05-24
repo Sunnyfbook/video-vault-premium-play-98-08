@@ -38,17 +38,15 @@ const VideoAccessTab: React.FC<VideoAccessTabProps> = ({ accessCodes }) => {
       if (result) {
         setNewAccessCode('');
         toast({
-          title: "Access Code Added",
+          title: "Success",
           description: "The access code has been added successfully.",
         });
-      } else {
-        throw new Error("Failed to add access code");
       }
     } catch (error) {
       console.error("Error adding access code:", error);
       toast({
         title: "Error",
-        description: "Failed to add access code.",
+        description: error instanceof Error ? error.message : "Failed to add access code.",
         variant: "destructive",
       });
     } finally {
@@ -82,17 +80,15 @@ const VideoAccessTab: React.FC<VideoAccessTabProps> = ({ accessCodes }) => {
       
       if (result) {
         toast({
-          title: "Access Code Updated",
+          title: "Success",
           description: `Access code ${currentCode.is_active ? 'disabled' : 'enabled'} successfully.`,
         });
-      } else {
-        throw new Error("Failed to update access code");
       }
     } catch (error) {
       console.error("Error toggling access code:", error);
       toast({
         title: "Error",
-        description: "Failed to update access code.",
+        description: error instanceof Error ? error.message : "Failed to update access code.",
         variant: "destructive",
       });
     } finally {
@@ -126,17 +122,15 @@ const VideoAccessTab: React.FC<VideoAccessTabProps> = ({ accessCodes }) => {
       
       if (success) {
         toast({
-          title: "Access Code Removed",
-          description: "The access code has been removed.",
+          title: "Success",
+          description: "The access code has been removed successfully.",
         });
-      } else {
-        throw new Error("Failed to delete access code");
       }
     } catch (error) {
       console.error("Error removing access code:", error);
       toast({
         title: "Error",
-        description: "Failed to remove access code.",
+        description: error instanceof Error ? error.message : "Failed to remove access code.",
         variant: "destructive",
       });
     } finally {

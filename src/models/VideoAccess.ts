@@ -48,14 +48,14 @@ export const getAccessCodes = async (): Promise<VideoAccessCode[]> => {
     
     if (error) {
       console.error("Error loading access codes:", error);
-      return [];
+      throw new Error(`Failed to load access codes: ${error.message}`);
     }
     
     console.log('Loaded access codes:', data);
     return data as VideoAccessCode[];
   } catch (error) {
     console.error("Error loading access codes:", error);
-    return [];
+    throw error;
   }
 };
 
@@ -93,14 +93,14 @@ export const addAccessCode = async (code: string): Promise<VideoAccessCode | nul
     
     if (error) {
       console.error("Error adding access code:", error);
-      return null;
+      throw new Error(`Failed to add access code: ${error.message}`);
     }
     
     console.log('Added access code:', data);
     return data as VideoAccessCode;
   } catch (error) {
     console.error("Error adding access code:", error);
-    return null;
+    throw error;
   }
 };
 
@@ -122,13 +122,13 @@ export const updateAccessCode = async (accessCode: VideoAccessCode): Promise<Vid
     
     if (error) {
       console.error("Error updating access code:", error);
-      return null;
+      throw new Error(`Failed to update access code: ${error.message}`);
     }
     
     return data as VideoAccessCode;
   } catch (error) {
     console.error("Error updating access code:", error);
-    return null;
+    throw error;
   }
 };
 
@@ -144,12 +144,12 @@ export const deleteAccessCode = async (id: string): Promise<boolean> => {
     
     if (error) {
       console.error("Error deleting access code:", error);
-      return false;
+      throw new Error(`Failed to delete access code: ${error.message}`);
     }
     
     return true;
   } catch (error) {
     console.error("Error deleting access code:", error);
-    return false;
+    throw error;
   }
 };
