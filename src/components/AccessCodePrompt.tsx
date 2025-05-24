@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -90,15 +91,15 @@ const AccessCodePrompt: React.FC<AccessCodePromptProps> = ({ onCodeVerified }) =
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 via-gray-100 to-slate-200 dark:from-slate-900 dark:via-gray-950 dark:to-slate-800 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
+        <CardHeader className="text-center pb-4">
           <CardTitle className="text-2xl font-bold">Access Required</CardTitle>
           <CardDescription>
             Please enter a valid access code to view the videos
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
+        <CardContent className="space-y-3 pt-0">
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <div className="space-y-1">
               <Label htmlFor="accessCode">Access Code</Label>
               <Input
                 id="accessCode"
@@ -118,8 +119,8 @@ const AccessCodePrompt: React.FC<AccessCodePromptProps> = ({ onCodeVerified }) =
           
           {/* Get Access Code Button */}
           {buttonConfig && buttonConfig.is_enabled && (
-            <div className="pt-2 border-t">
-              <p className="mb-2 text-sm text-center text-muted-foreground">
+            <div className="pt-1 border-t">
+              <p className="mb-1 text-sm text-center text-muted-foreground">
                 Need an access code?
               </p>
               <Button 
