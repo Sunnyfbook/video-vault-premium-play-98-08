@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Video, ImageIcon, Zap, ArrowRight } from 'lucide-react';
@@ -98,17 +99,15 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-100 to-slate-200 dark:from-slate-900 dark:via-gray-950 dark:to-slate-800 animate-fade-in overflow-x-hidden">
       <div className="container mx-auto px-2 py-4 sm:px-4 sm:py-6">
-        {/* Top Ads - Minimal spacing */}
+        {/* Top Ads - No margins */}
         {topAds.length > 0 && (
-          <div className="mb-2 top-ads-container">
-            <AdsSection 
-              ads={topAds} 
-              className="w-full" 
-              staggerDelay={true} 
-              baseDelaySeconds={0.5}
-              positionClass="top-ads-section" 
-            />
-          </div>
+          <AdsSection 
+            ads={topAds} 
+            className="w-full mb-4" 
+            staggerDelay={true} 
+            baseDelaySeconds={0.5}
+            positionClass="top-ads-section" 
+          />
         )}
 
         <header className="mb-6 md:mb-8 text-center">
@@ -134,7 +133,7 @@ const Index = () => {
           )}
         </header>
 
-        <div className="flex flex-col lg:flex-row gap-3 lg:gap-4">
+        <div className="flex flex-col lg:flex-row gap-4">
           <main className="space-y-6 md:space-y-8 flex-grow">
             {/* Featured Videos Section */}
             <section>
@@ -182,24 +181,22 @@ const Index = () => {
               )}
             </section>
 
-            {/* Bottom Ads - Minimal spacing */}
+            {/* Bottom Ads - No extra margins */}
             {bottomAds.length > 0 && (
-              <div className="mt-4 bottom-ads-container">
-                <AdsSection 
-                  ads={bottomAds} 
-                  className="w-full" 
-                  staggerDelay={true} 
-                  baseDelaySeconds={6} 
-                  positionClass="bottom-ads-section"
-                />
-              </div>
+              <AdsSection 
+                ads={bottomAds} 
+                className="w-full mt-6" 
+                staggerDelay={true} 
+                baseDelaySeconds={6} 
+                positionClass="bottom-ads-section"
+              />
             )}
           </main>
 
-          {/* Sidebar Ads - Closer to main content */}
+          {/* Sidebar Ads */}
           {sidebarAds.length > 0 && (
             <aside className="w-full lg:w-64 xl:w-80 shrink-0">
-              <div className="sticky top-4 sidebar-ads-container">
+              <div className="sticky top-4">
                 <AdsSection 
                   ads={sidebarAds} 
                   staggerDelay={true} 

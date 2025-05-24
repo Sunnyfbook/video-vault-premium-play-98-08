@@ -37,45 +37,26 @@ export const updateAccessCodeButtonConfig = async (config: Partial<AccessCodeBut
   try {
     console.log('Attempting to update access code button config with:', config);
     
-    // First, try to update the existing row
-    const { data: updateData, error: updateError } = await supabase
+    // Use upsert to either update existing row or create new one
+    const { data, error } = await supabase
       .from("access_code_button_config")
-      .update({
-        button_text: config.button_text,
-        button_url: config.button_url,
-        is_enabled: config.is_enabled,
-        updated_at: new Date().toISOString()
-      })
-      .eq("id", "main_config")
-      .select()
-      .maybeSingle();
-    
-    // If update succeeded, return the data
-    if (!updateError && updateData) {
-      console.log('Successfully updated access code button config:', updateData);
-      return updateData as AccessCodeButtonConfig;
-    }
-    
-    // If no rows were affected, try to insert a new row
-    console.log('No existing row found, creating new one...');
-    const { data: insertData, error: insertError } = await supabase
-      .from("access_code_button_config")
-      .insert({
+      .upsert({
         id: "main_config",
         button_text: config.button_text || "Get Access Code",
         button_url: config.button_url || "https://example.com/get-access",
-        is_enabled: config.is_enabled ?? true
+        is_enabled: config.is_enabled ?? true,
+        updated_at: new Date().toISOString()
       })
       .select()
       .single();
     
-    if (insertError) {
-      console.error("Error inserting access code button config:", insertError);
-      throw new Error(`Failed to create access code button config: ${insertError.message}`);
+    if (error) {
+      console.error("Error upserting access code button config:", error);
+      throw new Error(`Failed to update access code button config: ${error.message}`);
     }
     
-    console.log('Successfully created access code button config:', insertData);
-    return insertData as AccessCodeButtonConfig;
+    console.log('Successfully updated access code button config:', data);
+    return data as AccessCodeButtonConfig;
     
   } catch (error) {
     console.error("Error updating access code button config:", error);
