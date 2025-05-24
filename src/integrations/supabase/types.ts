@@ -366,11 +366,9 @@ export type Database = {
         Returns: boolean
       }
       set_config: {
-        Args: {
-          setting_name: string
-          setting_value: string
-          is_local?: boolean
-        }
+        Args:
+          | Record<PropertyKey, never>
+          | { setting_name: string; setting_value: string; is_local?: boolean }
         Returns: string
       }
     }
