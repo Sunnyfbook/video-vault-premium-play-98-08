@@ -8,8 +8,6 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Helmet } from 'react-helmet';
 import { incrementPageView, incrementUniqueVisitor } from '@/models/Analytics';
-import { useAccessCodeVerification } from '@/hooks/useAccessCodeVerification';
-import AccessCodePrompt from '@/components/AccessCodePrompt';
 
 // Import our components
 import AdsSection from '@/components/video/AdsSection';
@@ -31,9 +29,6 @@ const VideoPage: React.FC = () => {
   const [seoSettings, setSeoSettings] = useState<SEOSetting | undefined>(undefined);
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
-  
-  // Access code verification
-  const { isVerified, isLoading: isVerificationLoading, verifyCode } = useAccessCodeVerification();
 
   // Track visit
   useEffect(() => {
@@ -49,11 +44,6 @@ const VideoPage: React.FC = () => {
 
   // Load video and SEO settings
   useEffect(() => {
-    // Only load video data if access is verified
-    if (!isVerified || isVerificationLoading) {
-      return;
-    }
-
     const loadData = async () => {
       setLoading(true);
       setError(null);
@@ -108,15 +98,10 @@ const VideoPage: React.FC = () => {
       setError("No video identifier provided");
       setLoading(false);
     }
-  }, [id, customUrl, toast, isVerified, isVerificationLoading]);
+  }, [id, customUrl, toast]);
 
   // Load ads
   useEffect(() => {
-    // Only load ads if access is verified
-    if (!isVerified) {
-      return;
-    }
-
     const loadAds = async () => {
       try {
         console.log("VideoPage: Fetching ads...");
@@ -165,7 +150,7 @@ const VideoPage: React.FC = () => {
     return () => {
       supabase.removeChannel(adsChannel);
     };
-  }, [isVerified]);
+  }, []);
 
   const copyCurrentLink = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -178,20 +163,6 @@ const VideoPage: React.FC = () => {
     
     setTimeout(() => setCopied(false), 3000);
   };
-
-  // Show access code prompt if not verified and not loading
-  if (!isVerificationLoading && !isVerified) {
-    return <AccessCodePrompt onCodeVerified={verifyCode} />;
-  }
-
-  // Show loading while verifying access
-  if (isVerificationLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-100 via-gray-100 to-slate-200 dark:from-slate-900 dark:via-gray-950 dark:to-slate-800 flex items-center justify-center">
-        <LoadingState />
-      </div>
-    );
-  }
 
   if (loading) {
     return (
