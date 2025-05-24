@@ -38,10 +38,8 @@ export const updateAccessCodeButtonConfig = async (config: Partial<AccessCodeBut
     console.log('Attempting to update access code button config with:', config);
     
     const updateData = {
+      ...config,
       id: "main_config",
-      button_text: config.button_text || "Get Access Code",
-      button_url: config.button_url || "https://example.com/get-access",
-      is_enabled: config.is_enabled ?? true,
       updated_at: new Date().toISOString()
     };
     

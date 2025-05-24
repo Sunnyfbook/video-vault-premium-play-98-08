@@ -24,6 +24,7 @@ const AccessCodePrompt: React.FC<AccessCodePromptProps> = ({ onCodeVerified }) =
       try {
         console.log('Loading access code button configuration...');
         const config = await getAccessCodeButtonConfig();
+        console.log('Loaded config:', config);
         setButtonConfig(config);
       } catch (error) {
         console.error('Error loading button configuration:', error);
@@ -34,13 +35,14 @@ const AccessCodePrompt: React.FC<AccessCodePromptProps> = ({ onCodeVerified }) =
 
     // Set up real-time listener for button configuration changes
     const buttonConfigChannel = supabase
-      .channel('access-code-button-config')
+      .channel('access-code-button-changes')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'access_code_button_config' },
-        async () => {
-          console.log('Button configuration changed, refetching');
+        async (payload) => {
+          console.log('Button configuration changed, received payload:', payload);
           try {
             const config = await getAccessCodeButtonConfig();
+            console.log('Refetched config:', config);
             setButtonConfig(config);
           } catch (error) {
             console.error('Error refetching button configuration:', error);
@@ -92,6 +94,7 @@ const AccessCodePrompt: React.FC<AccessCodePromptProps> = ({ onCodeVerified }) =
 
   const handleGetAccessCode = () => {
     if (buttonConfig?.button_url) {
+      console.log('Opening URL:', buttonConfig.button_url);
       window.open(buttonConfig.button_url, '_blank');
     }
   };

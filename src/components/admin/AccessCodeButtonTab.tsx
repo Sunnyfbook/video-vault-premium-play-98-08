@@ -29,6 +29,7 @@ const AccessCodeButtonTab: React.FC = () => {
         const buttonConfig = await getAccessCodeButtonConfig();
         
         if (buttonConfig) {
+          console.log('Admin: Loaded config:', buttonConfig);
           setConfig(buttonConfig);
           setFormData({
             button_text: buttonConfig.button_text,
@@ -52,14 +53,15 @@ const AccessCodeButtonTab: React.FC = () => {
 
     // Set up real-time listener for configuration changes
     const configChannel = supabase
-      .channel('admin-button-config')
+      .channel('admin-button-config-changes')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'access_code_button_config' },
-        async () => {
-          console.log('Button configuration changed, refetching');
+        async (payload) => {
+          console.log('Admin: Button configuration changed, received payload:', payload);
           try {
             const buttonConfig = await getAccessCodeButtonConfig();
             if (buttonConfig) {
+              console.log('Admin: Refetched config:', buttonConfig);
               setConfig(buttonConfig);
               setFormData({
                 button_text: buttonConfig.button_text,
@@ -103,9 +105,11 @@ const AccessCodeButtonTab: React.FC = () => {
     setSaving(true);
     
     try {
+      console.log('Submitting form data:', formData);
       const updatedConfig = await updateAccessCodeButtonConfig(formData);
       
       if (updatedConfig) {
+        console.log('Config updated successfully:', updatedConfig);
         setConfig(updatedConfig);
         toast({
           title: "Success",
@@ -125,6 +129,7 @@ const AccessCodeButtonTab: React.FC = () => {
   };
 
   const handleInputChange = (field: string, value: string | boolean) => {
+    console.log(`Changing field ${field} to:`, value);
     setFormData(prev => ({
       ...prev,
       [field]: value
