@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -119,7 +118,7 @@ const AccessCodePrompt: React.FC<AccessCodePromptProps> = ({ onCodeVerified }) =
           
           {/* Get Access Code Button */}
           {buttonConfig && buttonConfig.is_enabled && (
-            <div className="pt-4 border-t">
+            <div className="pt-2 border-t">
               <p className="mb-2 text-sm text-center text-muted-foreground">
                 Need an access code?
               </p>
@@ -131,9 +130,6 @@ const AccessCodePrompt: React.FC<AccessCodePromptProps> = ({ onCodeVerified }) =
               >
                 {buttonConfig.button_text}
               </Button>
-              <p className="mt-1 text-xs text-center text-muted-foreground opacity-70">
-                URL: {buttonConfig.button_url}
-              </p>
             </div>
           )}
         </CardContent>
