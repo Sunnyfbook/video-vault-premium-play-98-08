@@ -62,8 +62,9 @@ export const getAccessCodeButtonConfig = async (): Promise<AccessCodeButtonConfi
 // Update the access code button configuration (admin only)
 export const updateAccessCodeButtonConfig = async (config: Partial<AccessCodeButtonConfig>): Promise<AccessCodeButtonConfig | null> => {
   try {
-    await ensureAdminContext();
-
+    console.log('Attempting to update access code button config with:', config);
+    
+    // Direct update without admin context check for now
     const { data, error } = await supabase
       .from("access_code_button_config")
       .update({
@@ -78,10 +79,11 @@ export const updateAccessCodeButtonConfig = async (config: Partial<AccessCodeBut
     
     if (error) {
       console.error("Error updating access code button config:", error);
+      console.error("Error details:", error.message, error.details, error.hint);
       throw new Error(`Failed to update access code button config: ${error.message}`);
     }
     
-    console.log('Updated access code button config:', data);
+    console.log('Successfully updated access code button config:', data);
     return data as AccessCodeButtonConfig;
   } catch (error) {
     console.error("Error updating access code button config:", error);

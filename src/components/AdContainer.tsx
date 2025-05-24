@@ -107,7 +107,7 @@ const AdContainer: React.FC<AdContainerProps> = ({
     <div 
       ref={adContainerRef} 
       id={uniqueIdRef.current}
-      className={`ad-container ${className} ${
+      className={`ad-container rounded-lg overflow-hidden ${className} ${
         adType === 'monetag' ? 'monetag-ad' : 'adstera-ad'
       } position-${position}`}
       data-ad-type={adType}
@@ -116,9 +116,9 @@ const AdContainer: React.FC<AdContainerProps> = ({
       data-ad-id={adId}
       data-ad-name={adName}
       style={{ 
-        minHeight: position === 'in-video' ? '120px' : 
-                   position === 'below-video' ? '200px' : 
-                   position === 'sidebar' ? '250px' : '150px',
+        minHeight: position === 'in-video' ? '100px' : 
+                   position === 'below-video' ? '150px' : 
+                   position === 'sidebar' ? '200px' : '120px',
         width: '100%'
       }}
     ></div>

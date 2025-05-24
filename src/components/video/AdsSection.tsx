@@ -28,7 +28,7 @@ const AdsSection: React.FC<AdsSectionProps> = ({
   if (ads.length === 0) return null;
 
   return (
-    <div className={`ads-section ${className} ${positionClass}`}>
+    <div className={`ads-section space-y-2 ${className} ${positionClass}`}>
       {ads.map((ad, index) => {
         // Use the EXACT same delay calculation as homepage
         const delaySeconds = staggerDelay 
