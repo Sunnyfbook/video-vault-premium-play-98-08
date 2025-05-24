@@ -7,13 +7,34 @@ export const useAccessCodeVerification = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    // Check if user has already verified an access code
-    const verifiedCode = localStorage.getItem('videoAccessVerified');
-    if (verifiedCode) {
-      console.log('Access code already verified from localStorage');
-      setIsVerified(true);
-    }
-    setIsLoading(false);
+    const checkStoredCode = async () => {
+      const verifiedCode = localStorage.getItem('videoAccessVerified');
+      const storedCode = localStorage.getItem('videoAccessCode');
+      
+      if (verifiedCode && storedCode) {
+        console.log('Checking if stored access code is still valid:', storedCode);
+        
+        // Verify the stored code is still active in the database
+        const isStillValid = await verifyAccessCode(storedCode);
+        
+        if (isStillValid) {
+          console.log('Stored access code is still valid');
+          setIsVerified(true);
+        } else {
+          console.log('Stored access code is no longer valid, clearing verification');
+          localStorage.removeItem('videoAccessVerified');
+          localStorage.removeItem('videoAccessCode');
+          setIsVerified(false);
+        }
+      } else {
+        console.log('No stored access code found');
+        setIsVerified(false);
+      }
+      
+      setIsLoading(false);
+    };
+
+    checkStoredCode();
   }, []);
 
   const verifyCode = async (code: string): Promise<boolean> => {
@@ -23,6 +44,7 @@ export const useAccessCodeVerification = () => {
     if (isValid) {
       console.log('Access code verified successfully');
       localStorage.setItem('videoAccessVerified', 'true');
+      localStorage.setItem('videoAccessCode', code);
       setIsVerified(true);
       return true;
     } else {
@@ -33,6 +55,7 @@ export const useAccessCodeVerification = () => {
 
   const clearVerification = () => {
     localStorage.removeItem('videoAccessVerified');
+    localStorage.removeItem('videoAccessCode');
     setIsVerified(false);
   };
 
