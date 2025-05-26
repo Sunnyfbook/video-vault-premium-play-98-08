@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface Ad {
@@ -6,7 +5,7 @@ export interface Ad {
   name: string;
   type: 'monetag' | 'adstera';
   code: string;
-  position: 'top' | 'bottom' | 'sidebar' | 'in-video' | 'below-video' | 'before-video' | 'after-video' | 'sidebar-top' | 'sidebar-bottom' | 'video-top' | 'video-middle' | 'video-bottom' | 'video-left' | 'video-right';
+  position: 'top' | 'bottom' | 'sidebar' | 'in-video' | 'below-video';
   is_active: boolean;
 }
 

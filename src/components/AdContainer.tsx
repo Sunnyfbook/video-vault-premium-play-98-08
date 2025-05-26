@@ -6,7 +6,7 @@ interface AdContainerProps {
   adCode: string;
   className?: string;
   delaySeconds?: number;
-  position?: 'top' | 'bottom' | 'sidebar' | 'in-video' | 'below-video' | 'before-video' | 'after-video' | 'sidebar-top' | 'sidebar-bottom';
+  position?: 'top' | 'bottom' | 'sidebar' | 'in-video' | 'below-video';
   adId?: string;
   adName?: string;
 }
