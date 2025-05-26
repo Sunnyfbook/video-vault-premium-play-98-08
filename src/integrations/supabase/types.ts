@@ -300,21 +300,18 @@ export type Database = {
           created_at: string
           id: string
           is_admin: boolean
-          password: string
           username: string
         }
         Insert: {
           created_at?: string
           id?: string
           is_admin?: boolean
-          password: string
           username: string
         }
         Update: {
           created_at?: string
           id?: string
           is_admin?: boolean
-          password?: string
           username?: string
         }
         Relationships: []
@@ -387,16 +384,6 @@ export type Database = {
       is_admin_user: {
         Args: Record<PropertyKey, never>
         Returns: boolean
-      }
-      is_custom_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      set_config: {
-        Args:
-          | Record<PropertyKey, never>
-          | { setting_name: string; setting_value: string; is_local?: boolean }
-        Returns: string
       }
     }
     Enums: {
