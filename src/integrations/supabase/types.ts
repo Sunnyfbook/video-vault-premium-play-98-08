@@ -36,6 +36,54 @@ export type Database = {
         }
         Relationships: []
       }
+      ad_container_sizes: {
+        Row: {
+          below_video_height: number
+          below_video_width: number
+          bottom_height: number
+          bottom_width: number
+          created_at: string
+          id: string
+          in_video_height: number
+          in_video_width: number
+          sidebar_height: number
+          sidebar_width: number
+          top_height: number
+          top_width: number
+          updated_at: string
+        }
+        Insert: {
+          below_video_height?: number
+          below_video_width?: number
+          bottom_height?: number
+          bottom_width?: number
+          created_at?: string
+          id?: string
+          in_video_height?: number
+          in_video_width?: number
+          sidebar_height?: number
+          sidebar_width?: number
+          top_height?: number
+          top_width?: number
+          updated_at?: string
+        }
+        Update: {
+          below_video_height?: number
+          below_video_width?: number
+          bottom_height?: number
+          bottom_width?: number
+          created_at?: string
+          id?: string
+          in_video_height?: number
+          in_video_width?: number
+          sidebar_height?: number
+          sidebar_width?: number
+          top_height?: number
+          top_width?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ads: {
         Row: {
           code: string

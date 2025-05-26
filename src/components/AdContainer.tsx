@@ -1,5 +1,6 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { useAdContainerSizes } from '@/hooks/useAdContainerSizes';
 
 interface AdContainerProps {
   adType: 'monetag' | 'adstera';
@@ -25,6 +26,7 @@ const AdContainer: React.FC<AdContainerProps> = ({
   const [isVisible, setIsVisible] = useState(true);
   const loadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const hasLoadedRef = useRef(false);
+  const { sizes } = useAdContainerSizes();
   
   const uniqueIdRef = useRef<string>(
     `ad-${adId || Math.random().toString(36).substring(2, 5)}-${position}-${Math.random().toString(36).substring(2, 5)}`
@@ -170,38 +172,60 @@ const AdContainer: React.FC<AdContainerProps> = ({
     return null;
   }
 
-  // Get position-specific styling
+  // Get position-specific styling with dynamic sizes
   const getPositionStyles = () => {
-    switch (position) {
-      case 'sidebar':
-        return {
-          width: '100%',
-          maxWidth: '300px',
-          minHeight: '250px',
-        };
-      case 'in-video':
-        return {
-          width: '100%',
-          maxWidth: '320px',
-          minHeight: '50px',
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
-          backdropFilter: 'blur(10px)',
-        };
-      case 'below-video':
-        return {
-          width: '100%',
-          maxWidth: '320px',
-          minHeight: '50px',
-        };
-      case 'top':
-      case 'bottom':
-      default:
-        return {
-          width: '100%',
-          maxWidth: '320px',
-          minHeight: '50px',
-        };
+    const defaultSizes = {
+      in_video: { width: 320, height: 50 },
+      top: { width: 320, height: 50 },
+      'below-video': { width: 320, height: 50 },
+      bottom: { width: 300, height: 250 },
+      sidebar: { width: 300, height: 250 }
+    };
+
+    let width = defaultSizes[position]?.width || 320;
+    let height = defaultSizes[position]?.height || 50;
+
+    if (sizes) {
+      switch (position) {
+        case 'in-video':
+          width = sizes.in_video_width;
+          height = sizes.in_video_height;
+          break;
+        case 'top':
+          width = sizes.top_width;
+          height = sizes.top_height;
+          break;
+        case 'below-video':
+          width = sizes.below_video_width;
+          height = sizes.below_video_height;
+          break;
+        case 'bottom':
+          width = sizes.bottom_width;
+          height = sizes.bottom_height;
+          break;
+        case 'sidebar':
+          width = sizes.sidebar_width;
+          height = sizes.sidebar_height;
+          break;
+      }
     }
+
+    const baseStyles = {
+      width: `${width}px`,
+      maxWidth: `${width}px`,
+      minHeight: `${height}px`,
+      height: `${height}px`,
+    };
+
+    if (position === 'in-video') {
+      return {
+        ...baseStyles,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        backdropFilter: 'blur(10px)',
+      };
+    }
+
+    return baseStyles;
   };
 
   const positionStyles = getPositionStyles();

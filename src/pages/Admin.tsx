@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -19,6 +18,7 @@ import VideoAccessTab from '@/components/admin/VideoAccessTab';
 import AccessCodeButtonTab from '@/components/admin/AccessCodeButtonTab';
 import SEOTab from '@/components/admin/SEOTab';
 import HomepageSettingsTab from '@/components/admin/HomepageSettingsTab';
+import AdContainerSizesTab from '@/components/admin/AdContainerSizesTab';
 
 const Admin: React.FC = () => {
   const { isLoggedIn, logout } = useAuth();
@@ -242,6 +242,7 @@ const Admin: React.FC = () => {
         <TabsList className="mb-6">
           <TabsTrigger value="videos">Videos</TabsTrigger>
           <TabsTrigger value="ads">Ads</TabsTrigger>
+          <TabsTrigger value="ad_sizes">Ad Sizes</TabsTrigger>
           <TabsTrigger value="access_codes">Video Access</TabsTrigger>
           <TabsTrigger value="access_button">Access Button</TabsTrigger>
           <TabsTrigger value="seo">SEO Settings</TabsTrigger>
@@ -257,6 +258,10 @@ const Admin: React.FC = () => {
 
         <TabsContent value="ads">
           <AdsTab ads={ads} />
+        </TabsContent>
+
+        <TabsContent value="ad_sizes">
+          <AdContainerSizesTab />
         </TabsContent>
 
         <TabsContent value="access_codes">
