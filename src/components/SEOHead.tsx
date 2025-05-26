@@ -22,10 +22,10 @@ const SEOHead: React.FC<SEOHeadProps> = ({
   type = 'website',
   videoUrl
 }) => {
-  // Use provided props or fall back to SEO settings
+  // Use provided props or fall back to SEO settings, with proper defaults
   const pageTitle = title || seoSettings?.title || 'Video Player Pro';
   const pageDescription = description || seoSettings?.description || 'Professional video hosting with monetization';
-  const canonicalUrl = url || seoSettings?.canonical_url || window.location.href;
+  const canonicalUrl = url || seoSettings?.canonical_url || (typeof window !== 'undefined' ? window.location.href : '');
   const ogImage = image || seoSettings?.og_image || 'https://lovable.dev/opengraph-image-p98pqg.png';
 
   // Debug logging
@@ -62,13 +62,13 @@ const SEOHead: React.FC<SEOHeadProps> = ({
 
   return (
     <Helmet>
-      {/* Basic SEO */}
+      {/* Basic SEO - Always set these first */}
       <title>{pageTitle}</title>
       <meta name="description" content={pageDescription} />
       {seoSettings?.keywords && <meta name="keywords" content={seoSettings.keywords} />}
       <link rel="canonical" href={canonicalUrl} />
       
-      {/* Open Graph */}
+      {/* Open Graph - Use SEO settings if available, otherwise fall back to computed values */}
       <meta property="og:title" content={seoSettings?.og_title || pageTitle} />
       <meta property="og:description" content={seoSettings?.og_description || pageDescription} />
       <meta property="og:image" content={ogImage} />
@@ -94,11 +94,6 @@ const SEOHead: React.FC<SEOHeadProps> = ({
       <meta httpEquiv="Content-Language" content="en" />
       <meta name="distribution" content="global" />
       <meta name="rating" content="general" />
-      
-      {/* Force cache refresh */}
-      <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-      <meta httpEquiv="Pragma" content="no-cache" />
-      <meta httpEquiv="Expires" content="0" />
       
       {/* Structured data for videos */}
       {videoUrl && type === 'video.movie' && (
