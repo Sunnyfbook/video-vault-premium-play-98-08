@@ -7,10 +7,9 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { updateAdminUser } from "@/models/Auth";
-import { User } from "@/models/Auth";
 
 const AdminCredentialsManager = () => {
-  const [credentials, setCredentials] = useState<Partial<User>>({
+  const [credentials, setCredentials] = useState({
     username: '',
     password: ''
   });
@@ -65,7 +64,11 @@ const AdminCredentialsManager = () => {
       
       // Only update if there are changes
       if (credentials.username !== currentEmail || credentials.password) {
-        const updatedUser = await updateAdminUser(currentEmail, credentials);
+        const updatedUser = await updateAdminUser(
+          currentEmail, 
+          credentials.username, 
+          credentials.password || undefined
+        );
         
         if (updatedUser) {
           toast({

@@ -9,38 +9,9 @@ export interface VideoAccessCode {
   updated_at: string;
 }
 
-// Helper function to ensure admin context is properly set
-const ensureAdminContext = async () => {
-  const userId = localStorage.getItem('userId');
-  const isAdmin = localStorage.getItem('isAdmin') === 'true';
-  
-  console.log('Setting admin context:', { userId, isAdmin });
-  
-  if (!userId || !isAdmin) {
-    throw new Error('Admin access required');
-  }
-
-  // Set the custom auth context for RLS policies
-  const { data, error } = await supabase.rpc('set_config', {
-    setting_name: 'app.current_user_id',
-    setting_value: userId,
-    is_local: true
-  });
-
-  if (error) {
-    console.error('Error setting auth context:', error);
-    throw error;
-  }
-
-  console.log('Auth context set successfully:', data);
-  return true;
-};
-
 // Get all access codes (for admin panel)
 export const getAccessCodes = async (): Promise<VideoAccessCode[]> => {
   try {
-    await ensureAdminContext();
-
     const { data, error } = await supabase
       .from("video_access_codes")
       .select("*")
@@ -83,8 +54,6 @@ export const verifyAccessCode = async (code: string): Promise<boolean> => {
 // Add a new access code
 export const addAccessCode = async (code: string): Promise<VideoAccessCode | null> => {
   try {
-    await ensureAdminContext();
-
     const { data, error } = await supabase
       .from("video_access_codes")
       .insert({ code })
@@ -107,8 +76,6 @@ export const addAccessCode = async (code: string): Promise<VideoAccessCode | nul
 // Update an access code
 export const updateAccessCode = async (accessCode: VideoAccessCode): Promise<VideoAccessCode | null> => {
   try {
-    await ensureAdminContext();
-
     const { data, error } = await supabase
       .from("video_access_codes")
       .update({
@@ -135,8 +102,6 @@ export const updateAccessCode = async (accessCode: VideoAccessCode): Promise<Vid
 // Delete an access code
 export const deleteAccessCode = async (id: string): Promise<boolean> => {
   try {
-    await ensureAdminContext();
-
     const { error } = await supabase
       .from("video_access_codes")
       .delete()

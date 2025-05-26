@@ -34,7 +34,7 @@ export const login = async (username: string, password: string): Promise<boolean
   }
 };
 
-export const updateAdminUser = async (currentUsername: string, updates: Partial<User>): Promise<User | null> => {
+export const updateAdminUser = async (currentUsername: string, newUsername?: string, newPassword?: string): Promise<User | null> => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     
@@ -43,9 +43,9 @@ export const updateAdminUser = async (currentUsername: string, updates: Partial<
     }
 
     // Update email if username changed
-    if (updates.username && updates.username !== currentUsername) {
+    if (newUsername && newUsername !== currentUsername) {
       const { error: emailError } = await supabase.auth.updateUser({
-        email: updates.username
+        email: newUsername
       });
       
       if (emailError) {
@@ -54,9 +54,9 @@ export const updateAdminUser = async (currentUsername: string, updates: Partial<
     }
     
     // Update password if provided
-    if (updates.password) {
+    if (newPassword) {
       const { error: passwordError } = await supabase.auth.updateUser({
-        password: updates.password
+        password: newPassword
       });
       
       if (passwordError) {

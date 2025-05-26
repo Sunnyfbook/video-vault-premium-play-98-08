@@ -21,12 +21,12 @@ const App: React.FC = () => {
     // Track page view
     incrementPageView();
     
-    // Track unique visitor (in a real app, you'd check cookies/localStorage)
-    // This is simplified for demo purposes
-    const hasVisitedBefore = localStorage.getItem('hasVisited');
+    // Track unique visitor using session storage instead of localStorage
+    // This is more privacy-friendly and resets per session
+    const hasVisitedBefore = sessionStorage.getItem('hasVisited');
     if (!hasVisitedBefore) {
       incrementUniqueVisitor();
-      localStorage.setItem('hasVisited', 'true');
+      sessionStorage.setItem('hasVisited', 'true');
     }
   }, []);
 
