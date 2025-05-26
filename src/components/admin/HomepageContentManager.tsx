@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -28,47 +27,67 @@ const HomepageContentManager: React.FC = () => {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
 
+  // ---- Update: Allow bulk URLs ----
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    
-    if (!form.url.trim() || !form.title.trim()) {
+
+    // Allow multiple URLs separated by newlines, commas, or spaces
+    const inputUrls = form.url
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .flatMap((line) =>
+        line
+          .split(",")
+          .map((url) => url.trim())
+          .filter(Boolean)
+      )
+      .filter(Boolean);
+
+    if (inputUrls.length === 0 || !form.title.trim()) {
       toast({
-        title: "Title and URL are required.",
+        title: "Title and URL(s) are required.",
         variant: "destructive",
       });
       setSaving(false);
       return;
     }
-    
-    // Check if it's an Instagram URL
-    const isInstagram = isInstagramPostUrl(form.url);
-    const contentType = isInstagram ? "instagram" : form.type;
-    
-    // If it's an Instagram URL but invalid, show error
-    if (form.url.includes('instagram') && !isInstagram) {
-      toast({
-        title: "Invalid Instagram URL",
-        description: "Please enter a valid Instagram post or reel URL",
-        variant: "destructive",
-      });
-      setSaving(false);
-      return;
+
+    // Validate Instagram URLs if relevant
+    const hasInstagram = inputUrls.some((url) => url.includes("instagram"));
+    for (let url of inputUrls) {
+      if (url.includes("instagram") && !isInstagramPostUrl(url)) {
+        toast({
+          title: "Invalid Instagram URL",
+          description: "Please enter a valid Instagram post or reel URL: " + url,
+          variant: "destructive",
+        });
+        setSaving(false);
+        return;
+      }
     }
-    
-    const { error } = await supabase.from("homepage_content").insert([
-      {
+
+    // Prepare the array of insert objects
+    const insertObjects = inputUrls.map((url) => {
+      const isInstagram = isInstagramPostUrl(url);
+      const contentType = isInstagram ? "instagram" : form.type;
+      return {
         title: form.title,
-        url: form.url,
+        url,
         type: contentType,
         description: form.description,
-        thumbnail: form.type === "video" ? form.thumbnail : form.url, // Use url as thumbnail if type is image
+        thumbnail: form.type === "video" ? form.thumbnail : url,
         display_order: Number(form.display_order) || 0,
-      },
-    ]);
-    
+      };
+    });
+
+    const { error, count } = await supabase
+      .from("homepage_content")
+      .insert(insertObjects);
+
     setSaving(false);
-    
+
     if (error) {
       console.error("Error adding content:", error);
       toast({
@@ -78,12 +97,11 @@ const HomepageContentManager: React.FC = () => {
       });
       return;
     }
-    
+
     setForm({ ...defaultFormState, type: tab });
     toast({
-      title: isInstagram 
-        ? "Instagram content added"
-        : `${form.type === "video" ? "Video" : "Image"} added`,
+      title: "Content added",
+      description: `Added ${insertObjects.length} item(s) to homepage.`,
     });
   };
 
@@ -147,11 +165,11 @@ const HomepageContentManager: React.FC = () => {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="video">
-          <AddForm form={form} setForm={setForm} onSubmit={handleAdd} saving={saving} type="video" />
+          <AddForm form={form} setForm={setForm} onSubmit={handleAdd} saving={saving} type="video" allowBulk />
           <ListSection items={videoContent} type="video" onDelete={handleDelete} loading={loading} />
         </TabsContent>
         <TabsContent value="image">
-          <AddForm form={form} setForm={setForm} onSubmit={handleAdd} saving={saving} type="image" />
+          <AddForm form={form} setForm={setForm} onSubmit={handleAdd} saving={saving} type="image" allowBulk />
           <ListSection items={imageContent} type="image" onDelete={handleDelete} loading={loading} />
         </TabsContent>
       </Tabs>
@@ -165,17 +183,18 @@ const AddForm: React.FC<{
   onSubmit: (e: React.FormEvent) => void;
   saving: boolean;
   type: "video" | "image";
-}> = ({ form, setForm, onSubmit, saving, type }) => {
+  allowBulk?: boolean;
+}> = ({ form, setForm, onSubmit, saving, type, allowBulk }) => {
   return (
     <Card className="mb-5">
       <CardHeader>
         <CardTitle>
-          Add {type === "video" ? "Video" : "Image"}
+          Add {type === "video" ? "Video(s)" : "Image(s)"}
         </CardTitle>
         <CardDescription>
           {type === "video"
-            ? "Add a video or Instagram reel to feature on the homepage."
-            : "Add an image or Instagram post to feature on the homepage."}
+            ? "Add one or multiple (comma or newline separated) video URLs or Instagram reels."
+            : "Add one or multiple (comma or newline separated) image URLs or Instagram posts."}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -189,18 +208,34 @@ const AddForm: React.FC<{
             />
           </div>
           <div>
-            <Label>{type === "video" ? "Video URL" : "Image URL"}</Label>
-            <Input
-              value={form.url}
-              onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))}
-              type="url"
-              required
-              placeholder={type === "video" 
-                ? "e.g. https://example.com/video.mp4 or https://www.instagram.com/reel/abc123/" 
-                : "e.g. https://example.com/image.jpg or https://www.instagram.com/p/abc123/"}
-            />
+            <Label>{type === "video" ? "Video URL(s)" : "Image URL(s)"}</Label>
+            {allowBulk ? (
+              <Textarea
+                value={form.url}
+                onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))}
+                required
+                placeholder={
+                  type === "video"
+                    ? "Paste one or more video/reel URLs, one per line or comma separated.\nE.g.\nhttps://example.com/video1.mp4\nhttps://www.instagram.com/reel/abc123/"
+                    : "Paste one or more image/post URLs, one per line or comma separated.\nE.g.\nhttps://example.com/image1.jpg\nhttps://www.instagram.com/p/abc123/"
+                }
+                rows={3}
+              />
+            ) : (
+              <Input
+                value={form.url}
+                onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))}
+                type="url"
+                required
+                placeholder={
+                  type === "video"
+                    ? "e.g. https://example.com/video.mp4 or https://www.instagram.com/reel/abc123/"
+                    : "e.g. https://example.com/image.jpg or https://www.instagram.com/p/abc123/"
+                }
+              />
+            )}
             <p className="text-xs text-muted-foreground mt-1">
-              Instagram URLs will be automatically recognized and embedded
+              You can add multiple URLs (comma or newline separated). Instagram URLs will be automatically recognized and embedded.
             </p>
           </div>
           {type === "video" && (
@@ -231,7 +266,7 @@ const AddForm: React.FC<{
             />
           </div>
           <Button type="submit" className="w-full" disabled={saving}>
-            {saving ? "Adding..." : `Add ${type === "video" ? "Video" : "Image"}`}
+            {saving ? "Adding..." : `Add ${type === "video" ? "Video(s)" : "Image(s)"}`}
           </Button>
         </form>
       </CardContent>
