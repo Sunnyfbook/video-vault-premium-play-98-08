@@ -63,7 +63,7 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({
     }
     
     // Set different intervals based on content type
-    const interval = type === "video" ? 15000 : 2000; // 15s for video, 2s for image
+    const interval = type === "video" ? 5000 : 2000; // 5s for video, 2s for image
     
     autoSwipeRef.current = setTimeout(() => {
       if (embla) {
