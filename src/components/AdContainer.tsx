@@ -32,7 +32,7 @@ const AdContainer: React.FC<AdContainerProps> = ({
     `ad-${adId || Math.random().toString(36).substring(2, 5)}-${position}-${Math.random().toString(36).substring(2, 5)}`
   );
 
-  // Add CSS styles to ensure ad content fits within container with more aggressive containment
+  // Add CSS styles to ensure ad content fits within container with better sizing
   useEffect(() => {
     const containerId = uniqueIdRef.current;
     const existingStyle = document.getElementById(`${containerId}-style`);
@@ -44,11 +44,15 @@ const AdContainer: React.FC<AdContainerProps> = ({
         #${containerId} {
           overflow: hidden !important;
           position: relative !important;
+          width: 100% !important;
+          height: 100% !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
         }
         
         #${containerId} * {
           max-width: 100% !important;
-          max-height: 100% !important;
           box-sizing: border-box !important;
         }
         
@@ -56,10 +60,9 @@ const AdContainer: React.FC<AdContainerProps> = ({
           width: 100% !important;
           height: 100% !important;
           border: none !important;
-          transform-origin: top left !important;
-          position: absolute !important;
-          top: 0 !important;
-          left: 0 !important;
+          display: block !important;
+          margin: 0 !important;
+          padding: 0 !important;
         }
         
         #${containerId} img {
@@ -67,18 +70,24 @@ const AdContainer: React.FC<AdContainerProps> = ({
           height: auto !important;
           max-height: 100% !important;
           object-fit: contain !important;
+          display: block !important;
+          margin: 0 auto !important;
         }
         
         #${containerId} div {
-          max-width: 100% !important;
-          max-height: 100% !important;
+          width: 100% !important;
+          margin: 0 !important;
+          padding: 0 !important;
         }
         
-        /* Handle script-generated content more aggressively */
+        /* Handle script-generated content */
         #${containerId} > div {
           width: 100% !important;
           height: 100% !important;
           overflow: hidden !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
         }
         
         /* Target common ad wrapper classes */
@@ -90,6 +99,16 @@ const AdContainer: React.FC<AdContainerProps> = ({
           height: 100% !important;
           max-width: 100% !important;
           max-height: 100% !important;
+          margin: 0 !important;
+          padding: 0 !important;
+        }
+
+        /* Force Monetag ads to fill container properly */
+        #${containerId} [id*="monetag"],
+        #${containerId} [class*="monetag"] {
+          width: 100% !important;
+          height: 100% !important;
+          min-height: 100% !important;
         }
       `;
       document.head.appendChild(style);
@@ -111,28 +130,31 @@ const AdContainer: React.FC<AdContainerProps> = ({
       const container = adContainerRef.current;
       if (!container) return;
 
-      // Find all iframes and force their dimensions
+      // Force all iframes to fill container
       const iframes = container.querySelectorAll('iframe');
       iframes.forEach((iframe) => {
-        const containerRect = container.getBoundingClientRect();
         iframe.style.width = '100%';
         iframe.style.height = '100%';
-        iframe.style.maxWidth = `${containerRect.width}px`;
-        iframe.style.maxHeight = `${containerRect.height}px`;
-        iframe.style.position = 'absolute';
-        iframe.style.top = '0';
-        iframe.style.left = '0';
+        iframe.style.minHeight = '100%';
+        iframe.style.display = 'block';
+        iframe.style.margin = '0';
+        iframe.style.padding = '0';
+        iframe.style.border = 'none';
       });
 
-      // Also check for any oversized divs
+      // Force all divs to fill container properly
       const allDivs = container.querySelectorAll('div');
       allDivs.forEach((div) => {
-        if (div.scrollWidth > container.clientWidth || div.scrollHeight > container.clientHeight) {
-          div.style.width = '100%';
+        div.style.width = '100%';
+        div.style.margin = '0';
+        div.style.padding = '0';
+        
+        // For direct children of the ad container
+        if (div.parentElement === container) {
           div.style.height = '100%';
-          div.style.maxWidth = '100%';
-          div.style.maxHeight = '100%';
-          div.style.overflow = 'hidden';
+          div.style.display = 'flex';
+          div.style.alignItems = 'center';
+          div.style.justifyContent = 'center';
         }
       });
     };
@@ -208,13 +230,6 @@ const AdContainer: React.FC<AdContainerProps> = ({
           
           if (!hasContent) {
             console.warn(`Ad ${adName || uniqueIdRef.current} loaded but no visible content detected`);
-            // Try to add fallback content for debugging
-            adContainerRef.current.innerHTML = `
-              <div style="padding: 20px; text-align: center; background: rgba(0,0,0,0.1); border: 1px dashed #ccc; color: #666;">
-                <p>Ad: ${adName || 'Unknown'} (${adType})</p>
-                <small>Position: ${position}</small>
-              </div>
-            `;
           } else {
             console.log(`Ad ${adName || uniqueIdRef.current} content confirmed visible`);
           }
@@ -225,16 +240,6 @@ const AdContainer: React.FC<AdContainerProps> = ({
       
     } catch (error) {
       console.error(`Error loading ad ${adName || uniqueIdRef.current}:`, error);
-      
-      // Add error fallback
-      if (adContainerRef.current) {
-        adContainerRef.current.innerHTML = `
-          <div style="padding: 20px; text-align: center; background: rgba(255,0,0,0.1); border: 1px dashed #f00; color: #d00;">
-            <p>Ad Load Error: ${adName || 'Unknown'}</p>
-            <small>Error: ${error.message}</small>
-          </div>
-        `;
-      }
     }
   }, [adCode, adType, position, adId, adName]);
 
@@ -284,18 +289,19 @@ const AdContainer: React.FC<AdContainerProps> = ({
     return null;
   }
 
-  // Get position-specific styling with dynamic sizes
+  // Get position-specific styling with better defaults
   const getPositionStyles = () => {
+    // Default sizes that work well for most ad networks
     const defaultSizes = {
-      in_video: { width: 320, height: 50 },
-      top: { width: 320, height: 50 },
-      'below-video': { width: 320, height: 50 },
-      bottom: { width: 300, height: 250 },
-      sidebar: { width: 300, height: 250 }
+      'in-video': { width: 320, height: 50 },
+      top: { width: 728, height: 90 }, // Standard leaderboard
+      'below-video': { width: 320, height: 100 },
+      bottom: { width: 728, height: 90 }, // Standard leaderboard  
+      sidebar: { width: 300, height: 250 } // Standard medium rectangle
     };
 
     let width = defaultSizes[position]?.width || 320;
-    let height = defaultSizes[position]?.height || 50;
+    let height = defaultSizes[position]?.height || 90;
 
     if (sizes) {
       switch (position) {
@@ -325,10 +331,12 @@ const AdContainer: React.FC<AdContainerProps> = ({
     const baseStyles = {
       width: `${width}px`,
       maxWidth: `${width}px`,
+      minWidth: `${width}px`,
       height: `${height}px`,
       maxHeight: `${height}px`,
       minHeight: `${height}px`,
       overflow: 'hidden',
+      display: 'block',
     };
 
     if (position === 'in-video') {
@@ -365,6 +373,7 @@ const AdContainer: React.FC<AdContainerProps> = ({
             ? '0 8px 32px rgba(0, 0, 0, 0.3)' 
             : '0 2px 8px rgba(0, 0, 0, 0.1)',
           position: 'relative',
+          backgroundColor: position === 'in-video' ? 'transparent' : '#f8f9fa',
         }}
       >
         <div 
@@ -378,6 +387,9 @@ const AdContainer: React.FC<AdContainerProps> = ({
             maxHeight: '100%',
             overflow: 'hidden',
             position: 'relative',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         />
       </div>

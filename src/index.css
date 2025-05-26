@@ -118,15 +118,15 @@
   .ad-container {
     @apply bg-ads-background border border-ads-border rounded-lg flex justify-center items-center transition-all duration-300;
     margin: 0 !important;
-    padding: 0.25rem !important;
-    min-height: 60px !important;
+    padding: 0 !important;
     line-height: 1 !important;
   }
 
   /* Optimized Ad Container Styles */
   .optimized-ad-container {
     @apply w-full flex justify-center items-center;
-    padding: 8px 0;
+    padding: 0;
+    margin: 0;
   }
 
   .top-ad-position {
@@ -151,39 +151,50 @@
 
   .ad-content-wrapper {
     @apply relative transition-all duration-300 hover:scale-[1.01];
-    background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%);
-    border: 1px solid rgba(255,255,255,0.1);
-    min-height: 60px;
+    background: #f8f9fa;
+    border: 1px solid rgba(0,0,0,0.08);
+    overflow: hidden;
+    display: block;
+    margin: 0 auto;
   }
 
   .ad-content-wrapper.monetag-ad {
     @apply border-blue-200 dark:border-blue-800;
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(99, 102, 241, 0.03) 100%);
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.03) 0%, rgba(99, 102, 241, 0.02) 100%);
   }
 
   .ad-content-wrapper.adstera-ad {
     @apply border-purple-200 dark:border-purple-800;
-    background: linear-gradient(135deg, rgba(168, 85, 247, 0.05) 0%, rgba(236, 72, 153, 0.03) 100%);
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.03) 0%, rgba(236, 72, 153, 0.02) 100%);
   }
 
   /* Dark mode adjustments for ads */
   .dark .ad-content-wrapper {
-    background: linear-gradient(135deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.05) 100%);
+    background: linear-gradient(135deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.05) 100%);
     border-color: rgba(255,255,255,0.08);
   }
 
-  /* Ensure ad content takes full space */
+  /* Ensure ad content takes full space with proper sizing */
   .ad-content-wrapper > div {
     width: 100% !important;
     height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 
-  /* Ad content styling */
+  /* Ad content styling for better container fit */
   .ad-content-wrapper iframe,
-  .ad-content-wrapper img,
-  .ad-content-wrapper div {
+  .ad-content-wrapper img {
     max-width: 100% !important;
-    height: auto !important;
+    width: 100% !important;
+    height: 100% !important;
+    border: none !important;
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
   
   .admin-card {
@@ -230,6 +241,7 @@
 [class*="ads-section"],
 [data-ad-type] {
   margin: 0 !important;
+  padding: 0 !important;
   line-height: 1 !important;
 }
 
@@ -240,6 +252,12 @@
 
 .optimized-ad-container:hover {
   transform: translateY(-1px);
+}
+
+/* Force proper ad container sizing */
+.ad-content-wrapper,
+.ad-content-wrapper * {
+  box-sizing: border-box !important;
 }
 
 /* Responsive ad sizing */
@@ -259,13 +277,12 @@
   }
 
   .optimized-ad-container {
-    padding: 4px 0;
+    padding: 0;
   }
 }
 
 @media (max-width: 480px) {
   .ad-content-wrapper {
-    min-height: 50px !important;
     border-radius: 6px !important;
   }
 }
