@@ -2,10 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getVideoById, getVideoByCustomUrl, incrementViews, Video } from '@/models/Video';
 import { getAdsByPosition, Ad } from '@/models/Ad';
-import { getSEOSettingByPage, SEOSetting } from '@/models/SEO'; 
+import { useSEOSettings } from '@/hooks/useSEOSettings';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Helmet } from 'react-helmet';
 import { incrementPageView, incrementUniqueVisitor } from '@/models/Analytics';
 
 // Import our components
@@ -15,6 +14,7 @@ import MainVideoSection from '@/components/video/MainVideoSection';
 import VideoSidebar from '@/components/video/VideoSidebar';
 import LoadingState from '@/components/video/LoadingState';
 import ErrorState from '@/components/video/ErrorState';
+import SEOHead from '@/components/SEOHead';
 
 const VideoPage: React.FC = () => {
   const { id, customUrl } = useParams<{ id?: string, customUrl?: string }>();
@@ -35,7 +35,7 @@ const VideoPage: React.FC = () => {
   const [videoBottomAds, setVideoBottomAds] = useState<Ad[]>([]);
   const [videoLeftAds, setVideoLeftAds] = useState<Ad[]>([]);
   const [videoRightAds, setVideoRightAds] = useState<Ad[]>([]);
-  const [seoSettings, setSeoSettings] = useState<SEOSetting | undefined>(undefined);
+  const { seoSettings } = useSEOSettings('video');
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
 
@@ -77,8 +77,6 @@ const VideoPage: React.FC = () => {
           console.log('VideoPage: Video found:', foundVideo.title);
           setVideo(foundVideo);
           await incrementViews(foundVideo.id);
-          const seoData = await getSEOSettingByPage('video');
-          setSeoSettings(seoData);
         } else {
           console.error('VideoPage: Video not found');
           setError(`Video was not found.`);
@@ -263,14 +261,14 @@ const VideoPage: React.FC = () => {
     );
   }
 
-  // Generate dynamic SEO metadata
-  const pageTitle = seoSettings && video ? 
-    seoSettings.title.replace('{title}', video.title) : 
-    (video ? `${video.title} - Video Player Pro` : 'Video Player Pro');
+  // Generate dynamic SEO metadata with video placeholders
+  let pageTitle = video.title;
+  let pageDescription = video.description || 'Watch this exciting video on our platform.';
   
-  const pageDescription = seoSettings && video ? 
-    seoSettings.description.replace('{description}', video.description || '') : 
-    (video?.description || 'Watch this exciting video on our platform.');
+  if (seoSettings) {
+    pageTitle = seoSettings.title.replace('{title}', video.title);
+    pageDescription = seoSettings.description.replace('{description}', video.description || '');
+  }
 
   // Generate shorter share URL if custom URL exists
   const shareUrl = video.custom_url ? 
@@ -279,32 +277,15 @@ const VideoPage: React.FC = () => {
 
   return (
     <>
-      {/* SEO Meta Tags */}
-      <Helmet>
-        <title>{pageTitle}</title>
-        <meta name="description" content={pageDescription} />
-        {seoSettings?.keywords && <meta name="keywords" content={seoSettings.keywords} />}
-        
-        {/* Open Graph */}
-        <meta property="og:title" content={seoSettings?.og_title || pageTitle} />
-        <meta property="og:description" content={seoSettings?.og_description || pageDescription} />
-        {seoSettings?.og_image && <meta property="og:image" content={seoSettings.og_image} />}
-        <meta property="og:type" content="video.movie" />
-        {video.url && <meta property="og:video" content={video.url} />}
-        <meta property="og:url" content={shareUrl} />
-        
-        {/* Twitter Card */}
-        <meta name="twitter:card" content={seoSettings?.twitter_card || "summary_large_image"} />
-        <meta name="twitter:title" content={seoSettings?.twitter_title || pageTitle} />
-        <meta name="twitter:description" content={seoSettings?.twitter_description || pageDescription} />
-        {seoSettings?.twitter_image && <meta name="twitter:image" content={seoSettings.twitter_image} />}
-        
-        {/* Canonical URL */}
-        {video.custom_url ? 
-          <link rel="canonical" href={`${window.location.origin}/v/${video.custom_url}`} /> : 
-          <link rel="canonical" href={`${window.location.origin}/video/${video.id}`} />
-        }
-      </Helmet>
+      <SEOHead 
+        seoSettings={seoSettings}
+        title={pageTitle}
+        description={pageDescription}
+        url={shareUrl}
+        image={video.thumbnail || seoSettings?.og_image}
+        type="video.movie"
+        videoUrl={video.url}
+      />
 
       <div className="min-h-screen bg-gradient-to-br from-slate-100 via-gray-100 to-slate-200 dark:from-slate-900 dark:via-gray-950 dark:to-slate-800 animate-fade-in">
         <div className="container mx-auto px-4 py-6 lg:py-8">

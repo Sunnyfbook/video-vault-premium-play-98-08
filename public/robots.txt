@@ -1,3 +1,4 @@
+
 User-agent: Googlebot
 Allow: /
 
@@ -12,3 +13,10 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+Sitemap: https://yourdomain.com/sitemap.xml
+
+# Allow all crawlers to access all content for better SEO
+# To disallow specific pages, add:
+# Disallow: /admin
+# Disallow: /private
