@@ -182,8 +182,8 @@ const AdContainer: React.FC<AdContainerProps> = ({
       case 'in-video':
         return {
           width: '100%',
-          maxWidth: '400px',
-          minHeight: '200px',
+          maxWidth: '320px',
+          minHeight: '50px',
           backgroundColor: 'rgba(0, 0, 0, 0.8)',
           backdropFilter: 'blur(10px)',
         };
