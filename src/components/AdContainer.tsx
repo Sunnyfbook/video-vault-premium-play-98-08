@@ -116,28 +116,65 @@ const AdContainer: React.FC<AdContainerProps> = ({
 
   if (!isVisible || !adCode) return null;
 
+  // Get position-specific styling
+  const getPositionStyles = () => {
+    switch (position) {
+      case 'sidebar':
+        return {
+          maxWidth: '300px',
+          minHeight: '250px',
+        };
+      case 'in-video':
+        return {
+          maxWidth: '400px',
+          minHeight: '200px',
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          backdropFilter: 'blur(10px)',
+        };
+      case 'below-video':
+        return {
+          maxWidth: '728px',
+          minHeight: '90px',
+        };
+      case 'top':
+      case 'bottom':
+      default:
+        return {
+          maxWidth: '728px',
+          minHeight: '90px',
+        };
+    }
+  };
+
+  const positionStyles = getPositionStyles();
+
   return (
-    <div 
-      ref={adContainerRef} 
-      id={uniqueIdRef.current}
-      className={`rounded-lg overflow-hidden no-spacing ${className} ${
-        adType === 'monetag' ? 'monetag-ad' : 'adstera-ad'
-      } position-${position}`}
-      data-ad-type={adType}
-      data-delay={delaySeconds}
-      data-position={position}
-      data-ad-id={adId}
-      data-ad-name={adName}
-      style={{ 
-        minHeight: position === 'in-video' ? '80px' : 
-                   position === 'below-video' ? '100px' : 
-                   position === 'sidebar' ? '120px' : '60px',
-        width: '100%',
-        margin: '0',
-        padding: '0',
-        lineHeight: '1'
-      }}
-    ></div>
+    <div className={`optimized-ad-container ${position}-ad-position ${className}`}>
+      <div 
+        ref={adContainerRef} 
+        id={uniqueIdRef.current}
+        className={`ad-content-wrapper ${
+          adType === 'monetag' ? 'monetag-ad' : 'adstera-ad'
+        }`}
+        data-ad-type={adType}
+        data-delay={delaySeconds}
+        data-position={position}
+        data-ad-id={adId}
+        data-ad-name={adName}
+        style={{ 
+          ...positionStyles,
+          margin: '0 auto',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: position === 'in-video' ? '12px' : '8px',
+          overflow: 'hidden',
+          boxShadow: position === 'in-video' 
+            ? '0 8px 32px rgba(0, 0, 0, 0.3)' 
+            : '0 2px 8px rgba(0, 0, 0, 0.1)',
+        }}
+      ></div>
+    </div>
   );
 };
 

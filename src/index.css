@@ -122,6 +122,53 @@
     min-height: 60px !important;
     line-height: 1 !important;
   }
+
+  /* Optimized Ad Container Styles */
+  .optimized-ad-container {
+    @apply w-full flex justify-center items-center py-2;
+  }
+
+  .top-ad-position {
+    @apply mb-4;
+  }
+
+  .bottom-ad-position {
+    @apply mt-6;
+  }
+
+  .sidebar-ad-position {
+    @apply mb-4;
+  }
+
+  .in-video-ad-position {
+    @apply relative;
+  }
+
+  .below-video-ad-position {
+    @apply mt-4;
+  }
+
+  .ad-content-wrapper {
+    @apply relative transition-all duration-300 hover:scale-[1.02];
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .ad-content-wrapper.monetag-ad {
+    @apply border-blue-200 dark:border-blue-800;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(99, 102, 241, 0.03) 100%);
+  }
+
+  .ad-content-wrapper.adstera-ad {
+    @apply border-purple-200 dark:border-purple-800;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.05) 0%, rgba(236, 72, 153, 0.03) 100%);
+  }
+
+  /* Dark mode adjustments for ads */
+  .dark .ad-content-wrapper {
+    background: linear-gradient(135deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 100%);
+    border-color: rgba(255,255,255,0.1);
+  }
   
   .admin-card {
     @apply bg-card shadow-card rounded-xl p-6 transition-all duration-300 hover:shadow-card-hover;
@@ -169,6 +216,39 @@
   margin: 0 !important;
   padding: 0 !important;
   line-height: 1 !important;
+}
+
+/* Enhanced ad positioning and styling */
+.optimized-ad-container {
+  transition: all 0.3s ease;
+}
+
+.optimized-ad-container:hover {
+  transform: translateY(-2px);
+}
+
+/* Responsive ad sizing */
+@media (max-width: 768px) {
+  .ad-content-wrapper {
+    max-width: 100% !important;
+    margin: 0 auto;
+  }
+
+  .top-ad-position,
+  .bottom-ad-position {
+    padding: 0 1rem;
+  }
+
+  .sidebar-ad-position {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .ad-content-wrapper {
+    min-height: 60px !important;
+    border-radius: 6px !important;
+  }
 }
 
 /* Remove spacing from containers */
