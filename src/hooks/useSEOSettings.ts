@@ -12,10 +12,21 @@ export const useSEOSettings = (page: string) => {
     const fetchSEOSettings = async () => {
       try {
         console.log(`useSEOSettings: Fetching SEO settings for page: ${page}`);
+        console.log('useSEOSettings: Current window location:', window.location.href);
         setLoading(true);
         const settings = await getSEOSettingByPage(page);
         setSeoSettings(settings);
         console.log(`useSEOSettings: Loaded SEO settings for ${page}:`, settings);
+        
+        // Log the actual meta tags being set
+        if (settings) {
+          console.log('useSEOSettings: SEO Title:', settings.title);
+          console.log('useSEOSettings: SEO Description:', settings.description);
+          console.log('useSEOSettings: OG Title:', settings.og_title);
+          console.log('useSEOSettings: OG Description:', settings.og_description);
+        } else {
+          console.log('useSEOSettings: No SEO settings found, will use defaults');
+        }
       } catch (err) {
         console.error(`useSEOSettings: Error fetching SEO settings for ${page}:`, err);
         setError(err instanceof Error ? err.message : 'Failed to load SEO settings');
@@ -33,6 +44,7 @@ export const useSEOSettings = (page: string) => {
         { event: '*', schema: 'public', table: 'seo_settings' },
         async (payload) => {
           console.log('useSEOSettings: SEO settings changed, refetching for page:', page);
+          console.log('useSEOSettings: Payload:', payload);
           try {
             const settings = await getSEOSettingByPage(page);
             setSeoSettings(settings);

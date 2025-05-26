@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { SEOSetting } from '@/models/SEO';
 
@@ -27,6 +27,38 @@ const SEOHead: React.FC<SEOHeadProps> = ({
   const pageDescription = description || seoSettings?.description || 'Professional video hosting with monetization';
   const canonicalUrl = url || seoSettings?.canonical_url || window.location.href;
   const ogImage = image || seoSettings?.og_image || 'https://lovable.dev/opengraph-image-p98pqg.png';
+
+  // Debug logging
+  useEffect(() => {
+    console.log('SEOHead: Component rendered with props:', {
+      seoSettings,
+      title,
+      description,
+      url,
+      image,
+      type,
+      videoUrl
+    });
+    console.log('SEOHead: Computed values:', {
+      pageTitle,
+      pageDescription,
+      canonicalUrl,
+      ogImage
+    });
+    
+    // Log what's actually in the DOM after a short delay
+    setTimeout(() => {
+      const titleEl = document.querySelector('title');
+      const descEl = document.querySelector('meta[name="description"]');
+      const ogTitleEl = document.querySelector('meta[property="og:title"]');
+      const ogDescEl = document.querySelector('meta[property="og:description"]');
+      
+      console.log('SEOHead: Actual DOM title:', titleEl?.textContent);
+      console.log('SEOHead: Actual DOM description:', descEl?.getAttribute('content'));
+      console.log('SEOHead: Actual DOM og:title:', ogTitleEl?.getAttribute('content'));
+      console.log('SEOHead: Actual DOM og:description:', ogDescEl?.getAttribute('content'));
+    }, 100);
+  }, [seoSettings, title, description, url, image, type, videoUrl, pageTitle, pageDescription, canonicalUrl, ogImage]);
 
   return (
     <Helmet>
@@ -62,6 +94,11 @@ const SEOHead: React.FC<SEOHeadProps> = ({
       <meta httpEquiv="Content-Language" content="en" />
       <meta name="distribution" content="global" />
       <meta name="rating" content="general" />
+      
+      {/* Force cache refresh */}
+      <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+      <meta httpEquiv="Pragma" content="no-cache" />
+      <meta httpEquiv="Expires" content="0" />
       
       {/* Structured data for videos */}
       {videoUrl && type === 'video.movie' && (
