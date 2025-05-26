@@ -213,8 +213,9 @@ const AdContainer: React.FC<AdContainerProps> = ({
     const baseStyles = {
       width: `${width}px`,
       maxWidth: `${width}px`,
-      minHeight: `${height}px`,
       height: `${height}px`,
+      maxHeight: `${height}px`,
+      minHeight: `${height}px`,
     };
 
     if (position === 'in-video') {
@@ -250,6 +251,7 @@ const AdContainer: React.FC<AdContainerProps> = ({
           boxShadow: position === 'in-video' 
             ? '0 8px 32px rgba(0, 0, 0, 0.3)' 
             : '0 2px 8px rgba(0, 0, 0, 0.1)',
+          position: 'relative',
         }}
       >
         <div 
@@ -259,8 +261,39 @@ const AdContainer: React.FC<AdContainerProps> = ({
             width: '100%',
             height: '100%',
             minHeight: 'inherit',
+            maxWidth: '100%',
+            maxHeight: '100%',
+            overflow: 'hidden',
+            position: 'relative',
           }}
         />
+        
+        {/* Add CSS to ensure all ad content fits within container */}
+        <style jsx>{`
+          #${uniqueIdRef.current} * {
+            max-width: 100% !important;
+            max-height: 100% !important;
+            box-sizing: border-box !important;
+          }
+          
+          #${uniqueIdRef.current} iframe {
+            width: 100% !important;
+            height: 100% !important;
+            border: none !important;
+          }
+          
+          #${uniqueIdRef.current} img {
+            width: 100% !important;
+            height: auto !important;
+            max-height: 100% !important;
+            object-fit: contain !important;
+          }
+          
+          #${uniqueIdRef.current} div {
+            max-width: 100% !important;
+            max-height: 100% !important;
+          }
+        `}</style>
       </div>
     </div>
   );
