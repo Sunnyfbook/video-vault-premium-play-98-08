@@ -171,6 +171,15 @@ const AdsTab: React.FC<AdsTabProps> = ({ ads }) => {
                     <SelectItem value="below-video">Below Video Info</SelectItem>
                     <SelectItem value="bottom">Bottom of Page</SelectItem>
                     <SelectItem value="sidebar">Sidebar</SelectItem>
+                    <SelectItem value="before-video">Before Video</SelectItem>
+                    <SelectItem value="after-video">After Video</SelectItem>
+                    <SelectItem value="sidebar-top">Sidebar Top</SelectItem>
+                    <SelectItem value="sidebar-bottom">Sidebar Bottom</SelectItem>
+                    <SelectItem value="video-top">Video Top</SelectItem>
+                    <SelectItem value="video-middle">Video Middle</SelectItem>
+                    <SelectItem value="video-bottom">Video Bottom</SelectItem>
+                    <SelectItem value="video-left">Video Left</SelectItem>
+                    <SelectItem value="video-right">Video Right</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
