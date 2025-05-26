@@ -198,8 +198,8 @@ const AdContainer: React.FC<AdContainerProps> = ({
       default:
         return {
           width: '100%',
-          maxWidth: '728px',
-          minHeight: '90px',
+          maxWidth: '320px',
+          minHeight: '50px',
         };
     }
   };
