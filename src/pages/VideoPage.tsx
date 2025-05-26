@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getVideoById, getVideoByCustomUrl, incrementViews, Video } from '@/models/Video';
@@ -26,6 +25,7 @@ const VideoPage: React.FC = () => {
   const [bottomAds, setBottomAds] = useState<Ad[]>([]);
   const [sidebarAds, setSidebarAds] = useState<Ad[]>([]);
   const [inVideoAds, setInVideoAds] = useState<Ad[]>([]);
+  const [belowVideoAds, setBelowVideoAds] = useState<Ad[]>([]);
   const [seoSettings, setSeoSettings] = useState<SEOSetting | undefined>(undefined);
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
@@ -109,13 +109,15 @@ const VideoPage: React.FC = () => {
         const bottomAdsData = await getAdsByPosition('bottom');
         const sidebarAdsData = await getAdsByPosition('sidebar');
         const inVideoAdsData = await getAdsByPosition('in-video');
+        const belowVideoAdsData = await getAdsByPosition('below-video');
         
-        console.log(`VideoPage: Fetched ads: ${topAdsData.length} top, ${bottomAdsData.length} bottom, ${sidebarAdsData.length} sidebar, ${inVideoAdsData.length} in-video`);
+        console.log(`VideoPage: Fetched ads: ${topAdsData.length} top, ${bottomAdsData.length} bottom, ${sidebarAdsData.length} sidebar, ${inVideoAdsData.length} in-video, ${belowVideoAdsData.length} below-video`);
         
         setTopAds(topAdsData);
         setBottomAds(bottomAdsData);
         setSidebarAds(sidebarAdsData);
         setInVideoAds(inVideoAdsData);
+        setBelowVideoAds(belowVideoAdsData);
       } catch (error) {
         console.error("VideoPage: Error fetching ads:", error);
       }
@@ -135,11 +137,13 @@ const VideoPage: React.FC = () => {
             const bottomAdsData = await getAdsByPosition('bottom');
             const sidebarAdsData = await getAdsByPosition('sidebar');
             const inVideoAdsData = await getAdsByPosition('in-video');
+            const belowVideoAdsData = await getAdsByPosition('below-video');
             
             setTopAds(topAdsData);
             setBottomAds(bottomAdsData);
             setSidebarAds(sidebarAdsData);
             setInVideoAds(inVideoAdsData);
+            setBelowVideoAds(belowVideoAdsData);
           } catch (error) {
             console.error("VideoPage: Error refetching ads:", error);
           }
@@ -244,7 +248,8 @@ const VideoPage: React.FC = () => {
             <MainVideoSection 
               video={video} 
               inVideoAds={inVideoAds} 
-              bottomAds={bottomAds} 
+              bottomAds={bottomAds}
+              belowVideoAds={belowVideoAds}
             />
             
             <VideoSidebar 

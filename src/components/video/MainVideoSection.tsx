@@ -1,111 +1,79 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Video } from '@/models/Video';
 import { Ad } from '@/models/Ad';
 import VideoPlayer from '@/components/VideoPlayer';
-import AdsSection from './AdsSection';
 import VideoInfo from './VideoInfo';
+import AdsSection from './AdsSection';
 
 interface MainVideoSectionProps {
   video: Video;
   inVideoAds: Ad[];
   bottomAds: Ad[];
+  belowVideoAds?: Ad[];
 }
 
 const MainVideoSection: React.FC<MainVideoSectionProps> = ({ 
   video, 
   inVideoAds, 
-  bottomAds 
+  bottomAds,
+  belowVideoAds = []
 }) => {
   const [showInVideoAd, setShowInVideoAd] = useState(false);
-  const [adDisplayTimeoutId, setAdDisplayTimeoutId] = useState<NodeJS.Timeout | null>(null);
-  const [currentInVideoAdIndex, setCurrentInVideoAdIndex] = useState(0);
-  
+  const videoPlayerRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    // Show in-video ad after the specified time and repeat every adTimingSeconds
-    const adTimingSeconds = video.ad_timing_seconds || 10;
-    
+    if (inVideoAds.length === 0) return;
+
     const showAdInterval = setInterval(() => {
-      if (inVideoAds.length > 0) {
-        console.log('Displaying in-video ad');
-        setShowInVideoAd(true);
-        
-        // Rotate through available in-video ads
-        setCurrentInVideoAdIndex(prevIndex => 
-          prevIndex >= inVideoAds.length - 1 ? 0 : prevIndex + 1
-        );
-        
-        // Auto-hide after 15 seconds
-        const timeoutId = setTimeout(() => {
-          console.log('Auto-hiding in-video ad');
-          setShowInVideoAd(false);
-        }, 15000);
-        
-        setAdDisplayTimeoutId(timeoutId);
-      }
-    }, adTimingSeconds * 1000);
-    
-    return () => {
-      clearInterval(showAdInterval);
-      if (adDisplayTimeoutId) {
-        clearTimeout(adDisplayTimeoutId);
-      }
-    };
-  }, [video.ad_timing_seconds, inVideoAds]);
+      console.log('Displaying in-video ad');
+      setShowInVideoAd(true);
+      
+      setTimeout(() => {
+        console.log('Auto-hiding in-video ad');
+        setShowInVideoAd(false);
+      }, 5000);
+    }, 10000);
 
-  useEffect(() => {
-    // Log ad count for debugging
-    console.log(`MainVideoSection: ${inVideoAds.length} in-video ads, ${bottomAds.length} bottom ads available`);
-  }, [inVideoAds, bottomAds]);
-
-  const handleDismissAd = () => {
-    console.log('Ad manually dismissed');
-    setShowInVideoAd(false);
-    
-    // Clear any existing timeout to prevent memory leaks
-    if (adDisplayTimeoutId) {
-      clearTimeout(adDisplayTimeoutId);
-    }
-  };
+    return () => clearInterval(showAdInterval);
+  }, [inVideoAds]);
 
   return (
-    <div className="flex-1 space-y-4">
-      <div className="relative">
-        <VideoPlayer src={video.url} title={video.title} disableClickToToggle={true} />
+    <div className="flex-1 space-y-6">
+      <div ref={videoPlayerRef} className="relative">
+        <VideoPlayer 
+          src={video.url} 
+          title={video.title}
+          disableClickToToggle={showInVideoAd}
+        />
         
-        {/* In-video ad overlay - centered in the player */}
+        {/* In-video ads overlay */}
         {showInVideoAd && inVideoAds.length > 0 && (
-          <div className="absolute inset-0 flex items-center justify-center animate-fade-in z-50">
-            <div className="in-video-ad-container">
-              <button 
-                className="absolute -top-2 -right-2 bg-black/70 text-white rounded-full w-6 h-6 flex items-center justify-center z-50"
-                onClick={handleDismissAd}
-              >
-                ✕
-              </button>
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-40">
+            <div className="in-video-ads-section pointer-events-auto">
               <AdsSection 
-                ads={[inVideoAds[currentInVideoAdIndex]]} 
-                className="in-video-ad shadow-xl"
-                staggerDelay={false}
+                ads={inVideoAds} 
+                className="in-video-ad-container" 
+                staggerDelay={false} 
                 baseDelaySeconds={0}
-                positionClass="in-video-ads-section"
+                positionClass="in-video-ads-section" 
               />
             </div>
           </div>
         )}
       </div>
       
-      <VideoInfo video={video} />
+      <VideoInfo video={video} belowVideoAds={belowVideoAds} />
       
-      {/* Bottom ads - EXACT same styling as homepage */}
+      {/* Bottom ads */}
       {bottomAds.length > 0 && (
-        <div className="mt-8 bottom-ads-container">
+        <div className="bottom-ads-container">
           <AdsSection 
             ads={bottomAds} 
             className="w-full" 
             staggerDelay={true} 
-            baseDelaySeconds={6} 
-            positionClass="bottom-ads-section"
+            baseDelaySeconds={4}
+            positionClass="bottom-ads-section" 
           />
         </div>
       )}
