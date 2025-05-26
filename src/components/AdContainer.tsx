@@ -190,8 +190,8 @@ const AdContainer: React.FC<AdContainerProps> = ({
       case 'below-video':
         return {
           width: '100%',
-          maxWidth: '728px',
-          minHeight: '90px',
+          maxWidth: '320px',
+          minHeight: '50px',
         };
       case 'top':
       case 'bottom':
