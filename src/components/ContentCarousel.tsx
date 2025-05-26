@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { 
   Carousel,
@@ -12,19 +11,40 @@ import { Card } from "@/components/ui/card";
 import { HomepageContent } from "@/hooks/useHomepageContent";
 import InstagramEmbed from "@/components/InstagramEmbed";
 import { useHomepageConfig } from "@/hooks/useHomepageConfig";
+import { useIsMobile } from "@/hooks/use-mobile";
+import MobileCharacterCarousel from "@/components/MobileCharacterCarousel";
 
 interface ContentCarouselProps {
   items: HomepageContent[];
   type: "video" | "image";
+  showMobileCharacterView?: boolean;
+  onCharacterSelect?: (item: HomepageContent) => void;
 }
 
-const ContentCarousel: React.FC<ContentCarouselProps> = ({ items, type }) => {
+const ContentCarousel: React.FC<ContentCarouselProps> = ({ 
+  items, 
+  type, 
+  showMobileCharacterView = false,
+  onCharacterSelect 
+}) => {
   const carouselRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const videoRefs = useRef<HTMLVideoElement[]>([]);
   const { config } = useHomepageConfig();
   const [embla, setEmbla] = useState<any>(null);
+  const isMobile = useIsMobile();
   
+  // Show mobile character carousel if requested and on mobile
+  if (showMobileCharacterView && isMobile) {
+    return (
+      <MobileCharacterCarousel 
+        items={items} 
+        onSelect={onCharacterSelect}
+        title="Choose favourite Character"
+      />
+    );
+  }
+
   // Default size values, with fallbacks if config values are missing
   const containerMaxWidth = config?.container_max_width || '280px';
   const containerAspectRatio = config?.container_aspect_ratio || '9/16';

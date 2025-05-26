@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface HomepageConfig {
@@ -18,33 +19,6 @@ export const defaultConfig: HomepageConfig = {
   container_max_width: '280px',
   container_aspect_ratio: '9/16',
   updated_at: null
-};
-
-// Helper function to ensure admin context is properly set
-const ensureAdminContext = async () => {
-  const userId = localStorage.getItem('userId');
-  const isAdmin = localStorage.getItem('isAdmin') === 'true';
-  
-  console.log('Setting admin context for homepage config:', { userId, isAdmin });
-  
-  if (!userId || !isAdmin) {
-    throw new Error('Admin access required');
-  }
-
-  // Set the custom auth context for RLS policies
-  const { data, error } = await supabase.rpc('set_config', {
-    setting_name: 'app.current_user_id',
-    setting_value: userId,
-    is_local: true
-  });
-
-  if (error) {
-    console.error('Error setting auth context:', error);
-    throw error;
-  }
-
-  console.log('Auth context set successfully for homepage config:', data);
-  return true;
 };
 
 export const getHomepageConfig = async (): Promise<HomepageConfig> => {
@@ -69,7 +43,11 @@ export const getHomepageConfig = async (): Promise<HomepageConfig> => {
 
 export const updateHomepageConfig = async (updates: Partial<HomepageConfig>): Promise<HomepageConfig | null> => {
   try {
-    await ensureAdminContext();
+    // Check if user is authenticated and is an admin
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
 
     // Don't update the id field
     const updateData = { ...updates };
@@ -109,8 +87,6 @@ export const ensureHomepageConfigExists = async (): Promise<void> => {
     }
 
     if (!data) {
-      // Since we've already created the default config in the SQL migration,
-      // this should not be needed anymore, but keeping it for safety
       console.log("Homepage config already exists or was created by migration");
     }
   } catch (error) {
