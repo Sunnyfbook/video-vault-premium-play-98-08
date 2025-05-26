@@ -5,37 +5,30 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { User, updateAdminUser, getCurrentUser } from "@/models/Auth";
+import { useAuth } from "@/contexts/AuthContext";
+import { updateAdminUser } from "@/models/Auth";
+import { User } from "@/models/Auth";
 
 const AdminCredentialsManager = () => {
   const [credentials, setCredentials] = useState<Partial<User>>({
     username: '',
     password: ''
   });
-  const [currentUsername, setCurrentUsername] = useState<string>('');
   const [confirmPassword, setConfirmPassword] = useState<string>('');
   const [saving, setSaving] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
-    const fetchCurrentUser = async () => {
-      try {
-        const username = getCurrentUser();
-        if (username) {
-          setCurrentUsername(username);
-          setCredentials(prev => ({ ...prev, username }));
-        }
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching current user:", error);
-        setLoading(false);
-      }
-    };
-    
-    fetchCurrentUser();
-  }, []);
+    if (user) {
+      setCredentials(prev => ({ 
+        ...prev, 
+        username: user.email || '' 
+      }));
+      setLoading(false);
+    }
+  }, [user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -50,7 +43,7 @@ const AdminCredentialsManager = () => {
     if (!credentials.username?.trim()) {
       toast({
         title: "Error",
-        description: "Username is required",
+        description: "Email is required",
         variant: "destructive"
       });
       setSaving(false);
@@ -68,17 +61,13 @@ const AdminCredentialsManager = () => {
     }
 
     try {
+      const currentEmail = user?.email || '';
+      
       // Only update if there are changes
-      if (credentials.username !== currentUsername || credentials.password) {
-        const updatedUser = await updateAdminUser(currentUsername, credentials);
+      if (credentials.username !== currentEmail || credentials.password) {
+        const updatedUser = await updateAdminUser(currentEmail, credentials);
         
         if (updatedUser) {
-          // Update localStorage with new username
-          if (credentials.username !== currentUsername) {
-            localStorage.setItem('currentUser', credentials.username || '');
-            setCurrentUsername(credentials.username || '');
-          }
-          
           toast({
             title: "Success",
             description: "Admin credentials updated successfully",
@@ -122,19 +111,20 @@ const AdminCredentialsManager = () => {
       <CardHeader>
         <CardTitle>Admin Credentials</CardTitle>
         <CardDescription>
-          Update your admin username and password
+          Update your admin email and password
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSave} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="username">Email</Label>
             <Input
               id="username"
               name="username"
+              type="email"
               value={credentials.username || ''}
               onChange={handleChange}
-              placeholder="Enter admin username"
+              placeholder="Enter admin email"
               required
             />
           </div>

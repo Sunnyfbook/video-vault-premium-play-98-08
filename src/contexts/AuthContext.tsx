@@ -1,11 +1,13 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { login as authLogin, logout as authLogout, isAuthenticated, getCurrentUser } from '@/models/Auth';
-import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
+import { User, Session } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
+import { login as authLogin, logout as authLogout } from '@/models/Auth';
 
 type AuthContextType = {
   isLoggedIn: boolean;
-  user: string | null;
+  user: User | null;
+  session: Session | null;
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
 };
@@ -13,53 +15,42 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const [user, setUser] = useState<string | null>(null);
-
-  // Set up Supabase auth integration
-  useSupabaseAuth();
 
   useEffect(() => {
-    // Check auth status when the component mounts
-    const checkAuth = () => {
-      const auth = isAuthenticated();
-      setIsLoggedIn(auth);
-      setUser(getCurrentUser());
-    };
-
-    checkAuth();
-    
-    // Listen for storage events (for multi-tab logout)
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'isAuthenticated') {
-        checkAuth();
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.id);
+        setSession(session);
+        setUser(session?.user ?? null);
+        setIsLoggedIn(!!session?.user);
       }
-    };
+    );
 
-    window.addEventListener('storage', handleStorageChange);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsLoggedIn(!!session?.user);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const login = async (username: string, password: string) => {
     const success = await authLogin(username, password);
-    if (success) {
-      setIsLoggedIn(true);
-      setUser(username);
-    }
     return success;
   };
 
-  const logout = () => {
-    authLogout();
-    setIsLoggedIn(false);
-    setUser(null);
+  const logout = async () => {
+    await authLogout();
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, user, login, logout }}>
+    <AuthContext.Provider value={{ isLoggedIn, user, session, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
