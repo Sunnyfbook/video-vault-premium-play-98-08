@@ -28,6 +28,71 @@ const SEOHead: React.FC<SEOHeadProps> = ({
   const canonicalUrl = url || seoSettings?.canonical_url || (typeof window !== 'undefined' ? window.location.href : '');
   const ogImage = image || seoSettings?.og_image || 'https://lovable.dev/opengraph-image-p98pqg.png';
 
+  // More aggressive meta tag updates - directly manipulate DOM as well as using Helmet
+  useEffect(() => {
+    console.log('SEOHead: Aggressively updating meta tags for better crawler detection');
+    
+    // Update title directly
+    if (typeof document !== 'undefined') {
+      document.title = pageTitle;
+      
+      // Helper function to update or create meta tag
+      const updateMetaTag = (selector: string, content: string, property?: string) => {
+        let metaTag = document.querySelector(selector) as HTMLMetaElement;
+        if (!metaTag) {
+          metaTag = document.createElement('meta');
+          if (property) {
+            metaTag.setAttribute(property, selector.replace(/\[|\]|"/g, '').split('=')[1]);
+          } else {
+            metaTag.setAttribute('name', selector.replace(/\[|\]|"/g, '').split('=')[1]);
+          }
+          document.head.appendChild(metaTag);
+        }
+        metaTag.setAttribute('content', content);
+      };
+      
+      // Update basic meta tags
+      updateMetaTag('meta[name="description"]', pageDescription);
+      if (seoSettings?.keywords) {
+        updateMetaTag('meta[name="keywords"]', seoSettings.keywords);
+      }
+      
+      // Update Open Graph tags
+      updateMetaTag('meta[property="og:title"]', seoSettings?.og_title || pageTitle, 'property');
+      updateMetaTag('meta[property="og:description"]', seoSettings?.og_description || pageDescription, 'property');
+      updateMetaTag('meta[property="og:image"]', ogImage, 'property');
+      updateMetaTag('meta[property="og:url"]', canonicalUrl, 'property');
+      updateMetaTag('meta[property="og:type"]', type, 'property');
+      updateMetaTag('meta[property="og:site_name"]', 'Video Player Pro', 'property');
+      
+      // Update Twitter Card tags
+      updateMetaTag('meta[name="twitter:title"]', seoSettings?.twitter_title || pageTitle);
+      updateMetaTag('meta[name="twitter:description"]', seoSettings?.twitter_description || pageDescription);
+      updateMetaTag('meta[name="twitter:image"]', seoSettings?.twitter_image || ogImage);
+      updateMetaTag('meta[name="twitter:card"]', seoSettings?.twitter_card || 'summary_large_image');
+      
+      // Update canonical URL
+      let canonicalLink = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
+      if (!canonicalLink) {
+        canonicalLink = document.createElement('link');
+        canonicalLink.setAttribute('rel', 'canonical');
+        document.head.appendChild(canonicalLink);
+      }
+      canonicalLink.setAttribute('href', canonicalUrl);
+      
+      // Add video-specific meta tags if video URL exists
+      if (videoUrl) {
+        updateMetaTag('meta[property="og:video"]', videoUrl, 'property');
+        updateMetaTag('meta[property="og:video:secure_url"]', videoUrl, 'property');
+        updateMetaTag('meta[property="og:video:type"]', 'video/mp4', 'property');
+      }
+      
+      console.log('SEOHead: Direct DOM manipulation completed');
+      console.log('SEOHead: Updated title to:', pageTitle);
+      console.log('SEOHead: Updated description to:', pageDescription);
+    }
+  }, [pageTitle, pageDescription, canonicalUrl, ogImage, seoSettings, type, videoUrl]);
+
   // Debug logging
   useEffect(() => {
     console.log('SEOHead: Component rendered with props:', {
@@ -53,11 +118,23 @@ const SEOHead: React.FC<SEOHeadProps> = ({
       const ogTitleEl = document.querySelector('meta[property="og:title"]');
       const ogDescEl = document.querySelector('meta[property="og:description"]');
       
-      console.log('SEOHead: Actual DOM title:', titleEl?.textContent);
-      console.log('SEOHead: Actual DOM description:', descEl?.getAttribute('content'));
-      console.log('SEOHead: Actual DOM og:title:', ogTitleEl?.getAttribute('content'));
-      console.log('SEOHead: Actual DOM og:description:', ogDescEl?.getAttribute('content'));
-    }, 100);
+      console.log('SEOHead: Final DOM state:');
+      console.log('  - Title:', titleEl?.textContent);
+      console.log('  - Description:', descEl?.getAttribute('content'));
+      console.log('  - OG Title:', ogTitleEl?.getAttribute('content'));
+      console.log('  - OG Description:', ogDescEl?.getAttribute('content'));
+      
+      // Log all meta tags for debugging
+      const allMetaTags = document.querySelectorAll('meta');
+      console.log('SEOHead: All meta tags count:', allMetaTags.length);
+      allMetaTags.forEach((meta, index) => {
+        const name = meta.getAttribute('name') || meta.getAttribute('property');
+        const content = meta.getAttribute('content');
+        if (name && content) {
+          console.log(`  ${index + 1}. ${name}: ${content}`);
+        }
+      });
+    }, 200);
   }, [seoSettings, title, description, url, image, type, videoUrl, pageTitle, pageDescription, canonicalUrl, ogImage]);
 
   return (
