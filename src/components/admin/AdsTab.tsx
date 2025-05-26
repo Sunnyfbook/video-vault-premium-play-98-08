@@ -18,7 +18,7 @@ const AdsTab: React.FC<AdsTabProps> = ({ ads }) => {
     name: '',
     type: 'monetag' as 'monetag' | 'adstera',
     code: '',
-    position: 'top' as 'top' | 'bottom' | 'sidebar' | 'in-video' | 'below-video',
+    position: 'top' as 'top' | 'bottom' | 'sidebar' | 'in-video' | 'below-video' | 'before-video' | 'after-video' | 'sidebar-top' | 'sidebar-bottom',
     is_active: true
   });
   const { toast } = useToast();
@@ -157,7 +157,7 @@ const AdsTab: React.FC<AdsTabProps> = ({ ads }) => {
                 <Label htmlFor="adPosition">Position</Label>
                 <Select 
                   value={newAd.position}
-                  onValueChange={(value: 'top' | 'bottom' | 'sidebar' | 'in-video' | 'below-video') => {
+                  onValueChange={(value: 'top' | 'bottom' | 'sidebar' | 'in-video' | 'below-video' | 'before-video' | 'after-video' | 'sidebar-top' | 'sidebar-bottom') => {
                     console.log('Position selected:', value);
                     setNewAd({ ...newAd, position: value });
                   }}
@@ -166,11 +166,15 @@ const AdsTab: React.FC<AdsTabProps> = ({ ads }) => {
                     <SelectValue placeholder="Select position" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="top">Top</SelectItem>
-                    <SelectItem value="bottom">Bottom</SelectItem>
-                    <SelectItem value="sidebar">Sidebar</SelectItem>
-                    <SelectItem value="in-video">In-video</SelectItem>
-                    <SelectItem value="below-video">Below Video (Videos Page)</SelectItem>
+                    <SelectItem value="top">Top of Page</SelectItem>
+                    <SelectItem value="before-video">Before Video</SelectItem>
+                    <SelectItem value="in-video">In-video Overlay</SelectItem>
+                    <SelectItem value="after-video">After Video</SelectItem>
+                    <SelectItem value="below-video">Below Video Info</SelectItem>
+                    <SelectItem value="bottom">Bottom of Page</SelectItem>
+                    <SelectItem value="sidebar-top">Sidebar Top</SelectItem>
+                    <SelectItem value="sidebar">Sidebar Middle</SelectItem>
+                    <SelectItem value="sidebar-bottom">Sidebar Bottom</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

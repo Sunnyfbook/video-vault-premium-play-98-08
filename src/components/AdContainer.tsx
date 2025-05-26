@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useAdContainerSizes } from '@/hooks/useAdContainerSizes';
 
@@ -7,7 +6,7 @@ interface AdContainerProps {
   adCode: string;
   className?: string;
   delaySeconds?: number;
-  position?: 'top' | 'bottom' | 'sidebar' | 'in-video' | 'below-video';
+  position?: 'top' | 'bottom' | 'sidebar' | 'in-video' | 'below-video' | 'before-video' | 'after-video' | 'sidebar-top' | 'sidebar-bottom';
   adId?: string;
   adName?: string;
 }
@@ -294,10 +293,14 @@ const AdContainer: React.FC<AdContainerProps> = ({
     // Default sizes that work well for most ad networks
     const defaultSizes = {
       'in-video': { width: 320, height: 50 },
-      top: { width: 728, height: 90 }, // Standard leaderboard
+      'before-video': { width: 728, height: 90 },
+      'after-video': { width: 728, height: 90 },
+      top: { width: 728, height: 90 },
       'below-video': { width: 320, height: 100 },
-      bottom: { width: 728, height: 90 }, // Standard leaderboard  
-      sidebar: { width: 300, height: 250 } // Standard medium rectangle
+      bottom: { width: 728, height: 90 },
+      sidebar: { width: 300, height: 250 },
+      'sidebar-top': { width: 300, height: 250 },
+      'sidebar-bottom': { width: 300, height: 250 }
     };
 
     let width = defaultSizes[position]?.width || 320;
@@ -310,6 +313,8 @@ const AdContainer: React.FC<AdContainerProps> = ({
           height = sizes.in_video_height;
           break;
         case 'top':
+        case 'before-video':
+        case 'after-video':
           width = sizes.top_width;
           height = sizes.top_height;
           break;
@@ -322,6 +327,8 @@ const AdContainer: React.FC<AdContainerProps> = ({
           height = sizes.bottom_height;
           break;
         case 'sidebar':
+        case 'sidebar-top':
+        case 'sidebar-bottom':
           width = sizes.sidebar_width;
           height = sizes.sidebar_height;
           break;

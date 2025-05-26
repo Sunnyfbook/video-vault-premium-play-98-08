@@ -11,13 +11,15 @@ interface MainVideoSectionProps {
   inVideoAds: Ad[];
   bottomAds: Ad[];
   belowVideoAds?: Ad[];
+  afterVideoAds?: Ad[];
 }
 
 const MainVideoSection: React.FC<MainVideoSectionProps> = ({ 
   video, 
   inVideoAds, 
   bottomAds,
-  belowVideoAds = []
+  belowVideoAds = [],
+  afterVideoAds = []
 }) => {
   const [showInVideoAd, setShowInVideoAd] = useState(false);
   const videoPlayerRef = useRef<HTMLDivElement>(null);
@@ -62,6 +64,19 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
           </div>
         )}
       </div>
+      
+      {/* After video ads */}
+      {afterVideoAds.length > 0 && (
+        <div className="after-video-ads-container">
+          <AdsSection 
+            ads={afterVideoAds} 
+            className="w-full" 
+            staggerDelay={true} 
+            baseDelaySeconds={1.5}
+            positionClass="after-video-ads-section" 
+          />
+        </div>
+      )}
       
       <VideoInfo video={video} belowVideoAds={belowVideoAds} />
       

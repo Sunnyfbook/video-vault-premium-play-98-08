@@ -1,55 +1,97 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Share2, ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { Ad } from '@/models/Ad';
 import AdsSection from './AdsSection';
+import { Share2, Copy } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface VideoSidebarProps {
   sidebarAds: Ad[];
+  sidebarTopAds?: Ad[];
+  sidebarBottomAds?: Ad[];
   onCopyLink: () => void;
 }
 
 const VideoSidebar: React.FC<VideoSidebarProps> = ({ 
   sidebarAds, 
+  sidebarTopAds = [],
+  sidebarBottomAds = [],
   onCopyLink 
 }) => {
   return (
-    <aside className="w-full lg:w-64 xl:w-80 shrink-0 space-y-6">
-      {/* Navigation and Share Actions */}
-      <div className="bg-card border border-border rounded-xl p-4 shadow-subtle">
+    <div className="lg:w-80 space-y-6">
+      {/* Sidebar top ads */}
+      {sidebarTopAds.length > 0 && (
+        <div className="sidebar-top-ads-container">
+          <AdsSection 
+            ads={sidebarTopAds} 
+            className="w-full" 
+            staggerDelay={true} 
+            baseDelaySeconds={2}
+            positionClass="sidebar-top-ads-section" 
+          />
+        </div>
+      )}
+      
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-md">
+        <h3 className="text-lg font-semibold mb-4">Share this video</h3>
         <div className="space-y-3">
-          <Link to="/">
-            <Button variant="outline" className="w-full flex items-center gap-2">
-              <ArrowLeft size={16} />
-              Back to Home
-            </Button>
-          </Link>
+          <Button 
+            onClick={onCopyLink}
+            variant="outline" 
+            className="w-full justify-start"
+          >
+            <Copy size={16} className="mr-2" />
+            Copy Link
+          </Button>
           
           <Button 
-            variant="ghost" 
-            onClick={onCopyLink}
-            className="w-full flex items-center gap-2 text-primary hover:bg-primary/10"
+            variant="outline" 
+            className="w-full justify-start"
+            onClick={() => {
+              const shareData = {
+                title: 'Check out this video!',
+                url: window.location.href
+              };
+              if (navigator.share) {
+                navigator.share(shareData);
+              } else {
+                onCopyLink();
+              }
+            }}
           >
-            <Share2 size={16} />
-            Copy Link
+            <Share2 size={16} className="mr-2" />
+            Share
           </Button>
         </div>
       </div>
 
-      {/* Sidebar ads - EXACT same styling as homepage */}
+      {/* Main sidebar ads */}
       {sidebarAds.length > 0 && (
         <div className="sidebar-ads-container">
           <AdsSection 
             ads={sidebarAds} 
+            className="w-full" 
             staggerDelay={true} 
-            baseDelaySeconds={3} 
-            positionClass="sidebar-ads-section"
+            baseDelaySeconds={3}
+            positionClass="sidebar-ads-section" 
           />
         </div>
       )}
-    </aside>
+
+      {/* Sidebar bottom ads */}
+      {sidebarBottomAds.length > 0 && (
+        <div className="sidebar-bottom-ads-container">
+          <AdsSection 
+            ads={sidebarBottomAds} 
+            className="w-full" 
+            staggerDelay={true} 
+            baseDelaySeconds={4}
+            positionClass="sidebar-bottom-ads-section" 
+          />
+        </div>
+      )}
+    </div>
   );
 };
 
