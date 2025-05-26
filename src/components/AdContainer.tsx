@@ -6,7 +6,21 @@ interface AdContainerProps {
   adCode: string;
   className?: string;
   delaySeconds?: number;
-  position?: 'top' | 'bottom' | 'sidebar' | 'in-video' | 'below-video';
+  position?: 
+    | 'top'
+    | 'bottom'
+    | 'sidebar'
+    | 'in-video'
+    | 'below-video'
+    | 'before-video'
+    | 'after-video'
+    | 'sidebar-top'
+    | 'sidebar-bottom'
+    | 'video-top'
+    | 'video-middle'
+    | 'video-bottom'
+    | 'video-left'
+    | 'video-right';
   adId?: string;
   adName?: string;
 }
