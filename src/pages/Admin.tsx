@@ -26,6 +26,7 @@ const Admin: React.FC = () => {
   const [ads, setAds] = useState<AdModel[]>([]);
   const [seoSettings, setSeoSettings] = useState<SEOSetting[]>([]);
   const [accessCodes, setAccessCodes] = useState<VideoAccessCode[]>([]);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   
   // Redirect if not logged in
@@ -36,71 +37,191 @@ const Admin: React.FC = () => {
   useEffect(() => {
     // Load data on component mount
     const loadData = async () => {
+      console.log('Admin: Loading initial data');
+      setLoading(true);
       try {
-        const videosData = await getVideos();
-        setVideos(videosData);
+        const [videosData, adsData, seoData, accessCodesData] = await Promise.allSettled([
+          getVideos(),
+          getAds(),
+          getSEOSettings(),
+          getAccessCodes()
+        ]);
         
-        const adsData = await getAds();
-        setAds(adsData);
+        if (videosData.status === 'fulfilled') {
+          setVideos(videosData.value);
+          console.log('Admin: Videos loaded successfully:', videosData.value.length);
+        } else {
+          console.error('Admin: Error loading videos:', videosData.reason);
+          toast({
+            title: "Error",
+            description: "Failed to load videos from the database",
+            variant: "destructive"
+          });
+        }
         
-        const seoData = await getSEOSettings();
-        setSeoSettings(seoData);
+        if (adsData.status === 'fulfilled') {
+          setAds(adsData.value);
+          console.log('Admin: Ads loaded successfully:', adsData.value.length);
+        } else {
+          console.error('Admin: Error loading ads:', adsData.reason);
+          toast({
+            title: "Error",
+            description: "Failed to load ads from the database",
+            variant: "destructive"
+          });
+        }
         
-        const accessCodesData = await getAccessCodes();
-        setAccessCodes(accessCodesData);
+        if (seoData.status === 'fulfilled') {
+          setSeoSettings(seoData.value);
+          console.log('Admin: SEO settings loaded successfully:', seoData.value.length);
+        } else {
+          console.error('Admin: Error loading SEO settings:', seoData.reason);
+          toast({
+            title: "Error",
+            description: "Failed to load SEO settings from the database",
+            variant: "destructive"
+          });
+        }
+        
+        if (accessCodesData.status === 'fulfilled') {
+          setAccessCodes(accessCodesData.value);
+          console.log('Admin: Access codes loaded successfully:', accessCodesData.value.length);
+        } else {
+          console.error('Admin: Error loading access codes:', accessCodesData.reason);
+          toast({
+            title: "Error",
+            description: "Failed to load access codes from the database",
+            variant: "destructive"
+          });
+        }
       } catch (error) {
-        console.error("Error loading data:", error);
+        console.error("Admin: Unexpected error loading data:", error);
         toast({
           title: "Error",
-          description: "Failed to load data from the database",
+          description: "An unexpected error occurred while loading data",
           variant: "destructive"
         });
+      } finally {
+        setLoading(false);
       }
     };
     
     loadData();
     
-    // Set up real-time listeners
+    // Set up real-time listeners with improved error handling
+    console.log('Admin: Setting up real-time subscriptions');
+    
     const videosChannel = supabase
-      .channel('public:videos')
+      .channel('admin_videos_changes')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'videos' },
-        () => { getVideos().then(setVideos); }
+        async (payload) => {
+          console.log('Admin: Videos table changed:', payload.eventType);
+          try {
+            const updatedVideos = await getVideos();
+            setVideos(updatedVideos);
+          } catch (error) {
+            console.error('Admin: Error refetching videos:', error);
+          }
+        }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Admin: Successfully subscribed to videos changes');
+        }
+        if (err) {
+          console.error('Admin: Videos subscription error:', err);
+        }
+      });
       
     const adsChannel = supabase
-      .channel('public:ads')
+      .channel('admin_ads_changes')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'ads' },
-        () => { getAds().then(setAds); }
+        async (payload) => {
+          console.log('Admin: Ads table changed:', payload.eventType);
+          try {
+            const updatedAds = await getAds();
+            setAds(updatedAds);
+          } catch (error) {
+            console.error('Admin: Error refetching ads:', error);
+          }
+        }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Admin: Successfully subscribed to ads changes');
+        }
+        if (err) {
+          console.error('Admin: Ads subscription error:', err);
+        }
+      });
       
     const seoChannel = supabase
-      .channel('public:seo')
+      .channel('admin_seo_changes')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'seo_settings' },
-        () => { getSEOSettings().then(setSeoSettings); }
+        async (payload) => {
+          console.log('Admin: SEO settings table changed:', payload.eventType);
+          try {
+            const updatedSEO = await getSEOSettings();
+            setSeoSettings(updatedSEO);
+          } catch (error) {
+            console.error('Admin: Error refetching SEO settings:', error);
+          }
+        }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Admin: Successfully subscribed to SEO changes');
+        }
+        if (err) {
+          console.error('Admin: SEO subscription error:', err);
+        }
+      });
 
     const accessCodesChannel = supabase
-      .channel('public:video_access_codes')
+      .channel('admin_access_codes_changes')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'video_access_codes' },
-        () => { getAccessCodes().then(setAccessCodes); }
+        async (payload) => {
+          console.log('Admin: Access codes table changed:', payload.eventType);
+          try {
+            const updatedAccessCodes = await getAccessCodes();
+            setAccessCodes(updatedAccessCodes);
+          } catch (error) {
+            console.error('Admin: Error refetching access codes:', error);
+          }
+        }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Admin: Successfully subscribed to access codes changes');
+        }
+        if (err) {
+          console.error('Admin: Access codes subscription error:', err);
+        }
+      });
     
     // Clean up subscriptions
     return () => {
+      console.log('Admin: Cleaning up real-time subscriptions');
       supabase.removeChannel(videosChannel);
       supabase.removeChannel(adsChannel);
       supabase.removeChannel(seoChannel);
       supabase.removeChannel(accessCodesChannel);
     };
   }, [toast]);
+  
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="container mx-auto px-4 py-8">

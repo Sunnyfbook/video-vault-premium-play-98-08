@@ -28,18 +28,21 @@ const generateSlug = (title: string): string => {
 export const getVideos = async (): Promise<Video[]> => {
   try {
     console.log('Video model: Fetching all videos');
-    const { data, error } = await supabase.from("videos").select("*").order('date_added', { ascending: false });
+    const { data, error } = await supabase
+      .from("videos")
+      .select("*")
+      .order('date_added', { ascending: false });
     
     if (error) {
       console.error("Video model: Error loading videos:", error);
-      return [];
+      throw new Error(`Failed to load videos: ${error.message}`);
     }
     
     console.log('Video model: Loaded videos:', data?.length || 0);
     return data as Video[];
   } catch (error) {
     console.error("Video model: Error loading videos:", error);
-    return [];
+    throw error;
   }
 };
 
@@ -100,13 +103,23 @@ export const getVideoByCustomUrl = async (customUrl: string): Promise<Video | un
 export const addVideo = async (video: Omit<Video, "id" | "date_added" | "views" | "custom_url">): Promise<Video> => {
   try {
     console.log('Video model: Adding video:', video.title);
+    
+    // Validate required fields
+    if (!video.title?.trim()) {
+      throw new Error('Video title is required');
+    }
+    if (!video.url?.trim()) {
+      throw new Error('Video URL is required');
+    }
+    
     // Generate custom URL from title
     const customUrl = generateSlug(video.title);
     
     const newVideo = {
       ...video,
       custom_url: customUrl,
-      views: 0
+      views: 0,
+      ad_timing_seconds: video.ad_timing_seconds || 10
     };
     
     const { data, error } = await supabase
@@ -117,20 +130,29 @@ export const addVideo = async (video: Omit<Video, "id" | "date_added" | "views" 
     
     if (error) {
       console.error("Video model: Error adding video:", error);
-      throw new Error("Failed to add video");
+      throw new Error(`Failed to add video: ${error.message}`);
     }
     
     console.log('Video model: Video added successfully:', data.title);
     return data as Video;
   } catch (error) {
     console.error("Video model: Error adding video:", error);
-    throw new Error("Failed to add video");
+    throw error;
   }
 };
 
 export const updateVideo = async (updatedVideo: Video): Promise<Video | undefined> => {
   try {
     console.log('Video model: Updating video:', updatedVideo.title);
+    
+    // Validate required fields
+    if (!updatedVideo.title?.trim()) {
+      throw new Error('Video title is required');
+    }
+    if (!updatedVideo.url?.trim()) {
+      throw new Error('Video URL is required');
+    }
+    
     // If no custom_url exists, generate one
     if (!updatedVideo.custom_url) {
       updatedVideo.custom_url = generateSlug(updatedVideo.title);
@@ -138,27 +160,39 @@ export const updateVideo = async (updatedVideo: Video): Promise<Video | undefine
     
     const { data, error } = await supabase
       .from("videos")
-      .update(updatedVideo)
+      .update({
+        title: updatedVideo.title,
+        description: updatedVideo.description,
+        url: updatedVideo.url,
+        thumbnail: updatedVideo.thumbnail,
+        custom_url: updatedVideo.custom_url,
+        ad_timing_seconds: updatedVideo.ad_timing_seconds || 10
+      })
       .eq("id", updatedVideo.id)
       .select()
       .single();
     
     if (error) {
       console.error("Video model: Error updating video:", error);
-      return undefined;
+      throw new Error(`Failed to update video: ${error.message}`);
     }
     
     console.log('Video model: Video updated successfully:', data.title);
     return data as Video;
   } catch (error) {
     console.error("Video model: Error updating video:", error);
-    return undefined;
+    throw error;
   }
 };
 
 export const deleteVideo = async (id: string): Promise<boolean> => {
   try {
     console.log('Video model: Deleting video:', id);
+    
+    if (!id?.trim()) {
+      throw new Error('Video ID is required');
+    }
+    
     const { error } = await supabase
       .from("videos")
       .delete()
@@ -166,32 +200,48 @@ export const deleteVideo = async (id: string): Promise<boolean> => {
     
     if (error) {
       console.error("Video model: Error deleting video:", error);
-      return false;
+      throw new Error(`Failed to delete video: ${error.message}`);
     }
     
     console.log('Video model: Video deleted successfully');
     return true;
   } catch (error) {
     console.error("Video model: Error deleting video:", error);
-    return false;
+    throw error;
   }
 };
 
 export const incrementViews = async (id: string): Promise<void> => {
   try {
     console.log('Video model: Incrementing views for video:', id);
-    const { data: video } = await supabase
+    
+    if (!id?.trim()) {
+      throw new Error('Video ID is required');
+    }
+    
+    const { data: video, error: fetchError } = await supabase
       .from("videos")
       .select("views")
       .eq("id", id)
       .single();
     
+    if (fetchError) {
+      console.error('Video model: Error fetching video for view increment:', fetchError);
+      return;
+    }
+    
     if (video) {
-      const views = video.views + 1;
-      await supabase
+      const views = (video.views || 0) + 1;
+      const { error: updateError } = await supabase
         .from("videos")
         .update({ views })
         .eq("id", id);
+        
+      if (updateError) {
+        console.error('Video model: Error updating views:', updateError);
+        return;
+      }
+      
       console.log('Video model: Views incremented to:', views);
     }
   } catch (error) {
