@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { 
   Carousel,
@@ -33,6 +34,7 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({
   const { config } = useHomepageConfig();
   const [embla, setEmbla] = useState<any>(null);
   const isMobile = useIsMobile();
+  const autoSwipeRef = useRef<NodeJS.Timeout | null>(null);
   
   // Show mobile character carousel if requested and on mobile
   if (showMobileCharacterView && isMobile) {
@@ -54,6 +56,29 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({
     videoRefs.current = videoRefs.current.slice(0, items.length);
   }, [items]);
 
+  // Auto-swipe functionality
+  const startAutoSwipe = () => {
+    if (autoSwipeRef.current) {
+      clearTimeout(autoSwipeRef.current);
+    }
+    
+    // Set different intervals based on content type
+    const interval = type === "video" ? 15000 : 2000; // 15s for video, 2s for image
+    
+    autoSwipeRef.current = setTimeout(() => {
+      if (embla) {
+        embla.scrollNext();
+      }
+    }, interval);
+  };
+
+  const stopAutoSwipe = () => {
+    if (autoSwipeRef.current) {
+      clearTimeout(autoSwipeRef.current);
+      autoSwipeRef.current = null;
+    }
+  };
+
   // Handle carousel initialization and slide change
   const handleCarouselCreated = (emblaApi) => {
     setEmbla(emblaApi);
@@ -74,10 +99,13 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({
           }
         }
       });
+
+      // Restart auto-swipe timer when slide changes
+      startAutoSwipe();
     };
 
     emblaApi.on('select', onSelect);
-    // Initial call to set the first video playing
+    // Initial call to set the first video playing and start auto-swipe
     onSelect();
     
     return () => {
@@ -90,7 +118,23 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({
     
     const cleanup = handleCarouselCreated(embla);
     return cleanup;
-  }, [embla, items]);
+  }, [embla, items, type]);
+
+  // Clean up auto-swipe on unmount
+  useEffect(() => {
+    return () => {
+      stopAutoSwipe();
+    };
+  }, []);
+
+  // Pause auto-swipe on mouse enter, resume on mouse leave
+  const handleMouseEnter = () => {
+    stopAutoSwipe();
+  };
+
+  const handleMouseLeave = () => {
+    startAutoSwipe();
+  };
 
   const renderContent = (item: HomepageContent, index: number) => {
     if (item.type === "instagram") {
@@ -139,7 +183,12 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({
   }, []);
 
   return (
-    <div className="relative group" ref={carouselRef}>
+    <div 
+      className="relative group" 
+      ref={carouselRef}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       <Carousel
         opts={{
           loop: true,
