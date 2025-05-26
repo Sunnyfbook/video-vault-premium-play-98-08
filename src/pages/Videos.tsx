@@ -2,79 +2,35 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Video, getVideos } from '@/models/Video';
-import { getAdsByPosition, Ad } from '@/models/Ad';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Play, Eye, Calendar } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useAccessCodeVerification } from '@/hooks/useAccessCodeVerification';
-import { supabase } from '@/integrations/supabase/client';
+import { useAds } from '@/hooks/useAds';
 import AccessCodePrompt from '@/components/AccessCodePrompt';
 import AdsSection from '@/components/video/AdsSection';
 
 const Videos: React.FC = () => {
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
-  const [topAds, setTopAds] = useState<Ad[]>([]);
-  const [bottomAds, setBottomAds] = useState<Ad[]>([]);
-  const [sidebarAds, setSidebarAds] = useState<Ad[]>([]);
-  const [belowVideoAds, setBelowVideoAds] = useState<Ad[]>([]);
   const { isVerified, isLoading: accessLoading, verifyCode } = useAccessCodeVerification();
+  
+  const {
+    topAds,
+    bottomAds,
+    sidebarAds,
+    belowVideoAds,
+    loading: adsLoading,
+    error: adsError
+  } = useAds();
 
-  // Load ads
   useEffect(() => {
-    const loadAds = async () => {
-      try {
-        console.log("Videos page: Fetching ads...");
-        const topAdsData = await getAdsByPosition('top');
-        const bottomAdsData = await getAdsByPosition('bottom');
-        const sidebarAdsData = await getAdsByPosition('sidebar');
-        const belowVideoAdsData = await getAdsByPosition('below-video');
-        
-        console.log(`Videos page: Fetched ads: ${topAdsData.length} top, ${bottomAdsData.length} bottom, ${sidebarAdsData.length} sidebar, ${belowVideoAdsData.length} below-video`);
-        console.log('Below video ads data:', belowVideoAdsData);
-        
-        setTopAds(topAdsData);
-        setBottomAds(bottomAdsData);
-        setSidebarAds(sidebarAdsData);
-        setBelowVideoAds(belowVideoAdsData);
-      } catch (error) {
-        console.error("Videos page: Error fetching ads:", error);
-      }
-    };
-
-    loadAds();
-    
-    // Set up real-time listeners for ads
-    const adsChannel = supabase
-      .channel('videos-page-ads')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'ads' },
-        async () => {
-          console.log('Videos page: Ads changed, refetching');
-          try {
-            const topAdsData = await getAdsByPosition('top');
-            const bottomAdsData = await getAdsByPosition('bottom');
-            const sidebarAdsData = await getAdsByPosition('sidebar');
-            const belowVideoAdsData = await getAdsByPosition('below-video');
-            
-            console.log('Refetched below video ads:', belowVideoAdsData);
-            
-            setTopAds(topAdsData);
-            setBottomAds(bottomAdsData);
-            setSidebarAds(sidebarAdsData);
-            setBelowVideoAds(belowVideoAdsData);
-          } catch (error) {
-            console.error("Videos page: Error refetching ads:", error);
-          }
-        }
-      )
-      .subscribe();
-      
-    return () => {
-      supabase.removeChannel(adsChannel);
-    };
-  }, []);
+    if (adsError) {
+      console.error('Videos page: Error loading ads:', adsError);
+    }
+    console.log(`Videos page: Ads loaded - top: ${topAds.length}, bottom: ${bottomAds.length}, sidebar: ${sidebarAds.length}, below-video: ${belowVideoAds.length}`);
+  }, [topAds, bottomAds, sidebarAds, belowVideoAds, adsError]);
 
   useEffect(() => {
     if (!isVerified) return;

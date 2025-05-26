@@ -1,21 +1,17 @@
-import React, { useEffect, useState } from 'react';
+
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Video, ImageIcon, Zap, ArrowRight, PlayCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { getAdsByPosition, Ad } from '@/models/Ad';
 import { useHomepageContent } from '@/hooks/useHomepageContent';
 import { useHomepageConfig } from '@/hooks/useHomepageConfig';
-import { supabase } from '@/integrations/supabase/client';
+import { useAds } from '@/hooks/useAds';
 import { incrementPageView, incrementUniqueVisitor } from '@/models/Analytics';
 
 import AdsSection from '@/components/video/AdsSection';
 import ContentCarousel from '@/components/ContentCarousel';
 
 const Index = () => {
-  const [topAds, setTopAds] = useState<Ad[]>([]);
-  const [bottomAds, setBottomAds] = useState<Ad[]>([]);
-  const [sidebarAds, setSidebarAds] = useState<Ad[]>([]);
-  
   const { 
     videos, 
     images, 
@@ -29,7 +25,15 @@ const Index = () => {
     error: configError 
   } = useHomepageConfig();
 
-  const overallLoading = contentLoading || configLoading;
+  const {
+    topAds,
+    bottomAds,
+    sidebarAds,
+    loading: adsLoading,
+    error: adsError
+  } = useAds();
+
+  const overallLoading = contentLoading || configLoading || adsLoading;
 
   useEffect(() => {
     // Track page view
@@ -44,55 +48,13 @@ const Index = () => {
     }
   }, []);
 
-  // Load ads
+  // Log ad loading status
   useEffect(() => {
-    const loadAds = async () => {
-      try {
-        console.log("Fetching ads for homepage...");
-        const topAdsData = await getAdsByPosition('top');
-        const bottomAdsData = await getAdsByPosition('bottom');
-        const sidebarAdsData = await getAdsByPosition('sidebar');
-        
-        console.log(`Fetched ads: ${topAdsData.length} top, ${bottomAdsData.length} bottom, ${sidebarAdsData.length} sidebar`);
-        
-        setTopAds(topAdsData);
-        setBottomAds(bottomAdsData);
-        setSidebarAds(sidebarAdsData);
-      } catch (error) {
-        console.error("Error fetching ads:", error);
-      }
-    };
-
-    loadAds();
-    
-    // Set up real-time listeners for ads
-    const adsChannel = supabase
-      .channel('public:ads')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'ads' },
-        async () => {
-          console.log('Ads changed, refetching');
-          // Reload ads when changes occur
-          try {
-            const topAdsData = await getAdsByPosition('top');
-            const bottomAdsData = await getAdsByPosition('bottom');
-            const sidebarAdsData = await getAdsByPosition('sidebar');
-            
-            setTopAds(topAdsData);
-            setBottomAds(bottomAdsData);
-            setSidebarAds(sidebarAdsData);
-          } catch (error) {
-            console.error("Error refetching ads:", error);
-          }
-        }
-      )
-      .subscribe();
-      
-    // Clean up subscription
-    return () => {
-      supabase.removeChannel(adsChannel);
-    };
-  }, []);
+    if (adsError) {
+      console.error('Homepage: Error loading ads:', adsError);
+    }
+    console.log(`Homepage: Ads loaded - top: ${topAds.length}, bottom: ${bottomAds.length}, sidebar: ${sidebarAds.length}`);
+  }, [topAds, bottomAds, sidebarAds, adsError]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-100 to-slate-200 dark:from-slate-900 dark:via-gray-950 dark:to-slate-800 animate-fade-in overflow-x-hidden">
