@@ -32,7 +32,7 @@ const AdContainer: React.FC<AdContainerProps> = ({
     `ad-${adId || Math.random().toString(36).substring(2, 5)}-${position}-${Math.random().toString(36).substring(2, 5)}`
   );
 
-  // Add CSS styles to ensure ad content fits within container
+  // Add CSS styles to ensure ad content fits within container with more aggressive containment
   useEffect(() => {
     const containerId = uniqueIdRef.current;
     const existingStyle = document.getElementById(`${containerId}-style`);
@@ -41,6 +41,11 @@ const AdContainer: React.FC<AdContainerProps> = ({
       const style = document.createElement('style');
       style.id = `${containerId}-style`;
       style.textContent = `
+        #${containerId} {
+          overflow: hidden !important;
+          position: relative !important;
+        }
+        
         #${containerId} * {
           max-width: 100% !important;
           max-height: 100% !important;
@@ -51,6 +56,10 @@ const AdContainer: React.FC<AdContainerProps> = ({
           width: 100% !important;
           height: 100% !important;
           border: none !important;
+          transform-origin: top left !important;
+          position: absolute !important;
+          top: 0 !important;
+          left: 0 !important;
         }
         
         #${containerId} img {
@@ -61,6 +70,24 @@ const AdContainer: React.FC<AdContainerProps> = ({
         }
         
         #${containerId} div {
+          max-width: 100% !important;
+          max-height: 100% !important;
+        }
+        
+        /* Handle script-generated content more aggressively */
+        #${containerId} > div {
+          width: 100% !important;
+          height: 100% !important;
+          overflow: hidden !important;
+        }
+        
+        /* Target common ad wrapper classes */
+        #${containerId} [id*="ad"],
+        #${containerId} [class*="ad"],
+        #${containerId} [id*="banner"],
+        #${containerId} [class*="banner"] {
+          width: 100% !important;
+          height: 100% !important;
           max-width: 100% !important;
           max-height: 100% !important;
         }
@@ -75,6 +102,47 @@ const AdContainer: React.FC<AdContainerProps> = ({
       }
     };
   }, []);
+
+  // Monitor and adjust iframe dimensions after load
+  useEffect(() => {
+    if (!adLoaded || !adContainerRef.current) return;
+
+    const monitorAdContent = () => {
+      const container = adContainerRef.current;
+      if (!container) return;
+
+      // Find all iframes and force their dimensions
+      const iframes = container.querySelectorAll('iframe');
+      iframes.forEach((iframe) => {
+        const containerRect = container.getBoundingClientRect();
+        iframe.style.width = '100%';
+        iframe.style.height = '100%';
+        iframe.style.maxWidth = `${containerRect.width}px`;
+        iframe.style.maxHeight = `${containerRect.height}px`;
+        iframe.style.position = 'absolute';
+        iframe.style.top = '0';
+        iframe.style.left = '0';
+      });
+
+      // Also check for any oversized divs
+      const allDivs = container.querySelectorAll('div');
+      allDivs.forEach((div) => {
+        if (div.scrollWidth > container.clientWidth || div.scrollHeight > container.clientHeight) {
+          div.style.width = '100%';
+          div.style.height = '100%';
+          div.style.maxWidth = '100%';
+          div.style.maxHeight = '100%';
+          div.style.overflow = 'hidden';
+        }
+      });
+    };
+
+    // Monitor immediately and then periodically
+    monitorAdContent();
+    const interval = setInterval(monitorAdContent, 1000);
+
+    return () => clearInterval(interval);
+  }, [adLoaded]);
 
   const loadAd = useCallback(() => {
     if (!adContainerRef.current || !adCode || hasLoadedRef.current) return;
@@ -260,6 +328,7 @@ const AdContainer: React.FC<AdContainerProps> = ({
       height: `${height}px`,
       maxHeight: `${height}px`,
       minHeight: `${height}px`,
+      overflow: 'hidden',
     };
 
     if (position === 'in-video') {
