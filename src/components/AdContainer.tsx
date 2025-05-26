@@ -295,6 +295,11 @@ const AdContainer: React.FC<AdContainerProps> = ({
       'in-video': { width: 320, height: 50 },
       'before-video': { width: 728, height: 90 },
       'after-video': { width: 728, height: 90 },
+      'video-top': { width: 728, height: 90 },
+      'video-middle': { width: 728, height: 90 },
+      'video-bottom': { width: 728, height: 90 },
+      'video-left': { width: 160, height: 600 },
+      'video-right': { width: 160, height: 600 },
       top: { width: 728, height: 90 },
       'below-video': { width: 320, height: 100 },
       bottom: { width: 728, height: 90 },
@@ -315,8 +320,16 @@ const AdContainer: React.FC<AdContainerProps> = ({
         case 'top':
         case 'before-video':
         case 'after-video':
+        case 'video-top':
+        case 'video-middle':
+        case 'video-bottom':
           width = sizes.top_width;
           height = sizes.top_height;
+          break;
+        case 'video-left':
+        case 'video-right':
+          width = Math.min(sizes.sidebar_width, 200);
+          height = sizes.sidebar_height * 2;
           break;
         case 'below-video':
           width = sizes.below_video_width;

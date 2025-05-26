@@ -13,6 +13,11 @@ export function useAds() {
   const [afterVideoAds, setAfterVideoAds] = useState<Ad[]>([]);
   const [sidebarTopAds, setSidebarTopAds] = useState<Ad[]>([]);
   const [sidebarBottomAds, setSidebarBottomAds] = useState<Ad[]>([]);
+  const [videoTopAds, setVideoTopAds] = useState<Ad[]>([]);
+  const [videoMiddleAds, setVideoMiddleAds] = useState<Ad[]>([]);
+  const [videoBottomAds, setVideoBottomAds] = useState<Ad[]>([]);
+  const [videoLeftAds, setVideoLeftAds] = useState<Ad[]>([]);
+  const [videoRightAds, setVideoRightAds] = useState<Ad[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,7 +36,12 @@ export function useAds() {
         beforeVideoAdsData,
         afterVideoAdsData,
         sidebarTopAdsData,
-        sidebarBottomAdsData
+        sidebarBottomAdsData,
+        videoTopAdsData,
+        videoMiddleAdsData,
+        videoBottomAdsData,
+        videoLeftAdsData,
+        videoRightAdsData
       ] = await Promise.all([
         getAdsByPosition('top'),
         getAdsByPosition('bottom'),
@@ -41,10 +51,15 @@ export function useAds() {
         getAdsByPosition('before-video'),
         getAdsByPosition('after-video'),
         getAdsByPosition('sidebar-top'),
-        getAdsByPosition('sidebar-bottom')
+        getAdsByPosition('sidebar-bottom'),
+        getAdsByPosition('video-top'),
+        getAdsByPosition('video-middle'),
+        getAdsByPosition('video-bottom'),
+        getAdsByPosition('video-left'),
+        getAdsByPosition('video-right')
       ]);
       
-      console.log(`useAds: Fetched ads - top: ${topAdsData.length}, bottom: ${bottomAdsData.length}, sidebar: ${sidebarAdsData.length}, in-video: ${inVideoAdsData.length}, below-video: ${belowVideoAdsData.length}, before-video: ${beforeVideoAdsData.length}, after-video: ${afterVideoAdsData.length}, sidebar-top: ${sidebarTopAdsData.length}, sidebar-bottom: ${sidebarBottomAdsData.length}`);
+      console.log(`useAds: Fetched ads - top: ${topAdsData.length}, bottom: ${bottomAdsData.length}, sidebar: ${sidebarAdsData.length}, in-video: ${inVideoAdsData.length}, below-video: ${belowVideoAdsData.length}, before-video: ${beforeVideoAdsData.length}, after-video: ${afterVideoAdsData.length}, sidebar-top: ${sidebarTopAdsData.length}, sidebar-bottom: ${sidebarBottomAdsData.length}, video-top: ${videoTopAdsData.length}, video-middle: ${videoMiddleAdsData.length}, video-bottom: ${videoBottomAdsData.length}, video-left: ${videoLeftAdsData.length}, video-right: ${videoRightAdsData.length}`);
       
       setTopAds(topAdsData);
       setBottomAds(bottomAdsData);
@@ -55,6 +70,11 @@ export function useAds() {
       setAfterVideoAds(afterVideoAdsData);
       setSidebarTopAds(sidebarTopAdsData);
       setSidebarBottomAds(sidebarBottomAdsData);
+      setVideoTopAds(videoTopAdsData);
+      setVideoMiddleAds(videoMiddleAdsData);
+      setVideoBottomAds(videoBottomAdsData);
+      setVideoLeftAds(videoLeftAdsData);
+      setVideoRightAds(videoRightAdsData);
     } catch (err) {
       console.error('useAds: Error fetching ads:', err);
       setError('Failed to load ads');
@@ -104,6 +124,11 @@ export function useAds() {
     afterVideoAds,
     sidebarTopAds,
     sidebarBottomAds,
+    videoTopAds,
+    videoMiddleAds,
+    videoBottomAds,
+    videoLeftAds,
+    videoRightAds,
     loading,
     error,
     refetchAds: fetchAllAds

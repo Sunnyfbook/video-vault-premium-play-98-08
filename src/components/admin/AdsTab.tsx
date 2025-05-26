@@ -18,7 +18,7 @@ const AdsTab: React.FC<AdsTabProps> = ({ ads }) => {
     name: '',
     type: 'monetag' as 'monetag' | 'adstera',
     code: '',
-    position: 'top' as 'top' | 'bottom' | 'sidebar' | 'in-video' | 'below-video' | 'before-video' | 'after-video' | 'sidebar-top' | 'sidebar-bottom',
+    position: 'top' as 'top' | 'bottom' | 'sidebar' | 'in-video' | 'below-video' | 'before-video' | 'after-video' | 'sidebar-top' | 'sidebar-bottom' | 'video-top' | 'video-middle' | 'video-bottom' | 'video-left' | 'video-right',
     is_active: true
   });
   const { toast } = useToast();
@@ -157,7 +157,7 @@ const AdsTab: React.FC<AdsTabProps> = ({ ads }) => {
                 <Label htmlFor="adPosition">Position</Label>
                 <Select 
                   value={newAd.position}
-                  onValueChange={(value: 'top' | 'bottom' | 'sidebar' | 'in-video' | 'below-video' | 'before-video' | 'after-video' | 'sidebar-top' | 'sidebar-bottom') => {
+                  onValueChange={(value: 'top' | 'bottom' | 'sidebar' | 'in-video' | 'below-video' | 'before-video' | 'after-video' | 'sidebar-top' | 'sidebar-bottom' | 'video-top' | 'video-middle' | 'video-bottom' | 'video-left' | 'video-right') => {
                     console.log('Position selected:', value);
                     setNewAd({ ...newAd, position: value });
                   }}
@@ -168,9 +168,14 @@ const AdsTab: React.FC<AdsTabProps> = ({ ads }) => {
                   <SelectContent>
                     <SelectItem value="top">Top of Page</SelectItem>
                     <SelectItem value="before-video">Before Video</SelectItem>
+                    <SelectItem value="video-top">Video Player Top</SelectItem>
+                    <SelectItem value="video-left">Video Player Left</SelectItem>
                     <SelectItem value="in-video">In-video Overlay</SelectItem>
+                    <SelectItem value="video-right">Video Player Right</SelectItem>
+                    <SelectItem value="video-middle">Video Player Middle</SelectItem>
                     <SelectItem value="after-video">After Video</SelectItem>
                     <SelectItem value="below-video">Below Video Info</SelectItem>
+                    <SelectItem value="video-bottom">Video Player Bottom</SelectItem>
                     <SelectItem value="bottom">Bottom of Page</SelectItem>
                     <SelectItem value="sidebar-top">Sidebar Top</SelectItem>
                     <SelectItem value="sidebar">Sidebar Middle</SelectItem>

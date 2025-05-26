@@ -30,6 +30,11 @@ const VideoPage: React.FC = () => {
   const [afterVideoAds, setAfterVideoAds] = useState<Ad[]>([]);
   const [sidebarTopAds, setSidebarTopAds] = useState<Ad[]>([]);
   const [sidebarBottomAds, setSidebarBottomAds] = useState<Ad[]>([]);
+  const [videoTopAds, setVideoTopAds] = useState<Ad[]>([]);
+  const [videoMiddleAds, setVideoMiddleAds] = useState<Ad[]>([]);
+  const [videoBottomAds, setVideoBottomAds] = useState<Ad[]>([]);
+  const [videoLeftAds, setVideoLeftAds] = useState<Ad[]>([]);
+  const [videoRightAds, setVideoRightAds] = useState<Ad[]>([]);
   const [seoSettings, setSeoSettings] = useState<SEOSetting | undefined>(undefined);
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
@@ -118,7 +123,12 @@ const VideoPage: React.FC = () => {
           beforeVideoAdsData,
           afterVideoAdsData,
           sidebarTopAdsData,
-          sidebarBottomAdsData
+          sidebarBottomAdsData,
+          videoTopAdsData,
+          videoMiddleAdsData,
+          videoBottomAdsData,
+          videoLeftAdsData,
+          videoRightAdsData
         ] = await Promise.all([
           getAdsByPosition('top'),
           getAdsByPosition('bottom'),
@@ -128,10 +138,15 @@ const VideoPage: React.FC = () => {
           getAdsByPosition('before-video'),
           getAdsByPosition('after-video'),
           getAdsByPosition('sidebar-top'),
-          getAdsByPosition('sidebar-bottom')
+          getAdsByPosition('sidebar-bottom'),
+          getAdsByPosition('video-top'),
+          getAdsByPosition('video-middle'),
+          getAdsByPosition('video-bottom'),
+          getAdsByPosition('video-left'),
+          getAdsByPosition('video-right')
         ]);
         
-        console.log(`VideoPage: Fetched ads: ${topAdsData.length} top, ${bottomAdsData.length} bottom, ${sidebarAdsData.length} sidebar, ${inVideoAdsData.length} in-video, ${belowVideoAdsData.length} below-video, ${beforeVideoAdsData.length} before-video, ${afterVideoAdsData.length} after-video, ${sidebarTopAdsData.length} sidebar-top, ${sidebarBottomAdsData.length} sidebar-bottom`);
+        console.log(`VideoPage: Fetched ads: ${topAdsData.length} top, ${bottomAdsData.length} bottom, ${sidebarAdsData.length} sidebar, ${inVideoAdsData.length} in-video, ${belowVideoAdsData.length} below-video, ${beforeVideoAdsData.length} before-video, ${afterVideoAdsData.length} after-video, ${sidebarTopAdsData.length} sidebar-top, ${sidebarBottomAdsData.length} sidebar-bottom, ${videoTopAdsData.length} video-top, ${videoMiddleAdsData.length} video-middle, ${videoBottomAdsData.length} video-bottom, ${videoLeftAdsData.length} video-left, ${videoRightAdsData.length} video-right`);
         
         setTopAds(topAdsData);
         setBottomAds(bottomAdsData);
@@ -142,6 +157,11 @@ const VideoPage: React.FC = () => {
         setAfterVideoAds(afterVideoAdsData);
         setSidebarTopAds(sidebarTopAdsData);
         setSidebarBottomAds(sidebarBottomAdsData);
+        setVideoTopAds(videoTopAdsData);
+        setVideoMiddleAds(videoMiddleAdsData);
+        setVideoBottomAds(videoBottomAdsData);
+        setVideoLeftAds(videoLeftAdsData);
+        setVideoRightAds(videoRightAdsData);
       } catch (error) {
         console.error("VideoPage: Error fetching ads:", error);
       }
@@ -166,7 +186,12 @@ const VideoPage: React.FC = () => {
               beforeVideoAdsData,
               afterVideoAdsData,
               sidebarTopAdsData,
-              sidebarBottomAdsData
+              sidebarBottomAdsData,
+              videoTopAdsData,
+              videoMiddleAdsData,
+              videoBottomAdsData,
+              videoLeftAdsData,
+              videoRightAdsData
             ] = await Promise.all([
               getAdsByPosition('top'),
               getAdsByPosition('bottom'),
@@ -176,7 +201,12 @@ const VideoPage: React.FC = () => {
               getAdsByPosition('before-video'),
               getAdsByPosition('after-video'),
               getAdsByPosition('sidebar-top'),
-              getAdsByPosition('sidebar-bottom')
+              getAdsByPosition('sidebar-bottom'),
+              getAdsByPosition('video-top'),
+              getAdsByPosition('video-middle'),
+              getAdsByPosition('video-bottom'),
+              getAdsByPosition('video-left'),
+              getAdsByPosition('video-right')
             ]);
             
             setTopAds(topAdsData);
@@ -188,6 +218,11 @@ const VideoPage: React.FC = () => {
             setAfterVideoAds(afterVideoAdsData);
             setSidebarTopAds(sidebarTopAdsData);
             setSidebarBottomAds(sidebarBottomAdsData);
+            setVideoTopAds(videoTopAdsData);
+            setVideoMiddleAds(videoMiddleAdsData);
+            setVideoBottomAds(videoBottomAdsData);
+            setVideoLeftAds(videoLeftAdsData);
+            setVideoRightAds(videoRightAdsData);
           } catch (error) {
             console.error("VideoPage: Error refetching ads:", error);
           }
@@ -308,6 +343,11 @@ const VideoPage: React.FC = () => {
               bottomAds={bottomAds}
               belowVideoAds={belowVideoAds}
               afterVideoAds={afterVideoAds}
+              videoTopAds={videoTopAds}
+              videoMiddleAds={videoMiddleAds}
+              videoBottomAds={videoBottomAds}
+              videoLeftAds={videoLeftAds}
+              videoRightAds={videoRightAds}
             />
             
             <VideoSidebar 

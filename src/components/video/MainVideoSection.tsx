@@ -12,6 +12,11 @@ interface MainVideoSectionProps {
   bottomAds: Ad[];
   belowVideoAds?: Ad[];
   afterVideoAds?: Ad[];
+  videoTopAds?: Ad[];
+  videoMiddleAds?: Ad[];
+  videoBottomAds?: Ad[];
+  videoLeftAds?: Ad[];
+  videoRightAds?: Ad[];
 }
 
 const MainVideoSection: React.FC<MainVideoSectionProps> = ({ 
@@ -19,7 +24,12 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
   inVideoAds, 
   bottomAds,
   belowVideoAds = [],
-  afterVideoAds = []
+  afterVideoAds = [],
+  videoTopAds = [],
+  videoMiddleAds = [],
+  videoBottomAds = [],
+  videoLeftAds = [],
+  videoRightAds = []
 }) => {
   const [showInVideoAd, setShowInVideoAd] = useState(false);
   const videoPlayerRef = useRef<HTMLDivElement>(null);
@@ -42,25 +52,81 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
 
   return (
     <div className="flex-1 space-y-6">
-      <div ref={videoPlayerRef} className="relative">
-        <VideoPlayer 
-          src={video.url} 
-          title={video.title}
-          disableClickToToggle={showInVideoAd}
-        />
-        
-        {/* In-video ads overlay */}
-        {showInVideoAd && inVideoAds.length > 0 && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-40">
-            <div className="in-video-ads-section pointer-events-auto">
+      {/* Video Top Ads */}
+      {videoTopAds.length > 0 && (
+        <div className="video-top-ads-container">
+          <AdsSection 
+            ads={videoTopAds} 
+            className="w-full" 
+            staggerDelay={true} 
+            baseDelaySeconds={0.5}
+            positionClass="video-top-ads-section" 
+          />
+        </div>
+      )}
+
+      <div className="flex gap-4">
+        {/* Video Left Ads */}
+        {videoLeftAds.length > 0 && (
+          <div className="video-left-ads-container hidden lg:block">
+            <AdsSection 
+              ads={videoLeftAds} 
+              className="w-full" 
+              staggerDelay={true} 
+              baseDelaySeconds={1}
+              positionClass="video-left-ads-section" 
+            />
+          </div>
+        )}
+
+        <div className="flex-1">
+          <div ref={videoPlayerRef} className="relative">
+            <VideoPlayer 
+              src={video.url} 
+              title={video.title}
+              disableClickToToggle={showInVideoAd}
+            />
+            
+            {/* In-video ads overlay */}
+            {showInVideoAd && inVideoAds.length > 0 && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-40">
+                <div className="in-video-ads-section pointer-events-auto">
+                  <AdsSection 
+                    ads={inVideoAds} 
+                    className="in-video-ad-container" 
+                    staggerDelay={false} 
+                    baseDelaySeconds={0}
+                    positionClass="in-video-ads-section" 
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Video Middle Ads */}
+          {videoMiddleAds.length > 0 && (
+            <div className="video-middle-ads-container mt-4">
               <AdsSection 
-                ads={inVideoAds} 
-                className="in-video-ad-container" 
-                staggerDelay={false} 
-                baseDelaySeconds={0}
-                positionClass="in-video-ads-section" 
+                ads={videoMiddleAds} 
+                className="w-full" 
+                staggerDelay={true} 
+                baseDelaySeconds={1.5}
+                positionClass="video-middle-ads-section" 
               />
             </div>
+          )}
+        </div>
+
+        {/* Video Right Ads */}
+        {videoRightAds.length > 0 && (
+          <div className="video-right-ads-container hidden lg:block">
+            <AdsSection 
+              ads={videoRightAds} 
+              className="w-full" 
+              staggerDelay={true} 
+              baseDelaySeconds={1.2}
+              positionClass="video-right-ads-section" 
+            />
           </div>
         )}
       </div>
@@ -79,6 +145,19 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
       )}
       
       <VideoInfo video={video} belowVideoAds={belowVideoAds} />
+
+      {/* Video Bottom Ads */}
+      {videoBottomAds.length > 0 && (
+        <div className="video-bottom-ads-container">
+          <AdsSection 
+            ads={videoBottomAds} 
+            className="w-full" 
+            staggerDelay={true} 
+            baseDelaySeconds={2.5}
+            positionClass="video-bottom-ads-section" 
+          />
+        </div>
+      )}
       
       {/* Bottom ads */}
       {bottomAds.length > 0 && (
