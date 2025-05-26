@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Video, ImageIcon, Zap, ArrowRight, PlayCircle } from 'lucide-react';
@@ -6,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { getAdsByPosition, Ad } from '@/models/Ad';
 import { useHomepageContent } from '@/hooks/useHomepageContent';
 import { useHomepageConfig } from '@/hooks/useHomepageConfig';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from '@/integrations/supabase/client';
 import { incrementPageView, incrementUniqueVisitor } from '@/models/Analytics';
 
@@ -31,7 +29,6 @@ const Index = () => {
     error: configError 
   } = useHomepageConfig();
 
-  const isMobile = useIsMobile();
   const overallLoading = contentLoading || configLoading;
 
   useEffect(() => {
@@ -140,12 +137,10 @@ const Index = () => {
           <main className="space-y-3 md:space-y-4 flex-grow">
             {/* Featured Videos Section */}
             <section>
-              {!isMobile && (
-                <div className="flex items-center gap-2 mb-3">
-                  <Video size={28} className="text-primary" />
-                  <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-0-force">Featured Videos</h2>
-                </div>
-              )}
+              <div className="flex items-center gap-2 mb-3">
+                <Video size={28} className="text-primary" />
+                <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-0-force">Featured Videos</h2>
+              </div>
               {contentLoading ? (
                 <div className="h-60 bg-gray-200 dark:bg-slate-800 rounded-xl animate-pulse"></div>
               ) : videos.length === 0 ? (
@@ -154,53 +149,45 @@ const Index = () => {
                   <p className="text-base text-muted-foreground">No featured videos available right now. Please check back later!</p>
                 </div>
               ) : (
-                <ContentCarousel 
-                  items={videos} 
-                  type="video" 
-                  showMobileCharacterView={isMobile}
-                />
+                <ContentCarousel items={videos} type="video" />
               )}
               
-              {/* Enhanced View All Videos Button - Only show on desktop */}
-              {!isMobile && (
-                <div className="text-center mt-6">
-                  <Link to="/videos" className="inline-block">
-                    <Button 
-                      size="lg" 
-                      className="group relative overflow-hidden bg-gradient-to-r from-primary via-brand-accent to-accent text-white font-bold text-lg px-8 py-4 rounded-2xl shadow-xl hover:shadow-2xl transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 border-0 min-w-[240px]"
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-r from-accent via-brand-accent to-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                      <div className="relative flex items-center gap-3">
-                        <PlayCircle size={24} className="animate-pulse" />
-                        <span className="tracking-wide">Explore All Videos</span>
-                        <ArrowRight size={20} className="transition-transform duration-300 group-hover:translate-x-1" />
-                      </div>
-                      <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
-                    </Button>
-                  </Link>
-                </div>
-              )}
+              {/* Enhanced View All Videos Button */}
+              <div className="text-center mt-6">
+                <Link to="/videos" className="inline-block">
+                  <Button 
+                    size="lg" 
+                    className="group relative overflow-hidden bg-gradient-to-r from-primary via-brand-accent to-accent text-white font-bold text-lg px-8 py-4 rounded-2xl shadow-xl hover:shadow-2xl transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 border-0 min-w-[240px]"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-accent via-brand-accent to-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="relative flex items-center gap-3">
+                      <PlayCircle size={24} className="animate-pulse" />
+                      <span className="tracking-wide">Explore All Videos</span>
+                      <ArrowRight size={20} className="transition-transform duration-300 group-hover:translate-x-1" />
+                    </div>
+                    <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
+                  </Button>
+                </Link>
+              </div>
             </section>
 
-            {/* Featured Images Section - Only show on desktop */}
-            {!isMobile && (
-              <section>
-                <div className="flex items-center gap-2 mb-3">
-                  <ImageIcon size={28} className="text-brand-accent" />
-                  <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-0-force">Featured Images</h2>
+            {/* Featured Images Section */}
+            <section>
+              <div className="flex items-center gap-2 mb-3">
+                <ImageIcon size={28} className="text-brand-accent" />
+                <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-0-force">Featured Images</h2>
+              </div>
+              {contentLoading ? (
+                <div className="h-60 bg-gray-200 dark:bg-slate-800 rounded-xl animate-pulse"></div>
+              ) : images.length === 0 ? (
+                <div className="bg-card border border-border rounded-xl p-4 text-center shadow-subtle">
+                  <ImageIcon size={36} className="mx-auto text-gray-400 dark:text-gray-500 mb-3" />
+                  <p className="text-base text-muted-foreground">No featured images to showcase at the moment.</p>
                 </div>
-                {contentLoading ? (
-                  <div className="h-60 bg-gray-200 dark:bg-slate-800 rounded-xl animate-pulse"></div>
-                ) : images.length === 0 ? (
-                  <div className="bg-card border border-border rounded-xl p-4 text-center shadow-subtle">
-                    <ImageIcon size={36} className="mx-auto text-gray-400 dark:text-gray-500 mb-3" />
-                    <p className="text-base text-muted-foreground">No featured images to showcase at the moment.</p>
-                  </div>
-                ) : (
-                  <ContentCarousel items={images} type="image" />
-                )}
-              </section>
-            )}
+              ) : (
+                <ContentCarousel items={images} type="image" />
+              )}
+            </section>
 
             {/* Bottom Ads - ZERO SPACING */}
             {bottomAds.length > 0 && (
@@ -216,8 +203,8 @@ const Index = () => {
             )}
           </main>
 
-          {/* Sidebar Ads - ZERO SPACING - Only show on desktop */}
-          {!isMobile && sidebarAds.length > 0 && (
+          {/* Sidebar Ads - ZERO SPACING */}
+          {sidebarAds.length > 0 && (
             <aside className="w-full lg:w-64 xl:w-80 shrink-0">
               <div className="sticky top-2 no-spacing">
                 <AdsSection 
