@@ -53,15 +53,14 @@ const Index = () => {
     if (adsError) {
       console.error('Homepage: Error loading ads:', adsError);
     }
-    console.log(`Homepage: Ads loaded - top: ${topAds.length}, bottom: ${bottomAds.length}, sidebar: ${sidebarAds.length}`);
   }, [topAds, bottomAds, sidebarAds, adsError]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-100 to-slate-200 dark:from-slate-900 dark:via-gray-950 dark:to-slate-800 animate-fade-in overflow-x-hidden">
       <div className="container mx-auto px-2 py-2 sm:px-4 sm:py-3">
-        {/* Top Ads - ZERO SPACING */}
-        {topAds.length > 0 && (
-          <div className="mb-2 no-spacing">
+        {/* Top Ads - Fixed height to prevent CLS */}
+        <div className="mb-2 no-spacing" style={{ minHeight: topAds.length > 0 ? '60px' : '0px' }}>
+          {topAds.length > 0 && (
             <AdsSection 
               ads={topAds} 
               className="w-full no-spacing" 
@@ -69,8 +68,8 @@ const Index = () => {
               baseDelaySeconds={0.5}
               positionClass="top-ads-section" 
             />
-          </div>
-        )}
+          )}
+        </div>
 
         <header className="mb-3 md:mb-4 text-center">
           <Zap size={48} className="mx-auto mb-2 text-brand-accent animate-pulse-soft" />
@@ -97,8 +96,8 @@ const Index = () => {
 
         <div className="flex flex-col lg:flex-row gap-3">
           <main className="space-y-3 md:space-y-4 flex-grow">
-            {/* Featured Videos Section */}
-            <section>
+            {/* Featured Videos Section with fixed height */}
+            <section style={{ minHeight: '300px' }}>
               <div className="flex items-center gap-2 mb-3">
                 <Video size={28} className="text-primary" />
                 <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-0-force">Featured Videos</h2>
@@ -119,7 +118,7 @@ const Index = () => {
                 <Link to="/videos" className="inline-block">
                   <Button 
                     size="lg" 
-                    className="group relative overflow-hidden bg-gradient-to-r from-primary via-brand-accent to-accent text-white font-bold text-lg px-8 py-4 rounded-2xl shadow-xl hover:shadow-2xl transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 border-0 min-w-[240px]"
+                    className="group relative overflow-hidden bg-gradient-to-r from-primary via-brand-accent to-accent text-white font-bold text-lg px-8 py-4 rounded-2xl shadow-xl hover:shadow-2xl transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 border-0 min-w-[240px] gpu-accelerated"
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-accent via-brand-accent to-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     <div className="relative flex items-center gap-3">
@@ -133,8 +132,8 @@ const Index = () => {
               </div>
             </section>
 
-            {/* Featured Images Section */}
-            <section>
+            {/* Featured Images Section with fixed height */}
+            <section style={{ minHeight: '300px' }}>
               <div className="flex items-center gap-2 mb-3">
                 <ImageIcon size={28} className="text-brand-accent" />
                 <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-0-force">Featured Images</h2>
@@ -151,9 +150,9 @@ const Index = () => {
               )}
             </section>
 
-            {/* Bottom Ads - ZERO SPACING */}
-            {bottomAds.length > 0 && (
-              <div className="mt-2 no-spacing">
+            {/* Bottom Ads - Fixed height to prevent CLS */}
+            <div className="mt-2 no-spacing" style={{ minHeight: bottomAds.length > 0 ? '250px' : '0px' }}>
+              {bottomAds.length > 0 && (
                 <AdsSection 
                   ads={bottomAds} 
                   className="w-full no-spacing" 
@@ -161,13 +160,13 @@ const Index = () => {
                   baseDelaySeconds={6} 
                   positionClass="bottom-ads-section"
                 />
-              </div>
-            )}
+              )}
+            </div>
           </main>
 
-          {/* Sidebar Ads - ZERO SPACING */}
+          {/* Sidebar Ads - Fixed width to prevent CLS */}
           {sidebarAds.length > 0 && (
-            <aside className="w-full lg:w-64 xl:w-80 shrink-0">
+            <aside className="w-full lg:w-64 xl:w-80 shrink-0" style={{ minHeight: '500px' }}>
               <div className="sticky top-2 no-spacing">
                 <AdsSection 
                   ads={sidebarAds} 

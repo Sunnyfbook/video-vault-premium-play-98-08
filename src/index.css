@@ -1,4 +1,5 @@
 
+/* Critical CSS - Load first */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -7,60 +8,43 @@
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
-
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
-
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-
     --primary: 224 76% 48%; 
     --primary-foreground: 210 40% 98%;
-
     --secondary: 215 28% 17%; 
     --secondary-foreground: 210 40% 98%;
-
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-
     --accent: 315 86% 59%; 
     --accent-foreground: 0 0% 100%;
-
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 224 76% 48%; 
-
     --radius: 0.5rem;
   }
 
   .dark {
     --background: 222.2 84% 4.9%; 
     --foreground: 210 40% 98%;
-
     --card: 222.2 84% 7%; 
     --card-foreground: 210 40% 98%;
-
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-
     --primary: 224 76% 58%; 
     --primary-foreground: 222.2 84% 4.9%;
-
     --secondary: 217.2 32.6% 17.5%; 
     --secondary-foreground: 210 40% 98%;
-
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 210 40% 96.1%;
-
     --accent: 315 86% 64%; 
     --accent-foreground: 222.2 84% 4.9%;
-
     --destructive: 0 62.8% 50.6%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 224 76% 58%; 
@@ -81,6 +65,9 @@
     margin: 0;
     padding: 0;
     line-height: 1.5;
+    /* Prevent layout shifts */
+    min-height: 100vh;
+    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -88,46 +75,44 @@
     margin: 0;
     padding: 0;
   }
+
+  /* Prevent flash of unstyled content */
+  .container {
+    min-height: 50vh;
+  }
 }
 
 @layer components {
+  /* Critical video styles */
   .video-container {
-    @apply relative w-full pt-[56.25%] bg-video-background rounded-xl overflow-hidden shadow-2xl border-2 border-transparent dark:border-gray-800;
+    @apply relative w-full pt-[56.25%] bg-gray-900 rounded-xl overflow-hidden shadow-2xl border-2 border-transparent dark:border-gray-800;
+    contain: layout style;
   }
   
   .video-player {
     @apply absolute top-0 left-0 w-full h-full;
+    contain: layout style;
   }
   
-  .video-controls {
-    @apply absolute bottom-0 left-0 right-0 flex items-center justify-between px-4 py-3 bg-gradient-to-t from-black/90 to-transparent transition-opacity duration-300;
-  }
-  
-  .control-button {
-    @apply p-2.5 text-white rounded-full hover:bg-white/25 transition-colors duration-200;
-  }
-  
-  .progress-bar {
-    @apply h-1.5 bg-gray-700/70 rounded-full overflow-hidden relative cursor-pointer;
-  }
-  
-  .progress-fill {
-    @apply h-full bg-brand-accent absolute left-0 top-0 transition-all duration-150;
-  }
-  
+  /* Optimized ad containers with fixed dimensions to prevent CLS */
   .ad-container {
-    @apply bg-ads-background border border-ads-border rounded-lg flex justify-center items-center transition-all duration-300;
+    @apply bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex justify-center items-center;
     margin: 0 !important;
     padding: 0.25rem !important;
     min-height: 60px !important;
     line-height: 1 !important;
+    /* Prevent layout shifts */
+    contain: layout size style;
+    will-change: transform;
   }
 
-  /* Improved Ad Container Styles */
   .optimized-ad-container {
     @apply w-full flex justify-center items-center;
     padding: 8px 0;
     box-sizing: border-box;
+    /* Fixed dimensions to prevent CLS */
+    contain: layout size style;
+    min-height: 70px;
   }
 
   .top-ad-container {
@@ -135,6 +120,9 @@
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
+    /* Reserve space to prevent CLS */
+    min-height: 60px;
+    contain: layout size;
   }
 
   .bottom-ad-container {
@@ -142,6 +130,8 @@
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
+    min-height: 250px;
+    contain: layout size;
   }
 
   .sidebar-ad-container {
@@ -149,10 +139,13 @@
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
+    min-height: 250px;
+    contain: layout size;
   }
 
   .in-video-ad-container {
     @apply relative;
+    contain: layout style;
   }
 
   .below-video-ad-container {
@@ -160,6 +153,8 @@
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
+    min-height: 60px;
+    contain: layout size;
   }
 
   .ad-content-wrapper {
@@ -171,54 +166,31 @@
     align-items: center !important;
     justify-content: center !important;
     box-sizing: border-box !important;
+    /* Performance optimizations */
+    contain: layout size style;
+    transform: translateZ(0);
+    backface-visibility: hidden;
   }
 
-  .ad-content-wrapper.monetag-ad {
-    @apply border-blue-200 dark:border-blue-800;
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(99, 102, 241, 0.03) 100%);
-  }
-
-  .ad-content-wrapper.adstera-ad {
-    @apply border-purple-200 dark:border-purple-800;
-    background: linear-gradient(135deg, rgba(168, 85, 247, 0.05) 0%, rgba(236, 72, 153, 0.03) 100%);
-  }
-
-  /* Dark mode adjustments for ads */
-  .dark .ad-content-wrapper {
-    background: linear-gradient(135deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.05) 100%);
-    border-color: rgba(255,255,255,0.08);
-  }
-
-  /* Ensure proper ad layout */
-  .bottom-ads-section,
-  .sidebar-ads-section,
-  .top-ads-section {
-    width: 100% !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    gap: 1rem !important;
-  }
-
-  .sidebar-ads-section {
-    max-width: 100% !important;
-  }
-  
+  /* Critical button and card styles */
   .admin-card {
-    @apply bg-card shadow-card rounded-xl p-6 transition-all duration-300 hover:shadow-card-hover;
+    @apply bg-card shadow-sm rounded-xl p-6 transition-all duration-300 hover:shadow-md;
+    contain: layout style;
   }
 
   .section-title {
     @apply text-3xl sm:text-4xl font-extrabold mb-4 text-gray-900 dark:text-white;
     margin-bottom: 1rem !important;
+    contain: layout style;
   }
 
   .gradient-text {
-    @apply text-transparent bg-clip-text bg-gradient-to-r from-primary via-brand-accent to-accent;
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-primary via-accent to-accent;
+    contain: layout style;
   }
 }
 
-/* Utility classes to remove spacing */
+/* Utility classes with performance optimizations */
 @layer utilities {
   .no-spacing {
     margin: 0 !important;
@@ -230,84 +202,41 @@
     line-height: 1.2 !important;
   }
   
-  /* Remove default margins from common elements */
-  .mb-0-force {
-    margin-bottom: 0 !important;
+  .mb-0-force { margin-bottom: 0 !important; }
+  .mt-0-force { margin-top: 0 !important; }
+  .p-0-force { padding: 0 !important; }
+
+  /* Performance utilities */
+  .gpu-accelerated {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
   }
-  
-  .mt-0-force {
-    margin-top: 0 !important;
+
+  .will-change-transform {
+    will-change: transform;
   }
-  
-  .p-0-force {
-    padding: 0 !important;
+
+  .contain-layout {
+    contain: layout;
+  }
+
+  .contain-size {
+    contain: size;
+  }
+
+  .contain-style {
+    contain: style;
   }
 }
 
-/* Global spacing resets for ad sections */
-[class*="ads-section"],
-[data-ad-type] {
-  margin: 0 !important;
-  line-height: 1 !important;
-}
-
-/* Enhanced ad positioning and styling */
-.optimized-ad-container {
-  transition: all 0.3s ease;
-}
-
-.optimized-ad-container:hover {
-  transform: translateY(-1px);
-}
-
-/* Force proper container behavior */
-.optimized-ad-container .ad-content-wrapper {
-  contain: layout size style !important;
-  isolation: isolate !important;
-}
-
-/* Responsive ad sizing with better containment */
+/* Responsive optimizations */
 @media (max-width: 768px) {
   .ad-content-wrapper {
     max-width: 100% !important;
     margin: 0 auto;
   }
 
-  .top-ad-container,
-  .bottom-ad-container,
-  .sidebar-ad-container {
-    padding: 0 1rem;
-    max-width: 100% !important;
-  }
-
-  .optimized-ad-container {
-    padding: 4px 0;
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-}
-
-@media (max-width: 480px) {
-  .ad-content-wrapper {
-    min-height: 50px !important;
-    border-radius: 6px !important;
-  }
-  
-  .sidebar-ad-container,
-  .bottom-ad-container {
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-}
-
-/* Remove spacing from containers */
-.container {
-  padding-top: 1rem !important;
-  padding-bottom: 1rem !important;
-}
-
-/* Compact spacing for mobile */
-@media (max-width: 768px) {
   .container {
     padding-top: 0.5rem !important;
     padding-bottom: 0.5rem !important;
@@ -316,4 +245,39 @@
   .section-title {
     margin-bottom: 0.5rem !important;
   }
+
+  /* Mobile ad containers with fixed heights */
+  .top-ad-container,
+  .bottom-ad-container,
+  .sidebar-ad-container,
+  .below-video-ad-container {
+    min-height: 50px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .ad-content-wrapper {
+    min-height: 50px !important;
+    border-radius: 6px !important;
+  }
+}
+
+/* Critical loading states to prevent FOUC */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out;
+}
+
+.animate-pulse-soft {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Remove unused complex animations that slow down rendering */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .8; }
 }

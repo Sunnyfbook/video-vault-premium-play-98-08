@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Volume2, VolumeX, Maximize, SkipBack, SkipForward } from 'lucide-react';
 import LoadingOverlay from './video/LoadingOverlay';
@@ -46,6 +45,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title, disableClickToTog
         const hls = new Hls({
           enableWorker: true,
           lowLatencyMode: true,
+          // Performance optimizations
+          maxBufferLength: 30,
+          maxMaxBufferLength: 600,
+          maxBufferSize: 60 * 1000 * 1000,
+          maxBufferHole: 0.5,
         });
         hls.loadSource(src);
         hls.attachMedia(video);
@@ -69,13 +73,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title, disableClickToTog
         setError("Failed to initialize HLS player. Please try again.");
       }
     } else {
-      // Regular video handling
+      // Regular video handling with preload optimization
+      video.preload = 'metadata'; // Only preload metadata, not the entire video
       video.src = src;
     }
-    
-    // Try to detect video format from extension
-    const videoExtension = src.split('.').pop()?.toLowerCase();
-    console.log(`Video format detected: ${videoExtension}`);
     
     return () => {
       if (hlsRef.current) {
@@ -85,20 +86,25 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title, disableClickToTog
     };
   }, [src]);
 
-  // Initialize and handle events
+  // Initialize and handle events with performance optimizations
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
+
+    // Throttled event handlers for better performance
+    let timeUpdateTimeout: NodeJS.Timeout;
+    const throttledTimeUpdate = () => {
+      clearTimeout(timeUpdateTimeout);
+      timeUpdateTimeout = setTimeout(() => {
+        setCurrentTime(video.currentTime);
+        setProgress((video.currentTime / video.duration) * 100 || 0);
+      }, 100); // Throttle to 10fps instead of 60fps
+    };
 
     // Event handlers
     const onLoadedMetadata = () => {
       setDuration(video.duration);
       setLoading(false);
-    };
-
-    const onTimeUpdate = () => {
-      setCurrentTime(video.currentTime);
-      setProgress((video.currentTime / video.duration) * 100 || 0);
     };
 
     const onError = () => {
@@ -137,7 +143,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title, disableClickToTog
 
     // Add event listeners
     video.addEventListener('loadedmetadata', onLoadedMetadata);
-    video.addEventListener('timeupdate', onTimeUpdate);
+    video.addEventListener('timeupdate', throttledTimeUpdate);
     video.addEventListener('error', onError);
     video.addEventListener('waiting', onWaiting);
     video.addEventListener('playing', onPlaying);
@@ -154,8 +160,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title, disableClickToTog
 
     return () => {
       // Remove event listeners on cleanup
+      clearTimeout(timeUpdateTimeout);
       video.removeEventListener('loadedmetadata', onLoadedMetadata);
-      video.removeEventListener('timeupdate', onTimeUpdate);
+      video.removeEventListener('timeupdate', throttledTimeUpdate);
       video.removeEventListener('error', onError);
       video.removeEventListener('waiting', onWaiting);
       video.removeEventListener('playing', onPlaying);
@@ -166,7 +173,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title, disableClickToTog
     };
   }, []);
 
-  // Auto-hide controls
+  // Auto-hide controls with debouncing
   useEffect(() => {
     let timeoutId: ReturnType<typeof setTimeout>;
     
@@ -298,23 +305,25 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title, disableClickToTog
   return (
     <div 
       ref={containerRef}
-      className="relative w-full aspect-video bg-black overflow-hidden"
+      className="relative w-full aspect-video bg-black overflow-hidden gpu-accelerated"
       onMouseMove={handleMouseMove}
       onDoubleClick={toggleFullscreen}
+      style={{ contain: 'layout style' }}
     >
       {loading && !error && <LoadingOverlay />}
       {error && <ErrorOverlay errorMessage={error} onRetry={handleRetry} />}
       
       <video
         ref={videoRef}
-        className="w-full h-full object-contain"
+        className="w-full h-full object-contain gpu-accelerated"
         title={title}
         playsInline
         onClick={handleVideoClick}
+        style={{ contain: 'layout style' }}
       />
       
       {showControls && (
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 gpu-accelerated">
           {/* Progress bar */}
           <div className="mb-4">
             <input
@@ -333,15 +342,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title, disableClickToTog
           {/* Control buttons */}
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <button onClick={togglePlay} className="text-white hover:text-primary">
+              <button onClick={togglePlay} className="text-white hover:text-primary gpu-accelerated">
                 {isPlaying ? <Pause size={24} /> : <Play size={24} />}
               </button>
               
-              <button onClick={skipBackward} className="text-white hover:text-primary">
+              <button onClick={skipBackward} className="text-white hover:text-primary gpu-accelerated">
                 <SkipBack size={20} />
               </button>
               
-              <button onClick={skipForward} className="text-white hover:text-primary">
+              <button onClick={skipForward} className="text-white hover:text-primary gpu-accelerated">
                 <SkipForward size={20} />
               </button>
               
@@ -352,7 +361,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title, disableClickToTog
             
             <div className="flex items-center space-x-4">
               <div className="hidden md:flex items-center space-x-2">
-                <button onClick={toggleMute} className="text-white hover:text-primary">
+                <button onClick={toggleMute} className="text-white hover:text-primary gpu-accelerated">
                   {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
                 </button>
                 <input
@@ -366,11 +375,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title, disableClickToTog
                 />
               </div>
               
-              <button onClick={toggleMute} className="md:hidden text-white hover:text-primary">
+              <button onClick={toggleMute} className="md:hidden text-white hover:text-primary gpu-accelerated">
                 {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
               </button>
               
-              <button onClick={toggleFullscreen} className="text-white hover:text-primary">
+              <button onClick={toggleFullscreen} className="text-white hover:text-primary gpu-accelerated">
                 <Maximize size={20} />
               </button>
             </div>
