@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 
 interface AdContainerProps {
@@ -121,11 +122,13 @@ const AdContainer: React.FC<AdContainerProps> = ({
     switch (position) {
       case 'sidebar':
         return {
+          width: '100%',
           maxWidth: '300px',
           minHeight: '250px',
         };
       case 'in-video':
         return {
+          width: '100%',
           maxWidth: '400px',
           minHeight: '200px',
           backgroundColor: 'rgba(0, 0, 0, 0.8)',
@@ -133,6 +136,7 @@ const AdContainer: React.FC<AdContainerProps> = ({
         };
       case 'below-video':
         return {
+          width: '100%',
           maxWidth: '728px',
           minHeight: '90px',
         };
@@ -140,6 +144,7 @@ const AdContainer: React.FC<AdContainerProps> = ({
       case 'bottom':
       default:
         return {
+          width: '100%',
           maxWidth: '728px',
           minHeight: '90px',
         };
@@ -151,8 +156,6 @@ const AdContainer: React.FC<AdContainerProps> = ({
   return (
     <div className={`optimized-ad-container ${position}-ad-position ${className}`}>
       <div 
-        ref={adContainerRef} 
-        id={uniqueIdRef.current}
         className={`ad-content-wrapper ${
           adType === 'monetag' ? 'monetag-ad' : 'adstera-ad'
         }`}
@@ -164,16 +167,24 @@ const AdContainer: React.FC<AdContainerProps> = ({
         style={{ 
           ...positionStyles,
           margin: '0 auto',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          display: 'block',
           borderRadius: position === 'in-video' ? '12px' : '8px',
           overflow: 'hidden',
           boxShadow: position === 'in-video' 
             ? '0 8px 32px rgba(0, 0, 0, 0.3)' 
             : '0 2px 8px rgba(0, 0, 0, 0.1)',
         }}
-      ></div>
+      >
+        <div 
+          ref={adContainerRef} 
+          id={uniqueIdRef.current}
+          style={{ 
+            width: '100%',
+            height: '100%',
+            minHeight: 'inherit',
+          }}
+        ></div>
+      </div>
     </div>
   );
 };
