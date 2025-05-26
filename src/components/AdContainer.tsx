@@ -34,35 +34,50 @@ const AdContainer: React.FC<AdContainerProps> = ({
     if (!adContainerRef.current || !adCode || hasLoadedRef.current) return;
     
     console.log(`Loading ad: ${adName || uniqueIdRef.current} (${adType}) at position ${position}`);
-    
-    // Clear any existing content
-    adContainerRef.current.innerHTML = '';
+    console.log(`Ad code preview: ${adCode.substring(0, 100)}...`);
     
     try {
+      // Clear any existing content
+      adContainerRef.current.innerHTML = '';
+      
       if (adCode.includes('<script')) {
         // Handle script tags properly
-        adContainerRef.current.innerHTML = adCode;
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = adCode;
         
-        const scripts = adContainerRef.current.getElementsByTagName('script');
-        for (let i = 0; i < scripts.length; i++) {
-          const script = scripts[i];
+        // Move all content to the actual container
+        while (tempDiv.firstChild) {
+          adContainerRef.current.appendChild(tempDiv.firstChild);
+        }
+        
+        // Find and execute scripts
+        const scripts = adContainerRef.current.querySelectorAll('script');
+        scripts.forEach((oldScript) => {
           const newScript = document.createElement('script');
           
-          // Copy all attributes
-          Array.from(script.attributes).forEach(attr => {
+          // Copy attributes
+          Array.from(oldScript.attributes).forEach(attr => {
             newScript.setAttribute(attr.name, attr.value);
           });
           
-          if (script.src) {
-            newScript.src = script.src;
+          if (oldScript.src) {
+            newScript.src = oldScript.src;
             newScript.async = true;
+            newScript.onload = () => {
+              console.log(`Script loaded for ad: ${adName || uniqueIdRef.current}`);
+            };
+            newScript.onerror = (error) => {
+              console.error(`Script error for ad: ${adName || uniqueIdRef.current}`, error);
+            };
           } else {
-            newScript.innerHTML = script.innerHTML;
+            newScript.textContent = oldScript.textContent;
           }
           
-          // Replace the old script with the new one
-          script.parentNode?.replaceChild(newScript, script);
-        }
+          // Replace old script with new one
+          if (oldScript.parentNode) {
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+          }
+        });
       } else {
         // For non-script ad codes (like iframe, div, etc.)
         adContainerRef.current.innerHTML = adCode;
@@ -70,10 +85,42 @@ const AdContainer: React.FC<AdContainerProps> = ({
       
       hasLoadedRef.current = true;
       setAdLoaded(true);
+      
+      // Add a small delay to check if content was actually added
+      setTimeout(() => {
+        if (adContainerRef.current) {
+          const hasContent = adContainerRef.current.children.length > 0 || 
+                           adContainerRef.current.textContent?.trim().length > 0;
+          
+          if (!hasContent) {
+            console.warn(`Ad ${adName || uniqueIdRef.current} loaded but no visible content detected`);
+            // Try to add fallback content for debugging
+            adContainerRef.current.innerHTML = `
+              <div style="padding: 20px; text-align: center; background: rgba(0,0,0,0.1); border: 1px dashed #ccc; color: #666;">
+                <p>Ad: ${adName || 'Unknown'} (${adType})</p>
+                <small>Position: ${position}</small>
+              </div>
+            `;
+          } else {
+            console.log(`Ad ${adName || uniqueIdRef.current} content confirmed visible`);
+          }
+        }
+      }, 500);
+      
       console.log(`Ad ${adName || uniqueIdRef.current} of type ${adType} loaded successfully (position: ${position})`);
       
     } catch (error) {
       console.error(`Error loading ad ${adName || uniqueIdRef.current}:`, error);
+      
+      // Add error fallback
+      if (adContainerRef.current) {
+        adContainerRef.current.innerHTML = `
+          <div style="padding: 20px; text-align: center; background: rgba(255,0,0,0.1); border: 1px dashed #f00; color: #d00;">
+            <p>Ad Load Error: ${adName || 'Unknown'}</p>
+            <small>Error: ${error.message}</small>
+          </div>
+        `;
+      }
     }
   }, [adCode, adType, position, adId, adName]);
 
@@ -82,7 +129,10 @@ const AdContainer: React.FC<AdContainerProps> = ({
     hasLoadedRef.current = false;
     setAdLoaded(false);
     
-    if (!adCode) return;
+    if (!adCode) {
+      console.warn(`No ad code provided for ${adName || uniqueIdRef.current}`);
+      return;
+    }
 
     console.log(`Starting to load ad: ${adName || uniqueIdRef.current} at position ${position} with ${delaySeconds}s delay`);
 
@@ -115,7 +165,10 @@ const AdContainer: React.FC<AdContainerProps> = ({
     };
   }, []);
 
-  if (!isVisible || !adCode) return null;
+  if (!isVisible || !adCode) {
+    console.log(`Ad ${adName || uniqueIdRef.current} not visible or no code`);
+    return null;
+  }
 
   // Get position-specific styling
   const getPositionStyles = () => {
@@ -183,7 +236,7 @@ const AdContainer: React.FC<AdContainerProps> = ({
             height: '100%',
             minHeight: 'inherit',
           }}
-        ></div>
+        />
       </div>
     </div>
   );
