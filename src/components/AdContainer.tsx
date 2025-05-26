@@ -32,7 +32,7 @@ const AdContainer: React.FC<AdContainerProps> = ({
     `ad-${adId || Math.random().toString(36).substring(2, 5)}-${position}-${Math.random().toString(36).substring(2, 5)}`
   );
 
-  // Add CSS styles to ensure ad content fits within container with more aggressive containment
+  // Improved CSS styles with better containment
   useEffect(() => {
     const containerId = uniqueIdRef.current;
     const existingStyle = document.getElementById(`${containerId}-style`);
@@ -42,8 +42,13 @@ const AdContainer: React.FC<AdContainerProps> = ({
       style.id = `${containerId}-style`;
       style.textContent = `
         #${containerId} {
+          width: 100% !important;
+          height: 100% !important;
           overflow: hidden !important;
           position: relative !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
         }
         
         #${containerId} * {
@@ -56,10 +61,7 @@ const AdContainer: React.FC<AdContainerProps> = ({
           width: 100% !important;
           height: 100% !important;
           border: none !important;
-          transform-origin: top left !important;
-          position: absolute !important;
-          top: 0 !important;
-          left: 0 !important;
+          display: block !important;
         }
         
         #${containerId} img {
@@ -67,21 +69,18 @@ const AdContainer: React.FC<AdContainerProps> = ({
           height: auto !important;
           max-height: 100% !important;
           object-fit: contain !important;
+          display: block !important;
         }
         
-        #${containerId} div {
-          max-width: 100% !important;
-          max-height: 100% !important;
-        }
-        
-        /* Handle script-generated content more aggressively */
         #${containerId} > div {
           width: 100% !important;
           height: 100% !important;
-          overflow: hidden !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
         }
         
-        /* Target common ad wrapper classes */
+        /* Handle script-generated content */
         #${containerId} [id*="ad"],
         #${containerId} [class*="ad"],
         #${containerId} [id*="banner"],
@@ -90,6 +89,15 @@ const AdContainer: React.FC<AdContainerProps> = ({
           height: 100% !important;
           max-width: 100% !important;
           max-height: 100% !important;
+          display: block !important;
+        }
+        
+        /* Force container dimensions for specific positions */
+        .${position}-ad-container {
+          display: flex !important;
+          justify-content: center !important;
+          align-items: center !important;
+          width: 100% !important;
         }
       `;
       document.head.appendChild(style);
@@ -101,9 +109,9 @@ const AdContainer: React.FC<AdContainerProps> = ({
         styleElement.remove();
       }
     };
-  }, []);
+  }, [position]);
 
-  // Monitor and adjust iframe dimensions after load
+  // Monitor and adjust content after load
   useEffect(() => {
     if (!adLoaded || !adContainerRef.current) return;
 
@@ -111,33 +119,24 @@ const AdContainer: React.FC<AdContainerProps> = ({
       const container = adContainerRef.current;
       if (!container) return;
 
-      // Find all iframes and force their dimensions
-      const iframes = container.querySelectorAll('iframe');
-      iframes.forEach((iframe) => {
-        const containerRect = container.getBoundingClientRect();
-        iframe.style.width = '100%';
-        iframe.style.height = '100%';
-        iframe.style.maxWidth = `${containerRect.width}px`;
-        iframe.style.maxHeight = `${containerRect.height}px`;
-        iframe.style.position = 'absolute';
-        iframe.style.top = '0';
-        iframe.style.left = '0';
+      // Force dimensions on all content
+      const allElements = container.querySelectorAll('*');
+      allElements.forEach((element) => {
+        const htmlElement = element as HTMLElement;
+        htmlElement.style.maxWidth = '100%';
+        htmlElement.style.maxHeight = '100%';
       });
 
-      // Also check for any oversized divs
-      const allDivs = container.querySelectorAll('div');
-      allDivs.forEach((div) => {
-        if (div.scrollWidth > container.clientWidth || div.scrollHeight > container.clientHeight) {
-          div.style.width = '100%';
-          div.style.height = '100%';
-          div.style.maxWidth = '100%';
-          div.style.maxHeight = '100%';
-          div.style.overflow = 'hidden';
-        }
+      // Special handling for iframes
+      const iframes = container.querySelectorAll('iframe');
+      iframes.forEach((iframe) => {
+        iframe.style.width = '100%';
+        iframe.style.height = '100%';
+        iframe.style.border = 'none';
+        iframe.style.display = 'block';
       });
     };
 
-    // Monitor immediately and then periodically
     monitorAdContent();
     const interval = setInterval(monitorAdContent, 1000);
 
@@ -148,28 +147,22 @@ const AdContainer: React.FC<AdContainerProps> = ({
     if (!adContainerRef.current || !adCode || hasLoadedRef.current) return;
     
     console.log(`Loading ad: ${adName || uniqueIdRef.current} (${adType}) at position ${position}`);
-    console.log(`Ad code preview: ${adCode.substring(0, 100)}...`);
     
     try {
-      // Clear any existing content
       adContainerRef.current.innerHTML = '';
       
       if (adCode.includes('<script')) {
-        // Handle script tags properly
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = adCode;
         
-        // Move all content to the actual container
         while (tempDiv.firstChild) {
           adContainerRef.current.appendChild(tempDiv.firstChild);
         }
         
-        // Find and execute scripts
         const scripts = adContainerRef.current.querySelectorAll('script');
         scripts.forEach((oldScript) => {
           const newScript = document.createElement('script');
           
-          // Copy attributes
           Array.from(oldScript.attributes).forEach(attr => {
             newScript.setAttribute(attr.name, attr.value);
           });
@@ -180,27 +173,21 @@ const AdContainer: React.FC<AdContainerProps> = ({
             newScript.onload = () => {
               console.log(`Script loaded for ad: ${adName || uniqueIdRef.current}`);
             };
-            newScript.onerror = (error) => {
-              console.error(`Script error for ad: ${adName || uniqueIdRef.current}`, error);
-            };
           } else {
             newScript.textContent = oldScript.textContent;
           }
           
-          // Replace old script with new one
           if (oldScript.parentNode) {
             oldScript.parentNode.replaceChild(newScript, oldScript);
           }
         });
       } else {
-        // For non-script ad codes (like iframe, div, etc.)
         adContainerRef.current.innerHTML = adCode;
       }
       
       hasLoadedRef.current = true;
       setAdLoaded(true);
       
-      // Add a small delay to check if content was actually added
       setTimeout(() => {
         if (adContainerRef.current) {
           const hasContent = adContainerRef.current.children.length > 0 || 
@@ -208,13 +195,6 @@ const AdContainer: React.FC<AdContainerProps> = ({
           
           if (!hasContent) {
             console.warn(`Ad ${adName || uniqueIdRef.current} loaded but no visible content detected`);
-            // Try to add fallback content for debugging
-            adContainerRef.current.innerHTML = `
-              <div style="padding: 20px; text-align: center; background: rgba(0,0,0,0.1); border: 1px dashed #ccc; color: #666;">
-                <p>Ad: ${adName || 'Unknown'} (${adType})</p>
-                <small>Position: ${position}</small>
-              </div>
-            `;
           } else {
             console.log(`Ad ${adName || uniqueIdRef.current} content confirmed visible`);
           }
@@ -225,21 +205,10 @@ const AdContainer: React.FC<AdContainerProps> = ({
       
     } catch (error) {
       console.error(`Error loading ad ${adName || uniqueIdRef.current}:`, error);
-      
-      // Add error fallback
-      if (adContainerRef.current) {
-        adContainerRef.current.innerHTML = `
-          <div style="padding: 20px; text-align: center; background: rgba(255,0,0,0.1); border: 1px dashed #f00; color: #d00;">
-            <p>Ad Load Error: ${adName || 'Unknown'}</p>
-            <small>Error: ${error.message}</small>
-          </div>
-        `;
-      }
     }
   }, [adCode, adType, position, adId, adName]);
 
   useEffect(() => {
-    // Reset loaded state when ad code changes
     hasLoadedRef.current = false;
     setAdLoaded(false);
     
@@ -248,9 +217,6 @@ const AdContainer: React.FC<AdContainerProps> = ({
       return;
     }
 
-    console.log(`Starting to load ad: ${adName || uniqueIdRef.current} at position ${position} with ${delaySeconds}s delay`);
-
-    // Clear any existing timeout
     if (loadTimeoutRef.current) {
       clearTimeout(loadTimeoutRef.current);
     }
@@ -270,7 +236,6 @@ const AdContainer: React.FC<AdContainerProps> = ({
     };
   }, [adCode, delaySeconds, loadAd]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (loadTimeoutRef.current) {
@@ -280,14 +245,13 @@ const AdContainer: React.FC<AdContainerProps> = ({
   }, []);
 
   if (!isVisible || !adCode) {
-    console.log(`Ad ${adName || uniqueIdRef.current} not visible or no code`);
     return null;
   }
 
-  // Get position-specific styling with dynamic sizes
+  // Get position-specific styling with improved sizing
   const getPositionStyles = () => {
     const defaultSizes = {
-      in_video: { width: 320, height: 50 },
+      'in-video': { width: 320, height: 50 },
       top: { width: 320, height: 50 },
       'below-video': { width: 320, height: 50 },
       bottom: { width: 300, height: 250 },
@@ -329,6 +293,9 @@ const AdContainer: React.FC<AdContainerProps> = ({
       maxHeight: `${height}px`,
       minHeight: `${height}px`,
       overflow: 'hidden',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
     };
 
     if (position === 'in-video') {
@@ -345,7 +312,7 @@ const AdContainer: React.FC<AdContainerProps> = ({
   const positionStyles = getPositionStyles();
 
   return (
-    <div className={`optimized-ad-container ${position}-ad-position ${className}`}>
+    <div className={`optimized-ad-container ${position}-ad-container ${className}`}>
       <div 
         className={`ad-content-wrapper ${
           adType === 'monetag' ? 'monetag-ad' : 'adstera-ad'
@@ -358,9 +325,7 @@ const AdContainer: React.FC<AdContainerProps> = ({
         style={{ 
           ...positionStyles,
           margin: '0 auto',
-          display: 'block',
           borderRadius: position === 'in-video' ? '12px' : '8px',
-          overflow: 'hidden',
           boxShadow: position === 'in-video' 
             ? '0 8px 32px rgba(0, 0, 0, 0.3)' 
             : '0 2px 8px rgba(0, 0, 0, 0.1)',
@@ -378,6 +343,9 @@ const AdContainer: React.FC<AdContainerProps> = ({
             maxHeight: '100%',
             overflow: 'hidden',
             position: 'relative',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         />
       </div>

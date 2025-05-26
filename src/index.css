@@ -123,30 +123,43 @@
     line-height: 1 !important;
   }
 
-  /* Optimized Ad Container Styles */
+  /* Improved Ad Container Styles */
   .optimized-ad-container {
     @apply w-full flex justify-center items-center;
     padding: 8px 0;
+    box-sizing: border-box;
   }
 
-  .top-ad-position {
-    @apply mb-4;
+  .top-ad-container {
+    @apply mb-4 w-full max-w-full;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
   }
 
-  .bottom-ad-position {
-    @apply mt-6;
+  .bottom-ad-container {
+    @apply mt-6 w-full max-w-full;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
   }
 
-  .sidebar-ad-position {
-    @apply mb-4;
+  .sidebar-ad-container {
+    @apply mb-4 w-full max-w-full;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
   }
 
-  .in-video-ad-position {
+  .in-video-ad-container {
     @apply relative;
   }
 
-  .below-video-ad-position {
-    @apply mt-4;
+  .below-video-ad-container {
+    @apply mt-4 w-full max-w-full;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
   }
 
   .ad-content-wrapper {
@@ -154,6 +167,10 @@
     background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%);
     border: 1px solid rgba(255,255,255,0.1);
     min-height: 60px;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
   }
 
   .ad-content-wrapper.monetag-ad {
@@ -172,18 +189,19 @@
     border-color: rgba(255,255,255,0.08);
   }
 
-  /* Ensure ad content takes full space */
-  .ad-content-wrapper > div {
+  /* Ensure proper ad layout */
+  .bottom-ads-section,
+  .sidebar-ads-section,
+  .top-ads-section {
     width: 100% !important;
-    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 1rem !important;
   }
 
-  /* Ad content styling */
-  .ad-content-wrapper iframe,
-  .ad-content-wrapper img,
-  .ad-content-wrapper div {
+  .sidebar-ads-section {
     max-width: 100% !important;
-    height: auto !important;
   }
   
   .admin-card {
@@ -242,24 +260,30 @@
   transform: translateY(-1px);
 }
 
-/* Responsive ad sizing */
+/* Force proper container behavior */
+.optimized-ad-container .ad-content-wrapper {
+  contain: layout size style !important;
+  isolation: isolate !important;
+}
+
+/* Responsive ad sizing with better containment */
 @media (max-width: 768px) {
   .ad-content-wrapper {
     max-width: 100% !important;
     margin: 0 auto;
   }
 
-  .top-ad-position,
-  .bottom-ad-position {
+  .top-ad-container,
+  .bottom-ad-container,
+  .sidebar-ad-container {
     padding: 0 1rem;
-  }
-
-  .sidebar-ad-position {
-    max-width: 100%;
+    max-width: 100% !important;
   }
 
   .optimized-ad-container {
     padding: 4px 0;
+    width: 100% !important;
+    max-width: 100% !important;
   }
 }
 
@@ -267,6 +291,12 @@
   .ad-content-wrapper {
     min-height: 50px !important;
     border-radius: 6px !important;
+  }
+  
+  .sidebar-ad-container,
+  .bottom-ad-container {
+    width: 100% !important;
+    max-width: 100% !important;
   }
 }
 
