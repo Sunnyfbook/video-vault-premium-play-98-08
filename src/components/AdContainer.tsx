@@ -32,6 +32,50 @@ const AdContainer: React.FC<AdContainerProps> = ({
     `ad-${adId || Math.random().toString(36).substring(2, 5)}-${position}-${Math.random().toString(36).substring(2, 5)}`
   );
 
+  // Add CSS styles to ensure ad content fits within container
+  useEffect(() => {
+    const containerId = uniqueIdRef.current;
+    const existingStyle = document.getElementById(`${containerId}-style`);
+    
+    if (!existingStyle) {
+      const style = document.createElement('style');
+      style.id = `${containerId}-style`;
+      style.textContent = `
+        #${containerId} * {
+          max-width: 100% !important;
+          max-height: 100% !important;
+          box-sizing: border-box !important;
+        }
+        
+        #${containerId} iframe {
+          width: 100% !important;
+          height: 100% !important;
+          border: none !important;
+        }
+        
+        #${containerId} img {
+          width: 100% !important;
+          height: auto !important;
+          max-height: 100% !important;
+          object-fit: contain !important;
+        }
+        
+        #${containerId} div {
+          max-width: 100% !important;
+          max-height: 100% !important;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    return () => {
+      const styleElement = document.getElementById(`${containerId}-style`);
+      if (styleElement) {
+        styleElement.remove();
+      }
+    };
+  }, []);
+
   const loadAd = useCallback(() => {
     if (!adContainerRef.current || !adCode || hasLoadedRef.current) return;
     
@@ -267,33 +311,6 @@ const AdContainer: React.FC<AdContainerProps> = ({
             position: 'relative',
           }}
         />
-        
-        {/* Add CSS to ensure all ad content fits within container */}
-        <style jsx>{`
-          #${uniqueIdRef.current} * {
-            max-width: 100% !important;
-            max-height: 100% !important;
-            box-sizing: border-box !important;
-          }
-          
-          #${uniqueIdRef.current} iframe {
-            width: 100% !important;
-            height: 100% !important;
-            border: none !important;
-          }
-          
-          #${uniqueIdRef.current} img {
-            width: 100% !important;
-            height: auto !important;
-            max-height: 100% !important;
-            object-fit: contain !important;
-          }
-          
-          #${uniqueIdRef.current} div {
-            max-width: 100% !important;
-            max-height: 100% !important;
-          }
-        `}</style>
       </div>
     </div>
   );
