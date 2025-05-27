@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { 
   Carousel,
@@ -9,10 +10,12 @@ import {
 } from "@/components/ui/carousel";
 import { Card } from "@/components/ui/card";
 import { HomepageContent } from "@/hooks/useHomepageContent";
-import InstagramEmbed from "@/components/InstagramEmbed";
 import { useHomepageConfig } from "@/hooks/useHomepageConfig";
 import { useIsMobile } from "@/hooks/use-mobile";
 import MobileCharacterCarousel from "@/components/MobileCharacterCarousel";
+import CarouselVideoItem from "@/components/carousel/CarouselVideoItem";
+import CarouselImageItem from "@/components/carousel/CarouselImageItem";
+import CarouselInstagramItem from "@/components/carousel/CarouselInstagramItem";
 
 interface ContentCarouselProps {
   items: HomepageContent[];
@@ -60,10 +63,7 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({
     if (autoSwipeRef.current) {
       clearTimeout(autoSwipeRef.current);
     }
-    
-    // Set different intervals based on content type
-    const interval = type === "video" ? 5000 : 2000; // 5s for video, 2s for image
-    
+    const interval = type === "video" ? 5000 : 2000;
     autoSwipeRef.current = setTimeout(() => {
       if (embla) {
         embla.scrollNext();
@@ -78,35 +78,25 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({
     }
   };
 
-  // Handle carousel initialization and slide change
   const handleCarouselCreated = (emblaApi) => {
     setEmbla(emblaApi);
-    
     const onSelect = () => {
       const currentIndex = emblaApi.selectedScrollSnap();
       setActiveIndex(currentIndex);
-      
       // Pause all videos
       videoRefs.current.forEach((video, i) => {
         if (video) {
           if (i === currentIndex) {
-            // Play the center video
             video.play().catch(err => console.log('Autoplay was prevented'));
           } else {
-            // Pause other videos
             video.pause();
           }
         }
       });
-
-      // Restart auto-swipe timer when slide changes
       startAutoSwipe();
     };
-
     emblaApi.on('select', onSelect);
-    // Initial call to set the first video playing and start auto-swipe
     onSelect();
-    
     return () => {
       emblaApi.off('select', onSelect);
     };
@@ -114,80 +104,41 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({
 
   useEffect(() => {
     if (!embla) return;
-    
     const cleanup = handleCarouselCreated(embla);
     return cleanup;
   }, [embla, items, type]);
 
-  // Clean up auto-swipe on unmount
   useEffect(() => {
     return () => {
       stopAutoSwipe();
     };
   }, []);
 
-  // Pause auto-swipe on mouse enter, resume on mouse leave
-  const handleMouseEnter = () => {
-    stopAutoSwipe();
-  };
+  const handleMouseEnter = () => { stopAutoSwipe(); };
+  const handleMouseLeave = () => { startAutoSwipe(); };
 
-  const handleMouseLeave = () => {
-    startAutoSwipe();
-  };
-
+  // New renderContent using split-out components
   const renderContent = (item: HomepageContent, index: number) => {
     if (item.type === "instagram") {
-      return (
-        <InstagramEmbed 
-          url={item.url}
-          title={item.title || "Instagram content"} 
-          className="w-full h-full"
-        />
-      );
+      return <CarouselInstagramItem item={item} />;
     } else if (item.type === "video") {
-      // Only preload/play the active video
       const isActive = activeIndex === index;
       return (
-        <video
-          ref={el => {
-            if (el) videoRefs.current[index] = el;
-          }}
-          src={item.url}
-          poster={item.thumbnail || undefined}
-          className="w-full h-full object-cover"
-          loop
-          playsInline
-          muted
-          controls={false}
-          preload={isActive ? "auto" : "none"}
-          style={{
-            background: "#111", // Keep a dark background before video loads
-            opacity: isActive ? 1 : 0.7,
-            transition: "opacity 0.2s"
-          }}
+        <CarouselVideoItem 
+          item={item} 
+          isActive={isActive} 
+          videoRef={el => { if (el) videoRefs.current[index] = el; }}
         />
       );
     } else {
-      return (
-        <img
-          src={item.url}
-          alt={item.title || "Featured image"}
-          className="w-full h-full object-cover bg-gray-200 transition-opacity"
-          loading="lazy"
-          style={{
-            background: "linear-gradient(90deg,#e5e7eb,#f3f4f6)",
-            objectFit: "cover"
-          }}
-        />
-      );
+      return <CarouselImageItem item={item} />;
     }
   };
 
-  // Apply custom style for container from config
   const containerStyle = {
     maxWidth: containerMaxWidth,
     aspectRatio: containerAspectRatio,
-    width: '100%' // Make sure it takes full available width up to max width
+    width: '100%'
   };
 
   const onCarouselCreated = React.useCallback((api) => {
@@ -232,13 +183,9 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({
             </CarouselItem>
           ))}
         </CarouselContent>
-        
-        {/* Always visible navigation arrows, more visible on hover */}
         <CarouselPrevious className="opacity-70 md:opacity-70 hover:opacity-100 transition-opacity duration-300" />
         <CarouselNext className="opacity-70 md:opacity-70 hover:opacity-100 transition-opacity duration-300" />
       </Carousel>
-      
-      {/* Dots indicator at the bottom */}
       {items.length > 1 && (
         <div className="flex justify-center mt-4 gap-2">
           {items.map((_, index) => (
