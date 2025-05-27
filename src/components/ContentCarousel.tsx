@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { 
   Carousel,
@@ -146,6 +145,8 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({
         />
       );
     } else if (item.type === "video") {
+      // Only preload/play the active video
+      const isActive = activeIndex === index;
       return (
         <video
           ref={el => {
@@ -154,10 +155,16 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({
           src={item.url}
           poster={item.thumbnail || undefined}
           className="w-full h-full object-cover"
+          loop
           playsInline
           muted
-          loop
           controls={false}
+          preload={isActive ? "auto" : "none"}
+          style={{
+            background: "#111", // Keep a dark background before video loads
+            opacity: isActive ? 1 : 0.7,
+            transition: "opacity 0.2s"
+          }}
         />
       );
     } else {
@@ -165,7 +172,12 @@ const ContentCarousel: React.FC<ContentCarouselProps> = ({
         <img
           src={item.url}
           alt={item.title || "Featured image"}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover bg-gray-200 transition-opacity"
+          loading="lazy"
+          style={{
+            background: "linear-gradient(90deg,#e5e7eb,#f3f4f6)",
+            objectFit: "cover"
+          }}
         />
       );
     }
