@@ -103,29 +103,10 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
               src={video.url} 
               title={video.title}
               disableClickToToggle={showInVideoAd}
+              inVideoAds={inVideoAds}
+              showInVideoAd={showInVideoAd}
+              onCloseInVideoAd={handleCloseInVideoAd}
             />
-            
-            {/* In-video ads overlay with close button */}
-            {showInVideoAd && inVideoAds.length > 0 && (
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-40">
-                <div className="in-video-ads-section pointer-events-auto relative">
-                  <button
-                    onClick={handleCloseInVideoAd}
-                    className="absolute top-2 right-2 z-50 bg-black bg-opacity-50 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg font-bold hover:bg-opacity-70 transition-all"
-                    style={{ fontSize: '16px', lineHeight: '1' }}
-                  >
-                    ×
-                  </button>
-                  <AdsSection 
-                    ads={inVideoAds} 
-                    className="in-video-ad-container" 
-                    staggerDelay={false} 
-                    baseDelaySeconds={0}
-                    positionClass="in-video-ads-section" 
-                  />
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Video Middle Ads */}

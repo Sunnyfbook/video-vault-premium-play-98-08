@@ -3,15 +3,27 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Volume2, VolumeX, Maximize, SkipBack, SkipForward } from 'lucide-react';
 import LoadingOverlay from './video/LoadingOverlay';
 import ErrorOverlay from './video/ErrorOverlay';
+import AdsSection from './video/AdsSection';
+import { Ad } from '@/models/Ad';
 import Hls from 'hls.js';
 
 interface VideoPlayerProps {
   src: string;
   title: string;
   disableClickToToggle?: boolean;
+  inVideoAds?: Ad[];
+  showInVideoAd?: boolean;
+  onCloseInVideoAd?: () => void;
 }
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title, disableClickToToggle = false }) => {
+const VideoPlayer: React.FC<VideoPlayerProps> = ({ 
+  src, 
+  title, 
+  disableClickToToggle = false,
+  inVideoAds = [],
+  showInVideoAd = false,
+  onCloseInVideoAd
+}) => {
   // Refs
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -312,6 +324,28 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, title, disableClickToTog
         playsInline
         onClick={handleVideoClick}
       />
+      
+      {/* In-video ads overlay - now inside the fullscreen container */}
+      {showInVideoAd && inVideoAds.length > 0 && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-40">
+          <div className="in-video-ads-section pointer-events-auto relative">
+            <button
+              onClick={onCloseInVideoAd}
+              className="absolute top-2 right-2 z-50 bg-black bg-opacity-50 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg font-bold hover:bg-opacity-70 transition-all"
+              style={{ fontSize: '16px', lineHeight: '1' }}
+            >
+              ×
+            </button>
+            <AdsSection 
+              ads={inVideoAds} 
+              className="in-video-ad-container" 
+              staggerDelay={false} 
+              baseDelaySeconds={0}
+              positionClass="in-video-ads-section" 
+            />
+          </div>
+        </div>
+      )}
       
       {showControls && (
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
