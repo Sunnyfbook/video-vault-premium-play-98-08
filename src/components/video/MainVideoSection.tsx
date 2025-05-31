@@ -32,6 +32,7 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
   videoRightAds = []
 }) => {
   const [showInVideoAd, setShowInVideoAd] = useState(false);
+  const [adTimer, setAdTimer] = useState<NodeJS.Timeout | null>(null);
   const videoPlayerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -41,14 +42,31 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
       console.log('Displaying in-video ad');
       setShowInVideoAd(true);
       
-      setTimeout(() => {
-        console.log('Auto-hiding in-video ad');
+      // Set auto-close timer for 10 seconds
+      const timer = setTimeout(() => {
+        console.log('Auto-closing in-video ad after 10 seconds');
         setShowInVideoAd(false);
-      }, 5000);
+      }, 10000);
+      
+      setAdTimer(timer);
     }, 10000);
 
-    return () => clearInterval(showAdInterval);
-  }, [inVideoAds]);
+    return () => {
+      clearInterval(showAdInterval);
+      if (adTimer) {
+        clearTimeout(adTimer);
+      }
+    };
+  }, [inVideoAds, adTimer]);
+
+  const handleCloseInVideoAd = () => {
+    console.log('User manually closed in-video ad');
+    setShowInVideoAd(false);
+    if (adTimer) {
+      clearTimeout(adTimer);
+      setAdTimer(null);
+    }
+  };
 
   return (
     <div className="flex-1 space-y-6">
@@ -87,10 +105,17 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
               disableClickToToggle={showInVideoAd}
             />
             
-            {/* In-video ads overlay */}
+            {/* In-video ads overlay with close button */}
             {showInVideoAd && inVideoAds.length > 0 && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-40">
-                <div className="in-video-ads-section pointer-events-auto">
+                <div className="in-video-ads-section pointer-events-auto relative">
+                  <button
+                    onClick={handleCloseInVideoAd}
+                    className="absolute top-2 right-2 z-50 bg-black bg-opacity-50 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg font-bold hover:bg-opacity-70 transition-all"
+                    style={{ fontSize: '16px', lineHeight: '1' }}
+                  >
+                    ×
+                  </button>
                   <AdsSection 
                     ads={inVideoAds} 
                     className="in-video-ad-container" 

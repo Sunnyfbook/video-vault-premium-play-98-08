@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -9,6 +10,7 @@ import { SEOSetting, getSEOSettings } from '@/models/SEO';
 import { VideoAccessCode, getAccessCodes } from '@/models/VideoAccess';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useIsMobile } from '@/hooks/use-mobile';
 import HomepageContentManager from "@/components/admin/HomepageContentManager";
 import AdminCredentialsManager from '@/components/admin/AdminCredentialsManager';
 import AnalyticsOverview from '@/components/admin/AnalyticsOverview';
@@ -28,6 +30,7 @@ const Admin: React.FC = () => {
   const [accessCodes, setAccessCodes] = useState<VideoAccessCode[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   
   // Redirect if not logged in
   if (!isLoggedIn) {
@@ -215,7 +218,7 @@ const Admin: React.FC = () => {
   
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
@@ -224,33 +227,44 @@ const Admin: React.FC = () => {
   }
   
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
+    <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-8 gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-brand mb-2">Admin Dashboard</h1>
-          <p className="text-gray-500">Manage your videos and ads</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-brand mb-1 sm:mb-2">Admin Dashboard</h1>
+          <p className="text-sm sm:text-base text-gray-500">Manage your videos and ads</p>
         </div>
-        <div className="flex gap-4">
-          <Link to="/">
-            <Button variant="outline">View Site</Button>
+        <div className="flex gap-2 sm:gap-4 w-full sm:w-auto">
+          <Link to="/" className="flex-1 sm:flex-none">
+            <Button variant="outline" size={isMobile ? "sm" : "default"} className="w-full sm:w-auto text-xs sm:text-sm">
+              View Site
+            </Button>
           </Link>
-          <Button variant="secondary" onClick={logout}>Logout</Button>
+          <Button 
+            variant="secondary" 
+            onClick={logout} 
+            size={isMobile ? "sm" : "default"}
+            className="flex-1 sm:flex-none text-xs sm:text-sm"
+          >
+            Logout
+          </Button>
         </div>
       </div>
       
-      <Tabs defaultValue="videos">
-        <TabsList className="mb-6">
-          <TabsTrigger value="videos">Videos</TabsTrigger>
-          <TabsTrigger value="ads">Ads</TabsTrigger>
-          <TabsTrigger value="ad_sizes">Ad Sizes</TabsTrigger>
-          <TabsTrigger value="access_codes">Video Access</TabsTrigger>
-          <TabsTrigger value="access_button">Access Button</TabsTrigger>
-          <TabsTrigger value="seo">SEO Settings</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="homepage">Homepage</TabsTrigger>
-          <TabsTrigger value="homepage_settings">Homepage Settings</TabsTrigger>
-          <TabsTrigger value="account">Account</TabsTrigger>
-        </TabsList>
+      <Tabs defaultValue="videos" className="w-full">
+        <div className="overflow-x-auto">
+          <TabsList className="mb-4 sm:mb-6 w-full sm:w-auto grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-1 sm:gap-0 min-w-max">
+            <TabsTrigger value="videos" className="text-xs sm:text-sm px-2 sm:px-3">Videos</TabsTrigger>
+            <TabsTrigger value="ads" className="text-xs sm:text-sm px-2 sm:px-3">Ads</TabsTrigger>
+            <TabsTrigger value="ad_sizes" className="text-xs sm:text-sm px-2 sm:px-3">Ad Sizes</TabsTrigger>
+            <TabsTrigger value="access_codes" className="text-xs sm:text-sm px-2 sm:px-3">Video Access</TabsTrigger>
+            <TabsTrigger value="access_button" className="text-xs sm:text-sm px-2 sm:px-3">Access Button</TabsTrigger>
+            <TabsTrigger value="seo" className="text-xs sm:text-sm px-2 sm:px-3">SEO Settings</TabsTrigger>
+            <TabsTrigger value="analytics" className="text-xs sm:text-sm px-2 sm:px-3">Analytics</TabsTrigger>
+            <TabsTrigger value="homepage" className="text-xs sm:text-sm px-2 sm:px-3">Homepage</TabsTrigger>
+            <TabsTrigger value="homepage_settings" className="text-xs sm:text-sm px-2 sm:px-3">Homepage Settings</TabsTrigger>
+            <TabsTrigger value="account" className="text-xs sm:text-sm px-2 sm:px-3">Account</TabsTrigger>
+          </TabsList>
+        </div>
         
         <TabsContent value="videos">
           <VideosTab videos={videos} />
