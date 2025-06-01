@@ -32,39 +32,50 @@ const MainVideoSection: React.FC<MainVideoSectionProps> = ({
   videoRightAds = []
 }) => {
   const [showInVideoAd, setShowInVideoAd] = useState(false);
-  const [adTimer, setAdTimer] = useState<NodeJS.Timeout | null>(null);
+  const adIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const adTimerRef = useRef<NodeJS.Timeout | null>(null);
   const videoPlayerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (inVideoAds.length === 0) return;
+
+    // Clear any existing intervals/timers
+    if (adIntervalRef.current) {
+      clearInterval(adIntervalRef.current);
+    }
+    if (adTimerRef.current) {
+      clearTimeout(adTimerRef.current);
+    }
 
     const showAdInterval = setInterval(() => {
       console.log('Displaying in-video ad');
       setShowInVideoAd(true);
       
       // Set auto-close timer for 10 seconds
-      const timer = setTimeout(() => {
+      adTimerRef.current = setTimeout(() => {
         console.log('Auto-closing in-video ad after 10 seconds');
         setShowInVideoAd(false);
       }, 10000);
-      
-      setAdTimer(timer);
-    }, 10000);
+    }, 30000); // Show ad every 30 seconds instead of 10 to reduce frequency
+
+    adIntervalRef.current = showAdInterval;
 
     return () => {
-      clearInterval(showAdInterval);
-      if (adTimer) {
-        clearTimeout(adTimer);
+      if (adIntervalRef.current) {
+        clearInterval(adIntervalRef.current);
+      }
+      if (adTimerRef.current) {
+        clearTimeout(adTimerRef.current);
       }
     };
-  }, [inVideoAds, adTimer]);
+  }, [inVideoAds.length]); // Only depend on the length, not the timer
 
   const handleCloseInVideoAd = () => {
     console.log('User manually closed in-video ad');
     setShowInVideoAd(false);
-    if (adTimer) {
-      clearTimeout(adTimer);
-      setAdTimer(null);
+    if (adTimerRef.current) {
+      clearTimeout(adTimerRef.current);
+      adTimerRef.current = null;
     }
   };
 
